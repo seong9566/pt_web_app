@@ -1,0 +1,127 @@
+<template>
+  <div class="login-view">
+    <div class="login-view__bg-circle login-view__bg-circle--1" />
+    <div class="login-view__bg-circle login-view__bg-circle--2" />
+    <div class="login-view__content">
+      <div class="login-view__brand">
+        <div class="login-view__icon-box">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="20" width="8" height="8" rx="3" fill="#007AFF"/>
+            <rect x="34" y="20" width="8" height="8" rx="3" fill="#007AFF"/>
+            <rect x="10" y="16" width="6" height="16" rx="2" fill="#007AFF"/>
+            <rect x="32" y="16" width="6" height="16" rx="2" fill="#007AFF"/>
+            <rect x="16" y="22" width="16" height="4" rx="2" fill="#007AFF"/>
+          </svg>
+        </div>
+        <h1 class="login-view__title">PT 매니저</h1>
+        <p class="login-view__subtitle">체계적인 PT 일정 및<br />회원 관리 솔루션</p>
+      </div>
+      <div class="login-view__actions">
+        <button class="login-view__btn login-view__btn--kakao" @click="handleKakao">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2C6.029 2 2 5.358 2 9.5c0 2.647 1.617 4.97 4.063 6.33L5.1 19.5a.25.25 0 0 0 .37.27L10.1 17.1c.296.025.596.04.9.04 4.971 0 9-3.358 9-7.5S15.971 2 11 2z" fill="#000000"/>
+          </svg>
+          카카오로 시작하기
+        </button>
+        <div class="login-view__divider">
+          <span class="login-view__divider-line" />
+          <span class="login-view__divider-text">또는</span>
+          <span class="login-view__divider-line" />
+        </div>
+        <button class="login-view__btn login-view__btn--email" @click="handleEmail">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="4" width="16" height="12" rx="2" stroke="#666666" stroke-width="1.5"/>
+            <path d="M2 7L10 12L18 7" stroke="#666666" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          이메일로 로그인
+        </button>
+      </div>
+    </div>
+    <p class="login-view__footer">
+      계속 진행 시
+      <a href="#" class="login-view__link">이용약관</a>
+      및
+      <a href="#" class="login-view__link">개인정보처리방침</a>에<br />동의하게 됩니다.
+    </p>
+  </div>
+</template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
+function handleKakao() { router.push('/onboarding/role') }
+function handleEmail() { alert('준비 중입니다') }
+</script>
+
+<style scoped>
+.login-view {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px var(--side-margin) 40px;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-white);
+}
+.login-view__bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-blue-light);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.login-view__bg-circle--1 { width: 300px; height: 300px; top: -80px; right: -80px; }
+.login-view__bg-circle--2 { width: 200px; height: 200px; top: 60px; left: -60px; opacity: 0.3; }
+.login-view__content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  z-index: 1;
+}
+.login-view__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 40px;
+}
+.login-view__icon-box {
+  width: 88px;
+  height: 88px;
+  background-color: var(--color-blue-light);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+}
+.login-view__title { font-size: 28px; font-weight: 700; color: var(--color-gray-900); margin: 0; }
+.login-view__subtitle { font-size: var(--fs-body1); color: var(--color-gray-600); text-align: center; line-height: 1.6; margin: 0; }
+.login-view__actions { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.login-view__btn {
+  width: 100%;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+.login-view__btn--kakao { background-color: #FEE500; color: #000000; }
+.login-view__btn--email { background-color: var(--color-white); color: var(--color-gray-900); border: 1.5px solid var(--color-gray-200); }
+.login-view__btn:active { opacity: 0.85; }
+.login-view__divider { display: flex; align-items: center; gap: 12px; }
+.login-view__divider-line { flex: 1; height: 1px; background-color: var(--color-gray-200); }
+.login-view__divider-text { font-size: var(--fs-body2); color: var(--color-gray-600); white-space: nowrap; }
+.login-view__footer { font-size: var(--fs-caption); color: var(--color-gray-600); text-align: center; line-height: 1.6; z-index: 1; }
+.login-view__link { color: var(--color-blue-primary); text-decoration: underline; }
+</style>

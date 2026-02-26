@@ -1,0 +1,27 @@
+
+> pt-web-app@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 44 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                               0.39 kB │ gzip:  0.29 kB
+dist/assets/LoginView-DemAcMik.css            0.04 kB │ gzip:  0.06 kB
+dist/assets/RoleSelectView-Epd5pZww.css       0.04 kB │ gzip:  0.06 kB
+dist/assets/TrainerProfileView-Bu-RS6YY.css   0.04 kB │ gzip:  0.06 kB
+dist/assets/MemberProfileView-DBTtYKoa.css    0.04 kB │ gzip:  0.06 kB
+dist/assets/TrainerSearchView-CqcyaWyH.css    0.04 kB │ gzip:  0.06 kB
+dist/assets/InviteManageView-TvVCrCUL.css     0.04 kB │ gzip:  0.06 kB
+dist/assets/InviteEnterView-ZzRbmEMu.css      0.04 kB │ gzip:  0.06 kB
+dist/assets/index-DtxxS5YW.css                0.31 kB │ gzip:  0.25 kB
+dist/assets/LoginView-CGpja35k.js             0.27 kB │ gzip:  0.23 kB
+dist/assets/InviteManageView-BW_xuMm3.js      0.27 kB │ gzip:  0.24 kB
+dist/assets/TrainerSearchView-B4GBGLrM.js     0.27 kB │ gzip:  0.24 kB
+dist/assets/RoleSelectView-DwWZngjC.js        0.28 kB │ gzip:  0.24 kB
+dist/assets/InviteEnterView-DmG4-JqE.js       0.28 kB │ gzip:  0.24 kB
+dist/assets/MemberProfileView-C23mr7hx.js     0.28 kB │ gzip:  0.24 kB
+dist/assets/TrainerProfileView-Dx2uBTm8.js    0.28 kB │ gzip:  0.24 kB
+dist/assets/index-BDx3a6EZ.js                90.06 kB │ gzip: 35.13 kB
+✓ built in 511ms
