@@ -1,0 +1,375 @@
+/* ──────────────────────────────────────────
+   MemberHomeView — 회원 홈
+────────────────────────────────────────── */
+
+.member-home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
+}
+
+/* ── Header ── */
+.member-home__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin) 14px;
+  background-color: var(--color-white);
+}
+
+.member-home__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-home__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8d5a3, #e8a070);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.member-home__greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.member-home__greeting-sub {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  line-height: 1.3;
+}
+
+.member-home__greeting-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-home__greeting-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.member-home__pt-header-badge {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  font-size: 11px;
+  font-weight: var(--fw-body1-bold);
+  padding: 3px 6px;
+  border-radius: 8px;
+  margin-left: 2px;
+}
+
+.member-home__online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-green);
+  flex-shrink: 0;
+}
+
+/* Bell */
+.member-home__bell {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--color-gray-900);
+  cursor: pointer;
+}
+
+.member-home__bell-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-red);
+  border: 1.5px solid var(--color-white);
+}
+
+/* ── Body ── */
+.member-home__body {
+  flex: 1;
+  padding: 16px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Section ── */
+.member-home__section-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.member-home__section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.member-home__see-all {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ── PT 일정 카드 ── */
+.member-home__pt-card {
+  position: relative;
+  border-radius: var(--radius-large);
+  padding: 20px 20px 0;
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* 배경 데코 */
+.member-home__pt-card::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -20px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 122, 255, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.member-home__pt-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.member-home__pt-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-600);
+  font-size: var(--fs-caption);
+  margin-bottom: 4px;
+}
+
+.member-home__pt-countdown {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.member-home__pt-title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.member-home__pt-trainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  margin-bottom: 16px;
+}
+
+/* 루틴 카드 */
+.member-home__pt-routine {
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium) var(--radius-medium) var(--radius-large) var(--radius-large);
+  padding: 14px 16px 18px;
+  margin: 0 -20px;
+}
+
+.member-home__pt-routine-label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0 0 10px;
+}
+
+.member-home__pt-routine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-home__pt-routine-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+}
+
+
+/* ── 오늘의 운동 ── */
+.member-home__workout-list {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.member-home__workout-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.member-home__workout-item:active {
+  background-color: var(--color-gray-100);
+}
+
+.member-home__workout-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-home__workout-name {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0 0 2px;
+}
+
+.member-home__workout-meta {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.member-home__workout-chevron {
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+}
+
+.member-home__workout-divider {
+  height: 1px;
+  background-color: var(--color-gray-200);
+  margin: 0 16px;
+}
+
+/* ── 이번 주 목표 카드 ── */
+.member-home__goal-card {
+  background: linear-gradient(145deg, #111827 0%, #1c2535 60%, #0d1520 100%);
+  border-radius: var(--radius-large);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.member-home__goal-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-home__goal-badge {
+  display: inline-block;
+  background-color: rgba(52, 199, 89, 0.2);
+  color: var(--color-green);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(52, 199, 89, 0.35);
+}
+
+.member-home__goal-count {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.member-home__goal-count-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-white);
+  line-height: 1;
+}
+
+.member-home__goal-icons {
+  display: flex;
+  gap: 3px;
+}
+
+.member-home__goal-icon {
+  color: rgba(255, 255, 255, 0.2);
+  line-height: 1;
+  display: flex;
+}
+
+.member-home__goal-icon--done {
+  color: var(--color-green);
+}
+
+.member-home__goal-msg {
+  font-size: var(--fs-body2);
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+/* 원형 프로그레스 */
+.member-home__goal-circle {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+}
+
+.member-home__goal-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-white);
+}

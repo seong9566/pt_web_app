@@ -1,0 +1,201 @@
+<template>
+  <div class="member-home">
+
+    <!-- ── Header ── -->
+    <div class="member-home__header">
+      <div class="member-home__header-left">
+        <div class="member-home__avatar">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="member-home__greeting">
+          <span class="member-home__greeting-sub">환영합니다,</span>
+          <div class="member-home__greeting-row">
+            <h1 class="member-home__greeting-name">{{ userName }} 님</h1>
+            <span class="member-home__pt-header-badge">PT {{ ptCount.remain }}회</span>
+            <span class="member-home__online-dot" />
+          </div>
+        </div>
+      </div>
+      <button class="member-home__bell" @click="handleNotification">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
+            stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M13.73 21A2 2 0 0 1 10.27 21"
+            stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span class="member-home__bell-badge" />
+      </button>
+    </div>
+
+    <!-- ── Body ── -->
+    <div class="member-home__body">
+
+      <!-- ── 다음 PT 일정 ── -->
+      <section class="member-home__section">
+        <div class="member-home__section-row">
+          <h2 class="member-home__section-title">다음 PT 일정</h2>
+          <button class="member-home__see-all" @click="handleSeeAll">전체보기</button>
+        </div>
+
+        <div class="member-home__pt-card">
+          <!-- 배지 -->
+          <span class="member-home__pt-badge">오늘</span>
+
+          <!-- 수업 시간 -->
+          <div class="member-home__pt-time-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="member-home__pt-time-label">수업 시간</span>
+          </div>
+          <div class="member-home__pt-countdown">{{ nextSession.countdown }}</div>
+
+          <!-- 세션 제목 -->
+          <h3 class="member-home__pt-title">{{ nextSession.title }}</h3>
+
+          <!-- 트레이너 -->
+          <div class="member-home__pt-trainer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <span>{{ nextSession.trainer }} 담당</span>
+          </div>
+
+          <!-- 오늘의 운동 루틴 -->
+          <div class="member-home__pt-routine">
+            <p class="member-home__pt-routine-label">오늘의 운동 루틴</p>
+            <ul class="member-home__pt-routine-list">
+              <li v-for="item in nextSession.routine" :key="item" class="member-home__pt-routine-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" fill="rgba(0,122,255,0.08)"
+                    stroke="var(--color-blue-primary)" stroke-width="1.4"/>
+                  <path d="M8 12L11 15L16 9" stroke="var(--color-blue-primary)" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ── 오늘의 운동 ── -->
+      <section class="member-home__section">
+        <h2 class="member-home__section-title">오늘의 운동</h2>
+
+        <div class="member-home__workout-list">
+          <template v-for="(workout, idx) in todayWorkouts" :key="workout.name">
+            <div class="member-home__workout-item" @click="handleWorkoutItem(workout)">
+              <div class="member-home__workout-info">
+                <p class="member-home__workout-name">{{ workout.name }}</p>
+                <p class="member-home__workout-meta">{{ workout.meta }}</p>
+              </div>
+              <svg class="member-home__workout-chevron" width="16" height="16"
+                viewBox="0 0 24 24" fill="none">
+                <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div v-if="idx < todayWorkouts.length - 1"
+              class="member-home__workout-divider" />
+          </template>
+        </div>
+      </section>
+
+      <!-- ── 이번 주 목표 ── -->
+      <section class="member-home__section">
+        <div class="member-home__goal-card">
+          <div class="member-home__goal-left">
+            <span class="member-home__goal-badge">이번 주 목표</span>
+            <div class="member-home__goal-count">
+              <span class="member-home__goal-count-num">{{ weekGoal.done }}/{{ weekGoal.total }}</span>
+              <div class="member-home__goal-icons">
+                <span v-for="i in weekGoal.total" :key="i"
+                  class="member-home__goal-icon"
+                  :class="{ 'member-home__goal-icon--done': i <= weekGoal.done }">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 12C4 8 6.5 6 8 4.5L12 2L16 4.5C17.5 6 20 8 20 12C20 16 17 19 12 22C7 19 4 16 4 12Z"
+                      fill="currentColor"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+            <p class="member-home__goal-msg">{{ weekGoal.message }}</p>
+          </div>
+
+          <!-- 원형 프로그레스 -->
+          <div class="member-home__goal-circle">
+            <svg width="76" height="76" viewBox="0 0 76 76">
+              <circle cx="38" cy="38" r="30" fill="none"
+                stroke="rgba(255,255,255,0.12)" stroke-width="6"/>
+              <circle cx="38" cy="38" r="30" fill="none"
+                stroke="#34C759" stroke-width="6"
+                stroke-linecap="round"
+                :stroke-dasharray="circumference"
+                :stroke-dashoffset="circleOffset"
+                transform="rotate(-90 38 38)"/>
+            </svg>
+            <span class="member-home__goal-pct">{{ weekGoal.pct }}%</span>
+          </div>
+        </div>
+      </section>
+
+      <div style="height: calc(var(--nav-height) + 16px);" />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import trainerIcon from '@/assets/icons/trainer.svg'
+
+const router = useRouter()
+
+// ── Mock data ──
+const userName = '알렉스'
+
+const nextSession = {
+  countdown: '5:00',
+  title: '하체 집중 훈련',
+  trainer: '마이크 트레이너',
+  routine: ['바벨 스쿼트 (4 세트)', '레그 프레스 (3 세트)', '런지 워킹 (3 세트)'],
+}
+
+const ptCount  = { remain: 8, total: 20 }
+const ptCountPct = computed(() =>
+  Math.round((ptCount.remain / ptCount.total) * 100)
+)
+const ptBars = computed(() => Math.ceil(ptCountPct.value / 25))
+
+const todayWorkouts = [
+  { name: '전신 파워 루틴',  meta: '45 분 • 중급' },
+  { name: '바벨 스쿼트',    meta: '4 세트 • 10-12 회' },
+  { name: '벤치 프레스',    meta: '3 세트 • 8-10 회' },
+  { name: '덤벨 로우',      meta: '3 세트 • 12 회' },
+]
+
+const weekGoal = { done: 3, total: 4, pct: 75, message: '이번 주도 힘내세요!' }
+
+// 원형 프로그레스 계산 (r=30)
+const circumference = 2 * Math.PI * 30
+const circleOffset = computed(() =>
+  circumference * (1 - weekGoal.pct / 100)
+)
+
+// ── 핸들러 ──
+function handleNotification() { alert('준비 중입니다') }
+function handleSeeAll()       { alert('준비 중입니다') }
+function handleWorkoutItem()  { alert('준비 중입니다') }
+</script>
+
+<style src="./MemberHomeView.css" scoped></style>
