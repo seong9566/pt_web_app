@@ -1,0 +1,322 @@
+/* ──────────────────────────────────────────
+   ManualRegisterView — 매뉴얼 등록
+────────────────────────────────────────── */
+
+.manual-reg {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ── Header ── */
+.manual-reg__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 4px;
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.manual-reg__header-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--color-gray-900);
+  cursor: pointer;
+  border-radius: var(--radius-small);
+}
+
+.manual-reg__header-btn:active {
+  background-color: var(--color-gray-100);
+}
+
+.manual-reg__header-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+/* ── Body ── */
+.manual-reg__body {
+  flex: 1;
+  padding: 0 var(--side-margin);
+}
+
+/* ── Section ── */
+.manual-reg__section {
+  padding: 20px 0 4px;
+}
+
+.manual-reg__section:last-of-type {
+  border-bottom: none;
+}
+
+.manual-reg__label {
+  display: block;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin-bottom: 10px;
+}
+
+.manual-reg__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.manual-reg__label-row .manual-reg__label {
+  margin-bottom: 0;
+}
+
+.manual-reg__label-sub {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+/* ── Input ── */
+.manual-reg__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-gray-100);
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.manual-reg__input:focus {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-white);
+}
+
+.manual-reg__input::placeholder {
+  color: var(--color-gray-600);
+}
+
+/* ── Input with icon ── */
+.manual-reg__input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.manual-reg__input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--color-gray-600);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.manual-reg__input--icon {
+  padding-left: 42px;
+}
+
+/* ── Textarea ── */
+.manual-reg__textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-gray-100);
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.manual-reg__textarea:focus {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-white);
+}
+
+.manual-reg__textarea::placeholder {
+  color: var(--color-gray-600);
+}
+
+/* ── Category Chips ── */
+.manual-reg__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 16px;
+}
+
+.manual-reg__chip {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: 1.5px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.manual-reg__chip--active {
+  background-color: var(--color-blue-light);
+  border-color: var(--color-blue-primary);
+  color: var(--color-blue-primary);
+}
+
+/* ── Media Row ── */
+.manual-reg__media-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.manual-reg__media-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* 추가하기 버튼 */
+.manual-reg__media-add {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-medium);
+  border: 1.8px dashed var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--color-blue-primary);
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.manual-reg__media-add:active {
+  background-color: #d0e8ff;
+}
+
+.manual-reg__media-add span {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.manual-reg__media-add-plus {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-blue-primary);
+}
+
+/* 썸네일 */
+.manual-reg__media-thumb {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-gray-200);
+}
+
+.manual-reg__media-thumb img,
+.manual-reg__media-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 영상 오버레이 */
+.manual-reg__media-video-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* 삭제 버튼 */
+.manual-reg__media-remove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: rgba(17, 17, 17, 0.65);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  cursor: pointer;
+  padding: 0;
+}
+
+.manual-reg__media-remove:active {
+  background-color: rgba(17, 17, 17, 0.85);
+}
+
+/* ── Footer ── */
+.manual-reg__footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  padding: 12px var(--side-margin);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-gray-200);
+  box-sizing: border-box;
+}
+
+.manual-reg__save-btn {
+  width: 100%;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  border: none;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.manual-reg__save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.manual-reg__save-btn:not(:disabled):active {
+  opacity: 0.85;
+}

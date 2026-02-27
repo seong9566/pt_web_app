@@ -1,0 +1,369 @@
+/* =====================================================
+   TodayWorkoutView.css
+   ===================================================== */
+
+/* ── Page shell ── */
+.today-workout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
+}
+
+/* ── Header ── */
+.today-workout__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+}
+
+.today-workout__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.today-workout__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.today-workout__title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  flex: 1;
+  text-align: left;
+  padding-left: 8px;
+}
+
+/* ── Body ── */
+.today-workout__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Section ── */
+.today-workout__section {
+  display: flex;
+  flex-direction: column;
+}
+
+.today-workout__section-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0 0 12px;
+}
+
+.today-workout__hint {
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+/* ── Calendar card ── */
+.today-workout__calendar-card {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-large);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Routine list ── */
+.today-workout__routines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.today-workout__routine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.today-workout__routine-item:active {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+.today-workout__routine-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.today-workout__routine-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.today-workout__routine-detail {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.today-workout__routine-remove {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-600);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.today-workout__routine-remove:active {
+  background-color: var(--color-gray-100);
+  color: var(--color-red);
+}
+
+/* ── Add button (dashed) ── */
+.today-workout__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--color-blue-light);
+  border-radius: var(--radius-medium);
+  background: none;
+  color: var(--color-blue-primary);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.today-workout__add-btn:active {
+  background-color: var(--color-blue-light);
+}
+
+/* ── Textarea ── */
+.today-workout__textarea {
+  width: 100%;
+  height: calc(var(--fs-body1) * 1.6 * 3 + 28px);
+  padding: 14px 16px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+  font-family: inherit;
+  line-height: 1.6;
+  resize: none;
+  overflow-y: auto;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.today-workout__textarea::placeholder {
+  color: var(--color-gray-600);
+  opacity: 0.6;
+}
+
+.today-workout__textarea:focus {
+  border-color: var(--color-blue-primary);
+}
+
+/* ── Footer ── */
+.today-workout__footer {
+  padding: 16px var(--side-margin);
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background-color: transparent;
+  flex-shrink: 0;
+}
+
+.today-workout__auto-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--btn-height);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+}
+
+.today-workout__auto-save svg {
+  color: var(--color-blue-primary);
+}
+
+/* ── Add Routine Form ── */
+.workout-add-form {
+  padding: 8px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workout-add-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-add-label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.workout-add-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-family: inherit;
+  color: var(--color-gray-900);
+  outline: none;
+  background-color: transparent;
+  transition: border-color 0.15s;
+}
+
+.workout-add-input:focus {
+  border-color: var(--color-blue-primary);
+}
+
+.workout-add-row {
+  display: flex;
+  gap: 16px;
+}
+
+.workout-add-row .workout-add-field {
+  flex: 1;
+}
+
+.workout-add-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  background-color: var(--color-white);
+}
+
+.workout-add-stepper__btn {
+  width: 48px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-gray-100);
+  border: none;
+  color: var(--color-gray-900);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  flex-shrink: 0;
+}
+
+.workout-add-stepper__btn:active:not(:disabled) {
+  background-color: var(--color-gray-200);
+}
+
+.workout-add-stepper__btn:disabled {
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+  background-color: var(--color-gray-50);
+}
+
+.workout-add-stepper__value {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.workout-add-stepper__input {
+  width: 40px;
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  border: none;
+  background: transparent;
+  outline: none;
+  text-align: center;
+  padding: 0;
+  font-family: inherit;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.workout-add-stepper__input::-webkit-outer-spin-button,
+.workout-add-stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.workout-add-stepper__value small {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-600);
+}
+
+.workout-add-submit {
+  width: 100%;
+  height: var(--btn-height);
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.workout-add-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

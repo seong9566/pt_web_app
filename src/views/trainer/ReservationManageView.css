@@ -1,0 +1,374 @@
+/* =====================================================
+   ReservationManageView.css
+   ===================================================== */
+
+/* ── Page shell ── */
+.reservation {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
+}
+
+/* ── Header ── */
+.reservation__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.reservation__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.reservation__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.reservation__title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.reservation__filter {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.reservation__filter:active {
+  background-color: var(--color-gray-100);
+}
+
+/* ── Filter Chips ── */
+.reservation__chips-wrap {
+  background-color: var(--color-white);
+  padding: 12px var(--side-margin) 14px;
+}
+
+.reservation__chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reservation__chips::-webkit-scrollbar {
+  display: none;
+}
+
+.reservation__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 20px;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  color: var(--color-gray-600);
+}
+
+.reservation__chip:active {
+  transform: scale(0.95);
+}
+
+.reservation__chip--active {
+  background-color: var(--color-blue-primary);
+  border-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+/* ── Body ── */
+.reservation__body {
+  flex: 1;
+  padding: 0 var(--side-margin);
+}
+
+/* ── Section ── */
+.reservation__section {
+  margin-top: 24px;
+}
+
+.reservation__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.reservation__section-title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+/* Section title without header wrapper */
+.reservation__section > .reservation__section-title {
+  margin-bottom: 14px;
+}
+
+/* ── Badge ── */
+.reservation__badge {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 20px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.reservation__badge--pending {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+/* ── List ── */
+.reservation__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Reservation Card ── */
+.res-card {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-large);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.res-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.res-card__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.res-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.res-card__avatar img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  opacity: 0.5;
+}
+
+.res-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.res-card__name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  line-height: 1.2;
+}
+
+.res-card__session {
+  font-size: var(--fs-body2);
+  color: var(--color-blue-primary);
+  font-weight: var(--fw-body1-bold);
+  line-height: 1.2;
+}
+
+/* ── Status badge ── */
+.res-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 20px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  flex-shrink: 0;
+}
+
+.res-card__status--pending {
+  background-color: #FFF8E1;
+  color: #F59E0B;
+}
+
+.res-card__status--approved {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+/* ── Meta row (date, time) ── */
+.res-card__meta {
+  display: flex;
+  gap: 12px;
+}
+
+.res-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+}
+
+.res-card__meta-item svg {
+  color: var(--color-gray-600);
+}
+
+/* ── Remaining ── */
+.res-card__remaining {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* ── Divider ── */
+.res-card__divider {
+  height: 1px;
+  background-color: var(--color-gray-200);
+}
+
+/* ── Action buttons (pending card) ── */
+.res-card__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.res-card__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.res-card__btn:active {
+  transform: scale(0.97);
+}
+
+.res-card__btn--reject {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-red);
+  color: var(--color-red);
+}
+
+.res-card__btn--approve {
+  background-color: var(--color-blue-primary);
+  border: none;
+  color: var(--color-white);
+}
+
+/* ── Footer row (approved card) ── */
+.res-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.res-card__elapsed {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.res-card__detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.res-card__detail:active {
+  color: var(--color-blue-primary);
+}
+
+/* ── Empty state ── */
+.reservation__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-gray-600);
+  padding: 80px 0;
+}
+
+.reservation__empty-text {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 8px 0 0;
+}

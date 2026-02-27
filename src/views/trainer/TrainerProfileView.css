@@ -1,0 +1,178 @@
+.trainer-profile {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+  padding-bottom: 100px;
+}
+
+.trainer-profile__header {
+  display: flex;
+  align-items: center;
+  padding: 16px var(--side-margin);
+  gap: 12px;
+}
+
+.trainer-profile__back {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.trainer-profile__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.trainer-profile__progress {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.trainer-profile__content {
+  flex: 1;
+  padding: 16px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.trainer-profile__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trainer-profile__title {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-display);
+  color: var(--color-gray-900);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.trainer-profile__subtitle {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.trainer-profile__photo-wrap {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  align-self: center;
+}
+
+.trainer-profile__photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px dashed var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: var(--color-gray-100);
+}
+
+.trainer-profile__photo-label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.trainer-profile__photo-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+
+.trainer-profile__field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trainer-profile__label {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.trainer-profile__chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.spec-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.spec-chip--selected {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.spec-chip__icon {
+  display: flex;
+  color: var(--color-gray-600);
+}
+
+.spec-chip--selected .spec-chip__icon {
+  color: var(--color-blue-primary);
+}
+
+.spec-chip__label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.spec-chip--selected .spec-chip__label {
+  color: var(--color-blue-primary);
+}
+
+.trainer-profile__footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-gray-200);
+}
