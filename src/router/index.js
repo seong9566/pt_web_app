@@ -134,6 +134,12 @@ const router = createRouter({
       component: () => import('@/views/member/MemberSettingsView.vue'),
     },
     {
+      path: '/member/reservation',
+      name: 'member-reservation',
+      component: () => import('@/views/member/MemberReservationView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: "/invite/manage",
       name: "invite-manage",
       component: () => import("@/views/invite/InviteManageView.vue"),

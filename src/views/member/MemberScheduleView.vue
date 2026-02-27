@@ -132,6 +132,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
+      예약하기
     </button>
   </div>
 </template>
@@ -280,7 +281,7 @@ function statusLabel(status) {
 
 // ── 핸들러 ──
 function handleReserve() {
-  alert('준비 중입니다')
+  router.push('/member/reservation')
 }
 
 function handleCancel(session) {

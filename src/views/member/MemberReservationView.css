@@ -1,0 +1,284 @@
+/* =====================================================
+   MemberReservationView.css — PT 예약 신청
+   ===================================================== */
+
+.member-reservation {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
+  padding-bottom: 140px; /* Space for sticky bottom bar */
+}
+
+/* ── App Bar ── */
+.reservation-appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--side-margin);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.reservation-appbar__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--color-gray-900);
+  transition: background-color 0.15s;
+}
+
+.reservation-appbar__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.reservation-appbar__title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+/* ── Content ── */
+.reservation-content {
+  padding: 20px var(--side-margin);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.reservation-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reservation-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reservation-section__title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.reservation-section__badge {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  background-color: transparent;
+  border: 1px solid var(--color-gray-200);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Date Selector Card */
+.date-selector-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  padding: 20px 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Time Groups ── */
+.time-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.time-group__label {
+  font-size: var(--fs-body2);
+  color: var(--color-blue-primary);
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.time-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 64px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+}
+
+.time-slot:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.time-slot--selected {
+  background-color: var(--color-blue-primary);
+  border-color: var(--color-blue-primary);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+}
+
+.time-slot--disabled {
+  background-color: var(--color-gray-100);
+  cursor: not-allowed;
+  box-shadow: none;
+  border-color: var(--color-gray-200);
+}
+
+.time-slot__time {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.time-slot--selected .time-slot__time {
+  color: var(--color-white);
+}
+
+.time-slot--disabled .time-slot__time {
+  color: #C9CDD4;
+}
+
+.time-slot__status {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+}
+
+.time-slot__status--available { color: var(--color-blue-primary); }
+.time-slot__status--closed    { color: #C9CDD4; }
+
+.time-slot--selected .time-slot__status {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.time-slot__check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: var(--color-blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Info Box ── */
+.info-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: #F0F7FF;
+  border-radius: var(--radius-medium);
+  border: 1px solid #E0EFFF;
+}
+
+.info-box__icon {
+  flex-shrink: 0;
+  color: var(--color-blue-primary);
+  margin-top: 2px;
+}
+
+.info-box__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-box__title {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.info-box__desc {
+  font-size: var(--fs-body2);
+  line-height: 1.5;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+/* ── Bottom Action Bar ── */
+.reservation-action {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  background-color: var(--color-white);
+  padding: 16px var(--side-margin) calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 110;
+}
+
+.reservation-action__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reservation-action__label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.reservation-action__value {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.reservation-action__btn {
+  width: 100%;
+  height: 56px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-large);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  font-family: inherit;
+}
+
+.reservation-action__btn:disabled {
+  background-color: var(--color-gray-200);
+  cursor: not-allowed;
+}
+
+.reservation-action__btn:active:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
