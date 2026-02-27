@@ -3,10 +3,11 @@
 ## TL;DR
 
 > **Quick Summary**: 헬스 트레이너 일정 관리 앱의 기능 정의서(PRD)를 한국어로 작성한다. 이 문서는 피그마 UI 설계의 참고 자료로 사용되며, 24개 확정된 기능을 화면 단위로 정의한다.
-> 
+>
 > **Deliverables**:
+>
 > - `docs/PRD_헬스트레이너앱.md` — 종합 기능 정의서 (한국어)
-> 
+>
 > **Estimated Effort**: Medium
 > **Parallel Execution**: YES - 2 waves
 > **Critical Path**: Task 1 → Task 2 → Task 3 → Final Verification
@@ -16,10 +17,13 @@
 ## Context
 
 ### Original Request
+
 헬스 트레이너를 위한 일정 관리 웹/앱의 전체적인 프로젝트 기능문서 작성. 피그마 설계 참고용.
 
 ### Interview Summary
+
 **Key Discussions**:
+
 - 사용자 유형: 트레이너 + 회원 (2종류만, 관리자 없음)
 - 플랫폼: Vue.js 웹 + Flutter WebView 앱
 - 인증: 카카오 OAuth
@@ -42,7 +46,9 @@
 - 운동 프로그램 형태: 자유 텍스트 메모
 
 ### Metis Review
+
 **Identified Gaps** (addressed):
+
 - 인앱 알림 누락 → 사용자에게 확인 완료 (인앱 알림 포함)
 - 온보딩 흐름 미정의 → 역할 선택 → 프로필 입력 확정
 - 운동 프로그램 깊이 모호 → 자유 텍스트 메모로 확정
@@ -54,12 +60,15 @@
 ## Work Objectives
 
 ### Core Objective
+
 24개 확정된 기능을 모두 포함하는 종합 기능 정의서를 한국어로 작성한다. 피그마 UI 설계자가 이 문서만으로 와이어프레임을 그릴 수 있도록 화면 단위로 기술한다.
 
 ### Concrete Deliverables
+
 - `docs/PRD_헬스트레이너앱.md` — 종합 기능 정의서
 
 ### Definition of Done
+
 - [ ] 24개 기능 영역 모두 문서에 포함됨 (섹션 헤더로 확인)
 - [ ] 각 기능별 사용자 흐름(User Flow) 기술됨
 - [ ] 각 기능별 화면 설명(Screen Description) 포함됨
@@ -70,6 +79,7 @@
 - [ ] 기능 체크리스트(Feature Checklist) 부록 포함됨
 
 ### Must Have
+
 - 24개 기능 모두 커버 (1개도 빠지면 안 됨)
 - 화면별 UI 요소 목록 (피그마 참고용)
 - 트레이너 관점 / 회원 관점 양쪽 사용자 흐름
@@ -77,6 +87,7 @@
 - 인앱 알림 시나리오
 
 ### Must NOT Have (Guardrails)
+
 - DB 스키마 / ERD / 테이블 설계
 - REST API 엔드포인트 설계
 - 기술 아키텍처 (프레임워크/라이브러리 선택 등)
@@ -98,11 +109,13 @@
 > **ZERO HUMAN INTERVENTION** — ALL verification is agent-executed. No exceptions.
 
 ### Test Decision
+
 - **Infrastructure exists**: N/A (문서 작성 태스크)
 - **Automated tests**: None (코드가 아닌 문서)
 - **Framework**: N/A
 
 ### QA Policy
+
 Every task MUST include agent-executed QA scenarios.
 Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 
@@ -131,13 +144,13 @@ Wave FINAL (After ALL tasks — independent review):
 ### Dependency Matrix
 
 | Task | Depends On | Blocks |
-|------|-----------|--------|
-| 1 | — | 4 |
-| 2 | — | 4 |
-| 3 | — | 4 |
-| 4 | 1, 2, 3 | 5, F1 |
-| 5 | 4 | F1 |
-| F1 | 5 | — |
+| ---- | ---------- | ------ |
+| 1    | —          | 4      |
+| 2    | —          | 4      |
+| 3    | —          | 4      |
+| 4    | 1, 2, 3    | 5, F1  |
+| 5    | 4          | F1     |
+| F1   | 5          | —      |
 
 ### Agent Dispatch Summary
 
@@ -187,7 +200,7 @@ Wave FINAL (After ALL tasks — independent review):
     - 트레이너-회원 연결 해제 흐름 (채팅 기록/예약/메모 처리 정책)
   - **섹션 7: 대시보드** (기능 24)
     - 트레이너 홈: 오늘의 예약, 대기중 예약 요청, 안읽은 채팅, 이번 주 일정 요약
-    - 회원 홈: 다음 PT 일정, 잔여 PT 횟수, 오늘의 운동, 최근 채팅
+    - 회원 홈: 다음 PT 일정, 잔여 PT 횟수, 오늘의 운동
   - 각 섹션에 반드시 포함: **개요 / 사용자 흐름 / 화면 설명(UI 요소 목록) / 비즈니스 규칙 / 엣지 케이스 / 범위 외**
 
   **Must NOT do**:
@@ -548,7 +561,7 @@ Wave FINAL (After ALL tasks — independent review):
   - 문제 발견 시 직접 수정
   - 수정 내역 기록 (에비던스로 저장)
   - **QA 완료 후 Part 파일 삭제**: `docs/PRD_헬스트레이너앱_part1.md`, `_part2.md`, `_part3.md` 삭제
-  **Must NOT do**:
+    **Must NOT do**:
   - 새로운 기능 추가 (검증 + 수정만)
   - 이미 정확한 내용 변경
 
@@ -631,14 +644,15 @@ Wave FINAL (After ALL tasks — independent review):
 ## Final Verification Wave
 
 - [ ] F1. **최종 검증: 플랜 준수 + 범위 충실도** — `deep`
-  다음 항목을 모두 한 태스크에서 수행:
+      다음 항목을 모두 한 태스크에서 수행:
   1. 문서 전체를 읽고 24개 기능 각각이 포함되었는지 확인
   2. 각 기능 섹션에 필수 하위 섹션(개요/사용자 흐름/화면 설명/비즈니스 규칙/범위 외)이 존재하는지 확인
   3. DB 스키마/API 엔드포인트/기술 구현 세부사항이 포함되지 않았는지 grep 검색
   4. 가드레일 13개 항목 각각 grep 검색
   5. 인터뷰에서 확정되지 않은 기능이 임의로 추가되지 않았는지 확인
   6. 트레이너 관점과 회원 관점 양쪽 모두 기술되었는지 확인
-  Output: `Features [24/24] | Subsections [OK/MISSING] | Guardrails [CLEAN/N violations] | Invented [CLEAN/N] | Dual Perspective [YES/NO] | VERDICT: APPROVE/REJECT`
+     Output: `Features [24/24] | Subsections [OK/MISSING] | Guardrails [CLEAN/N violations] | Invented [CLEAN/N] | Dual Perspective [YES/NO] | VERDICT: APPROVE/REJECT`
+
 ---
 
 ## Commit Strategy
@@ -651,6 +665,7 @@ Wave FINAL (After ALL tasks — independent review):
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 # 24개 기능 섹션 존재 확인
 grep -c "^### " docs/PRD_헬스트레이너앱.md  # Expected: >= 24
@@ -663,6 +678,7 @@ grep -c "사용자 흐름\|화면 설명\|비즈니스 규칙\|범위 외" docs/
 ```
 
 ### Final Checklist
+
 - [ ] 24개 기능 모두 포함
 - [ ] 각 기능별 4개 하위 섹션 존재
 - [ ] DB/API/기술 구현 세부사항 없음
