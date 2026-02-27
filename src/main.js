@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+// 상태관리 
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
