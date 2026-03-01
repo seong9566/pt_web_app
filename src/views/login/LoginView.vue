@@ -17,7 +17,7 @@
         <p class="login-view__subtitle">체계적인 PT 일정 및<br />회원 관리 솔루션</p>
       </div>
       <div class="login-view__actions">
-        <button class="login-view__btn login-view__btn--kakao" @click="handleKakao">
+        <button class="login-view__btn login-view__btn--kakao" :disabled="isLoading" @click="handleKakao">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2C6.029 2 2 5.358 2 9.5c0 2.647 1.617 4.97 4.063 6.33L5.1 19.5a.25.25 0 0 0 .37.27L10.1 17.1c.296.025.596.04.9.04 4.971 0 9-3.358 9-7.5S15.971 2 11 2z" fill="#000000"/>
           </svg>
@@ -47,9 +47,24 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
-function handleKakao() { router.push('/onboarding/role') }
+import { ref } from 'vue'
+import { supabase } from '@/lib/supabase'
+
+const isLoading = ref(false)
+
+async function handleKakao() {
+  isLoading.value = true
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'kakao',
+    options: {
+      redirectTo: window.location.origin + '/auth/callback',
+    },
+  })
+  if (error) {
+    console.error('Kakao OAuth error:', error.message)
+    isLoading.value = false
+  }
+}
 function handleEmail() { alert('준비 중입니다') }
 </script>
 
