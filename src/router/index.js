@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+
+const PUBLIC_ROUTES = ["/login", "/auth/callback"];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,6 +11,12 @@ const router = createRouter({
       path: "/login",
       name: "login",
       component: () => import("@/views/login/LoginView.vue"),
+      meta: { hideNav: true },
+    },
+    {
+      path: "/auth/callback",
+      name: "auth-callback",
+      component: () => import("@/views/auth/AuthCallbackView.vue"),
       meta: { hideNav: true },
     },
     {
@@ -114,6 +123,12 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: '/trainer/settings/manual/:id',
+      name: 'trainer-manual-detail',
+      component: () => import('@/views/member/ManualDetailView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/member/schedule',
       name: 'member-schedule',
       component: () => import('@/views/member/MemberScheduleView.vue'),
@@ -127,6 +142,12 @@ const router = createRouter({
       path: '/member/manual',
       name: 'member-manual',
       component: () => import('@/views/member/MemberManualView.vue'),
+    },
+    {
+      path: '/member/manual/:id',
+      name: 'member-manual-detail',
+      component: () => import('@/views/member/ManualDetailView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/member/settings',
@@ -150,6 +171,56 @@ const router = createRouter({
       component: () => import("@/views/invite/InviteEnterView.vue"),
     },
   ],
+});
+
+router.beforeEach(async (to) => {
+  const auth = useAuthStore();
+
+  // Wait for auth initialization to complete
+  if (auth.loading) {
+    await auth.initialize();
+  }
+
+  const isPublic = PUBLIC_ROUTES.includes(to.path);
+  const isAuthenticated = !!auth.user;
+  const isOnboarding = to.path.startsWith("/onboarding");
+
+  // Unauthenticated user accessing protected route → redirect to login
+  if (!isAuthenticated && !isPublic) {
+    return "/login";
+  }
+
+  // Authenticated user accessing login → redirect based on role
+  if (isAuthenticated && to.path === "/login") {
+    if (auth.role === "trainer") return "/trainer/home";
+    if (auth.role === "member") return "/home";
+    return "/onboarding/role";
+  }
+
+  // Onboarding routes: require auth but no role check
+  if (isOnboarding) {
+    return;
+  }
+
+  // Role-based access control (only for authenticated users with a role)
+  if (isAuthenticated && auth.role) {
+    const isTrainerRoute =
+      to.path.startsWith("/trainer/") || to.path === "/search";
+    const isMemberRoute =
+      to.path.startsWith("/member/") ||
+      to.path === "/home" ||
+      to.path.startsWith("/invite/");
+
+    // Trainer accessing member routes → redirect to trainer home
+    if (auth.role === "trainer" && isMemberRoute) {
+      return "/trainer/home";
+    }
+
+    // Member accessing trainer routes → redirect to member home
+    if (auth.role === "member" && isTrainerRoute) {
+      return "/home";
+    }
+  }
 });
 
 export default router;
