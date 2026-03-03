@@ -1,9 +1,9 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/fitness-trainer-app-prd.md",
-  "started_at": "2026-02-26T00:29:32.885Z",
+  "active_plan": "C:\\Users\\PC\\OneDrive\\바탕 화면\\workspace\\pt_web_app\\.sisyphus\\plans\\supabase-backend-integration.md",
+  "started_at": "2026-03-01T07:07:42.990Z",
   "session_ids": [
-    "ses_368dc5424ffekywvSzLtQ3LfYB"
+    "ses_35d999c8affeuTcN6AtG49vJB2"
   ],
-  "plan_name": "fitness-trainer-app-prd",
+  "plan_name": "supabase-backend-integration",
   "agent": "atlas"
 }

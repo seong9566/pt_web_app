@@ -1,3 +1,4 @@
+<!-- 트레이너 검색 페이지 (회원용). 트레이너 검색 + 연결 요청 -->
 <template>
   <div class="trainer-search">
     <div class="trainer-search__header">

@@ -1,3 +1,4 @@
+<!-- 역할 선택 페이지. 트레이너 또는 회원 중 선택 → 프로필 생성 페이지로 이동 -->
 <template>
   <div class="role-select">
     <div class="role-select__header">
@@ -52,10 +53,9 @@
         초대 코드를 받으셨나요?
       </button>
     </div>
+    <p v-if="errorMsg" class="role-select__error" style="color: var(--color-red); font-size: var(--fs-body2); text-align: center; margin-bottom: 12px;">{{ errorMsg }}</p>
     <div class="role-select__footer">
-      <AppButton @click="handleNext" :disabled="!selectedRole"
-        >다음 →</AppButton
-      >
+      <AppButton @click="handleNext" :disabled="!selectedRole || isLoading">{{ isLoading ? '저장 중...' : '다음 →' }}</AppButton>
     </div>
   </div>
 </template>
@@ -65,16 +65,36 @@ import { useRouter } from "vue-router";
 import ProgressBar from "@/components/ProgressBar.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from "@/stores/auth";
+import { supabase } from '@/lib/supabase'
 const router = useRouter();
 const auth = useAuthStore();
 const selectedRole = ref(null);
-function handleNext() {
+const isLoading = ref(false)
+const errorMsg = ref('')
+/** 역할 선택 후 다음 단계로 진행 */
+async function handleNext() {
   if (!selectedRole.value) return
+  isLoading.value = true
+  errorMsg.value = ''
+
+  // 선택한 역할을 profiles 테이블에 저장
+  const { error: saveError } = await supabase
+    .from('profiles')
+    .upsert({ id: auth.user.id, role: selectedRole.value, name: '', phone: '' })
+
+  if (saveError) {
+    errorMsg.value = '역할 저장에 실패했습니다. 다시 시도해주세요.'
+    isLoading.value = false
+    return
+  }
+
   auth.setRole(selectedRole.value)
-  if (selectedRole.value === "trainer")
-    router.push("/onboarding/trainer-profile");
-  else if (selectedRole.value === "member")
-    router.push("/onboarding/member-profile");
+  isLoading.value = false
+
+  if (selectedRole.value === 'trainer')
+    router.push('/trainer/profile')
+  else if (selectedRole.value === 'member')
+    router.push('/onboarding/member-profile')
 }
 </script>
 <style src="./RoleSelectView.css" scoped></style>

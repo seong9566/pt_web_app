@@ -1,3 +1,4 @@
+<!-- 회원 예약 생성 페이지. 날짜/시간 선택 → 트레이너 근무시간 기반 슬롯 계산 → RPC로 예약 생성 -->
 <template>
   <div class="member-reservation">
     

@@ -1,3 +1,4 @@
+<!-- [미구현] 회원 운동 매뉴얼 목록 페이지. 트레이너 제공 매뉴얼 열람 (목 데이터) -->
 <template>
   <div class="member-stub">
     <div class="member-stub__content">

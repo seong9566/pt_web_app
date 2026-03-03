@@ -1,3 +1,4 @@
+<!-- 회원 상세 페이지. 회원 프로필 정보 + 메모 목록 표시 -->
 <template>
   <div class="mem-detail">
 

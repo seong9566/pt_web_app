@@ -1,3 +1,4 @@
+<!-- 트레이너 홈 대시보드. 오늘 예약 현황, 회원 수, 주간 통계 표시 -->
 <template>
   <div class="trainer-home">
     <header class="home-header">

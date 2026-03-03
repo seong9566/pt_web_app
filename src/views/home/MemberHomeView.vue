@@ -1,3 +1,4 @@
+<!-- 회원 홈 대시보드. 다음 예약, 오늘의 운동, 이번 주 목표 등 표시 -->
 <template>
   <div class="member-home">
 
@@ -33,6 +34,31 @@
 
     <!-- ── Body ── -->
     <div class="member-home__body">
+
+      <!-- Unconnected state -->
+      <div v-if="hasTrainer === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+          <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">아직 담당 트레이너가 없습니다</p>
+        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 PT를 시작해보세요</p>
+        <button
+          style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;"
+          @click="router.push({ name: 'trainer-search' })"
+        >
+          트레이너 찾기
+        </button>
+      </div>
+
+      <!-- Loading state -->
+      <div v-else-if="hasTrainer === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+        불러오는 중...
+      </div>
+
+      <!-- Connected state (existing dashboard) -->
+      <template v-else>
 
       <!-- ── 다음 PT 일정 ── -->
       <section class="member-home__section">
@@ -150,33 +176,87 @@
       </section>
 
       <div style="height: calc(var(--nav-height) + 16px);" />
+
+      </template>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useReservations } from '@/composables/useReservations'
 import trainerIcon from '@/assets/icons/trainer.svg'
 
 const router = useRouter()
+const auth = useAuthStore()
+const { reservations, loading, error, fetchMyReservations, checkTrainerConnection } = useReservations()
 
-// ── Mock data ──
-const userName = '알렉스'
+const hasTrainer = ref(null)
 
-const nextSession = {
-  countdown: '5:00',
-  title: '하체 집중 훈련',
-  trainer: '마이크 트레이너',
-  routine: ['바벨 스쿼트 (4 세트)', '레그 프레스 (3 세트)', '런지 워킹 (3 세트)'],
-}
+onMounted(async () => {
+  // 트레이너 연결 여부 확인
+  const connected = await checkTrainerConnection()
+  hasTrainer.value = connected
+  if (connected) {
+    fetchMyReservations('member')
+  }
+})
 
-const ptCount  = { remain: 8, total: 20 }
+// 로그인 중의 사용자 이름 조회
+const userName = computed(() => auth.profile?.name || '회원')
+
+// 다음 예정 세션 조회 (스타투스 = approved)
+const nextSession = computed(() => {
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+  const nowTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+
+  const upcoming = reservations.value
+    .filter(r => {
+      if (r.status !== 'approved') return false
+      const rDate = typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0]
+      return rDate > todayStr || (rDate === todayStr && (r.start_time || '') > nowTime)
+    })
+    .sort((a, b) => {
+      const dateCompare = (a.date || '').localeCompare(b.date || '')
+      if (dateCompare !== 0) return dateCompare
+      return (a.start_time || '').localeCompare(b.start_time || '')
+    })
+
+  const next = upcoming[0]
+  if (!next) {
+    return {
+      countdown: '--:--',
+      title: '예정된 세션 없음',
+      trainer: '-',
+      routine: [],
+    }
+  }
+
+  return {
+    countdown: (next.start_time || '').slice(0, 5),
+    title: next.session_type || 'PT 세션',
+    trainer: next.partner_name || '트레이너',
+    routine: [],
+  }
+})
+
+// PT 예약 남은 회수 계산
+const ptCount = computed(() => {
+  const total = reservations.value.length
+  const completed = reservations.value.filter(r => r.status === 'completed').length
+  const remain = total - completed
+  return { remain: remain > 0 ? remain : 0, total: total || 1 }
+})
+
 const ptCountPct = computed(() =>
-  Math.round((ptCount.remain / ptCount.total) * 100)
+  Math.round((ptCount.value.remain / ptCount.value.total) * 100)
 )
 const ptBars = computed(() => Math.ceil(ptCountPct.value / 25))
 
+// 오늘의 운동 목록 (모델 데이터)
 const todayWorkouts = [
   { name: '전신 파워 루틴',  meta: '45 분 • 중급' },
   { name: '바벨 스쿼트',    meta: '4 세트 • 10-12 회' },
@@ -184,17 +264,38 @@ const todayWorkouts = [
   { name: '덤벨 로우',      meta: '3 세트 • 12 회' },
 ]
 
-const weekGoal = { done: 3, total: 4, pct: 75, message: '이번 주도 힘내세요!' }
+// 이번 주 목표 달성도 계산
+const weekGoal = computed(() => {
+  const now = new Date()
+  const weekStart = new Date(now)
+  weekStart.setDate(now.getDate() - now.getDay())
+
+  const weekReservations = reservations.value.filter(r => {
+    const d = new Date(r.date)
+    return d >= weekStart && (r.status === 'approved' || r.status === 'completed')
+  })
+
+  const total = weekReservations.length || 1
+  const done = weekReservations.filter(r => r.status === 'completed').length
+  const pct = Math.round((done / total) * 100)
+
+  return {
+    done,
+    total,
+    pct,
+    message: pct >= 100 ? '이번 주 목표 달성!' : pct >= 50 ? '절반 이상 완료!' : '이번 주도 힘내세요!',
+  }
+})
 
 // 원형 프로그레스 계산 (r=30)
 const circumference = 2 * Math.PI * 30
 const circleOffset = computed(() =>
-  circumference * (1 - weekGoal.pct / 100)
+  circumference * (1 - weekGoal.value.pct / 100)
 )
 
-// ── 핸들러 ──
+// 단추 이벤트 핸들러
 function handleNotification() { alert('준비 중입니다') }
-function handleSeeAll()       { alert('준비 중입니다') }
+function handleSeeAll()       { router.push({ name: 'member-schedule' }) }
 function handleWorkoutItem()  { alert('준비 중입니다') }
 </script>
 

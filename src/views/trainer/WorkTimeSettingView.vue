@@ -1,3 +1,4 @@
+<!-- 근무시간 설정 페이지. 요일별 시작/종료 시간 + 슬롯 단위 설정 → DB 저장 -->
 <template>
   <div class="wt-setting">
 

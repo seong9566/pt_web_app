@@ -1,3 +1,4 @@
+<!-- 트레이너용 초대 코드 관리 페이지. 코드 생성/공유/복사, 최근 연결 회원 목록 표시 -->
 <template>
   <div class="invite-manage">
     <div class="invite-manage__header">
@@ -17,10 +18,10 @@
       </div>
       <div class="invite-manage__code-card">
         <p class="invite-manage__code-label">나의 초대 코드</p>
-        <p class="invite-manage__code">PT24K9</p>
+        <p class="invite-manage__code">{{ inviteCode?.code || '생성 중...' }}</p>
         <div class="invite-manage__code-underline" />
         <div class="invite-manage__code-btns">
-          <button class="invite-manage__btn invite-manage__btn--outline">
+          <button class="invite-manage__btn invite-manage__btn--outline" @click="handleCopyCode">
             <img src="@/assets/icons/code_copy.svg" alt="copy" width="16" height="16" />
             코드 복사
           </button>
@@ -44,13 +45,13 @@
           <button class="invite-manage__view-all">전체보기</button>
         </div>
         <div class="invite-manage__member-list">
-          <div v-for="member in recentMembers" :key="member.id" class="member-item">
+          <div v-for="member in recentMembers" :key="member.member_id" class="member-item">
             <div class="member-item__avatar">
               <img src="@/assets/icons/person.svg" alt="member" width="24" height="24" />
             </div>
             <div class="member-item__info">
-              <p class="member-item__name">{{ member.name }}</p>
-              <p class="member-item__date">{{ member.joinDate }} 가입</p>
+              <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
+              <p class="member-item__date">{{ formatDate(member.connected_at) }} 가입</p>
             </div>
             <button class="member-item__more">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="#666666"/><circle cx="12" cy="12" r="1.5" fill="#666666"/><circle cx="12" cy="19" r="1.5" fill="#666666"/></svg>
@@ -63,12 +64,38 @@
   </div>
 </template>
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useInvite } from '@/composables/useInvite'
+
 const router = useRouter()
-const recentMembers = [
-  { id: 1, name: '김민지 회원님', joinDate: '2023.10.24' },
-  { id: 2, name: '이준호 회원님', joinDate: '2023.10.18' },
-  { id: 3, name: '박서연 회원님', joinDate: '2023.10.05' },
-]
+const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
+
+/** 날짜 문자열을 YYYY.MM.DD 형식으로 변환 */
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}.${m}.${day}`
+}
+
+/** 초대 코드 복사 기능 */
+function handleCopyCode() {
+  if (inviteCode.value?.code) {
+    navigator.clipboard.writeText(inviteCode.value.code)
+  }
+}
+
+onMounted(async () => {
+  // 초대 코드 조회 및 없으면 새로 생성
+  await fetchInviteCode()
+  await fetchInviteCode()
+  if (!inviteCode.value) {
+    await generateInviteCode()
+  }
+  fetchRecentMembers()
+})
 </script>
 <style src="./InviteManageView.css" scoped></style>

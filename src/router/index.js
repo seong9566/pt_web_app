@@ -1,12 +1,20 @@
+/**
+ * 라우터 설정
+ *
+ * 모든 라우트 정의 + 인증 가드 + 역할 기반 접근 제어.
+ * - PUBLIC_ROUTES: 로그인/콜백은 미인증 접근 허용
+ * - 모든 뷰는 lazy loading (dynamic import)
+ * - meta.hideNav: true → 하단 네비게이션 숨김
+ */
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-const PUBLIC_ROUTES = ["/login", "/auth/callback"];
+const PUBLIC_ROUTES = ["/login", "/auth/callback"]; // 인증 없이 접근 가능한 경로
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: "/", redirect: "/login" },
+    { path: "/", redirect: "/login" }, // 기본 경로 → 로그인으로 리다이렉트
     {
       path: "/login",
       name: "login",
@@ -173,6 +181,14 @@ const router = createRouter({
   ],
 });
 
+/**
+ * 라우터 가드 (beforeEach)
+ *
+ * 1. auth 초기화 대기 (세션 복원 완료까지)
+ * 2. 미인증 + 보호된 경로 → /login 리다이렉트
+ * 3. 인증됨 + /login 접근 → 역할별 홈으로 리다이렉트
+ * 4. 역할 불일치 → 해당 역할의 홈으로 리다이렉트
+ */
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
 

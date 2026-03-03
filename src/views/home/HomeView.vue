@@ -1,3 +1,4 @@
+<!-- 단순 홈 페이지 (단순 레이아웃) -->
 <template>
   <div class="home">
     <div class="home__content">
@@ -29,6 +30,7 @@
 </template>
 
 <script setup>
+/** 라우터 가져오기 */
 import { useRouter } from "vue-router";
 import AppButton from "@/components/AppButton.vue";
 const router = useRouter();

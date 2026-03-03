@@ -1,3 +1,4 @@
+<!-- [미구현] 오늘의 운동 페이지. 운동 루틴 리스트 + 세트/랩 구성 (목 데이터) -->
 <template>
   <div class="today-workout">
 

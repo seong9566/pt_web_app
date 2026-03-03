@@ -1,3 +1,4 @@
+<!-- 회원용 초대 코드 입력 페이지. 6자리 코드 입력 → RPC 호출 → 트레이너 연결 -->
 <template>
   <div class="invite-enter">
     <div class="invite-enter__header">
@@ -35,37 +36,86 @@
           "
         />
       </div>
-      <button class="invite-enter__check-btn">
+      <button class="invite-enter__check-btn" @click="handleCheckCode">
         <img src="@/assets/icons/code_copy.svg" alt="check" width="16" height="16" />
         코드 확인
       </button>
+      <p v-if="errorMsg" class="invite-enter__error" style="color: var(--color-red); font-size: var(--fs-caption); text-align: center; margin-top: 8px;">{{ errorMsg }}</p>
     </div>
     <div class="invite-enter__footer">
-      <button class="invite-enter__confirm-btn" @click="handleConfirm">
-        연결 확정
+      <button class="invite-enter__confirm-btn" :disabled="isLoading" @click="handleConfirm">
+        {{ isLoading ? '연결 중...' : '연결 확정' }}
       </button>
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-const router = useRouter();
-const codeDigits = ref(["", "", "", "", "", ""]);
-const inputRefs = ref([]);
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useInvite } from '@/composables/useInvite'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+const { redeemInviteCode } = useInvite()
+
+const codeDigits = ref(['', '', '', '', '', ''])
+const inputRefs = ref([])
+const errorMsg = ref('')
+const isLoading = ref(false)
+
+/** 코드 입력 필드 처리 */
 function handleInput(idx, event) {
-  const val = event.target.value.slice(-1).toUpperCase();
-  codeDigits.value[idx] = val;
-  if (val && idx < 5) inputRefs.value[idx + 1]?.focus();
+  const val = event.target.value.slice(-1).toUpperCase()
+  codeDigits.value[idx] = val
+  if (val && idx < 5) inputRefs.value[idx + 1]?.focus()
 }
+
+/** 백스페이스 키 처리 */
 function handleBackspace(idx, event) {
-  if (!codeDigits.value[idx] && idx > 0) inputRefs.value[idx - 1]?.focus();
+  if (!codeDigits.value[idx] && idx > 0) inputRefs.value[idx - 1]?.focus()
 }
-function handleConfirm() {
-  router.push({
-    path: "/onboarding/member-profile",
-    query: { fromInvite: "true" },
-  });
+
+/** 코드 입력 완료 여부 검사 */
+function handleCheckCode() {
+  const code = codeDigits.value.join('')
+  errorMsg.value = ''
+  if (code.length < 6) {
+    errorMsg.value = '6자리 코드를 모두 입력해주세요'
+    return
+  }
+}
+
+/** 초대 코드 단축 및 트레이너 연결 실패 */
+async function handleConfirm() {
+  const code = codeDigits.value.join('')
+  errorMsg.value = ''
+
+  if (code.length < 6) {
+    errorMsg.value = '6자리 코드를 모두 입력해주세요'
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    const result = await redeemInviteCode(code)
+
+    if (!result) {
+      errorMsg.value = '유효하지 않은 코드입니다. 다시 확인해주세요.'
+      return
+    }
+
+    await auth.fetchProfile()
+    router.push({
+      path: '/onboarding/member-profile',
+      query: { fromInvite: 'true' },
+    })
+  } catch (e) {
+    errorMsg.value = e?.message ?? '연결에 실패했습니다. 다시 시도해주세요.'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 <style src="./InviteEnterView.css" scoped></style>

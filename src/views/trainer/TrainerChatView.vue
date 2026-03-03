@@ -1,3 +1,4 @@
+<!-- [미구현] 트레이너 채팅 페이지. 회원과의 메시지 기능 (목 데이터) -->
 <template>
   <div class="chat-view">
     <div class="chat-view__header">

@@ -1,3 +1,4 @@
+<!-- [미구현] 메모 작성 페이지. 회원별 메모 작성/수정 (목 데이터) -->
 <template>
   <div class="memo-write">
 

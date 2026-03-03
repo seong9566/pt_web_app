@@ -1,3 +1,4 @@
+<!-- 트레이너 회원 목록 페이지. 연결된 회원 리스트 + 예약 통계 표시 -->
 <template>
   <div class="member-mgmt">
 

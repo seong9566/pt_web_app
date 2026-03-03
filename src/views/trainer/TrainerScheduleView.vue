@@ -1,3 +1,4 @@
+<!-- 트레이너 스케줄 페이지. 캘린더 예약 관리, 날짜별 예약 목록 표시/상태 변경 -->
 <template>
   <div class="trainer-schedule">
 

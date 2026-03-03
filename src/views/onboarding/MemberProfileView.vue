@@ -1,3 +1,4 @@
+<!-- 회원 프로필 생성 페이지. 이름, 나이, 키, 몸무게, 목표 등 입력 → DB 저장 -->
 <template>
   <div class="member-profile">
     <div class="member-profile__nav">
@@ -8,15 +9,16 @@
       <div style="width: 40px" />
     </div>
     <div class="member-profile__content">
-      <div class="member-profile__photo-wrap">
+      <div class="member-profile__photo-wrap" @click="triggerFileInput">
         <div class="member-profile__photo">
-          <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
+          <img :src="avatarPreview || personIcon" alt="avatar" width="32" height="32" :style="avatarPreview ? { width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' } : {}" />
         </div>
-        <button class="member-profile__photo-edit">
+        <button class="member-profile__photo-edit" type="button">
           <img src="@/assets/icons/pencil.svg" alt="edit" width="14" height="14" />
         </button>
         <p class="member-profile__photo-label">프로필 사진 등록</p>
       </div>
+      <input type="file" ref="fileInput" accept="image/*" style="display:none" @change="handleFileSelect" />
       <section class="member-profile__section">
         <h3 class="member-profile__section-title">기본 정보</h3>
         <div class="member-profile__fields">
@@ -97,8 +99,9 @@
       </section>
       <div style="height: 100px" />
     </div>
+    <p v-if="errorMsg" class="member-profile__error" style="color: var(--color-red); font-size: var(--fs-body2); text-align: center; margin-bottom: 12px;">{{ errorMsg }}</p>
     <div class="member-profile__footer">
-      <AppButton @click="handleComplete">작성 완료 ✓</AppButton>
+      <AppButton @click="handleComplete" :disabled="isLoading">{{ isLoading ? '저장 중...' : '작성 완료 ✓' }}</AppButton>
     </div>
   </div>
 </template>
@@ -107,8 +110,17 @@ import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import AppInput from "@/components/AppInput.vue";
 import AppButton from "@/components/AppButton.vue";
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
+import personIcon from '@/assets/icons/person.svg'
 const router = useRouter();
 const route = useRoute();
+const auth = useAuthStore()
+const { uploading, error: uploadError, uploadAvatar, updateProfilePhoto } = useProfile()
+const fileInput = ref(null)
+const avatarPreview = ref(null)
+const avatarUrl = ref(null)
 const form = ref({
   name: "",
   phone: "",
@@ -124,17 +136,74 @@ const goals = [
   { id: "body-profile", label: "바디 프로필" },
 ];
 const selectedGoals = ref([]);
+const isLoading = ref(false)
+const errorMsg = ref('')
+/** 목표 선택 토글 처리 */
 function toggleGoal(id) {
   const idx = selectedGoals.value.indexOf(id);
   if (idx === -1) selectedGoals.value.push(id);
   else selectedGoals.value.splice(idx, 1);
 }
 
-function handleComplete() {
-  if (route.query.fromInvite === "true") {
-    router.push("/home");
+/** 프로필 사진 선택 단추 단추 */
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+/** 프로필 사진 업로드 및 리뷰 생성 */
+async function handleFileSelect(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  avatarPreview.value = URL.createObjectURL(file)
+  const url = await uploadAvatar(file)
+  if (url) { avatarUrl.value = url }
+}
+
+/** 회원 프로필 저장 및 다음 단계 진행 */
+async function handleComplete() {
+  if (!form.value.name.trim()) {
+    errorMsg.value = '이름을 입력해주세요.'
+    return
+  }
+
+  isLoading.value = true
+  errorMsg.value = ''
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ name: form.value.name, phone: form.value.phone, photo_url: avatarUrl.value || null })
+    .eq('id', auth.user.id)
+
+  if (profileError) {
+    errorMsg.value = '프로필 저장에 실패했습니다. 다시 시도해주세요.'
+    isLoading.value = false
+    return
+  }
+
+  const { error: memberError } = await supabase
+    .from('member_profiles')
+    .upsert({
+      id: auth.user.id,
+      age: parseInt(form.value.age) || null,
+      height: parseFloat(form.value.height) || null,
+      weight: parseFloat(form.value.weight) || null,
+      goals: selectedGoals.value,
+      notes: form.value.notes,
+    })
+
+  if (memberError) {
+    errorMsg.value = '회원 정보 저장에 실패했습니다. 다시 시도해주세요.'
+    isLoading.value = false
+    return
+  }
+
+  await auth.fetchProfile()
+  isLoading.value = false
+
+  if (route.query.fromInvite === 'true') {
+    router.push('/home')
   } else {
-    router.push("/search");
+    router.push('/search')
   }
 }
 </script>

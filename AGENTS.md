@@ -35,19 +35,23 @@ There is **no test runner** configured. No lint/format tooling (ESLint, Prettier
 pt_web_app/
 ├── src/
 │   ├── main.js               # App bootstrap: createApp → Pinia → Router → mount
-│   ├── App.vue               # Root: <router-view> + conditional <BottomNav>
+│   ├── App.vue               # Root: <router-view> + role-based <BottomNav>
 │   ├── assets/
 │   │   ├── css/global.css    # Design system: CSS custom properties, reset, base styles
 │   │   └── icons/            # SVG icon files
 │   ├── components/           # Shared UI primitives (App-prefixed)
 │   ├── router/index.js       # All route definitions (flat list, lazy-loaded)
+│   ├── stores/               # Pinia stores (Composition API style)
+│   │   └── auth.js           # Role state: 'trainer' | 'member' | null
 │   └── views/                # Feature pages, grouped by domain
-│       ├── home/
-│       ├── invite/
+│       ├── home/             # Member home dashboard
+│       ├── invite/           # Invite code management
 │       ├── login/
-│       ├── onboarding/
-│       └── trainer/
+│       ├── member/           # Member-side views (schedule, chat, settings, reservation)
+│       ├── onboarding/       # Role selection, profile setup
+│       └── trainer/          # Trainer-side views (31 files — largest domain)
 ├── docs/                     # Design specs (font_color_guide.md, PRD)
+│   └── ui/                   # UI reference screenshots
 ├── index.html
 ├── vite.config.js
 └── package.json
@@ -150,10 +154,20 @@ Defined entirely in `src/router/index.js`. All routes use **lazy loading** via d
 
 ## State Management (Pinia)
 
-Pinia is installed and registered in `main.js`. **No stores exist yet** — all view state is
-local `ref()` variables. When adding stores:
+Pinia is installed and registered in `main.js`. One store exists:
 
-- Place in `src/stores/` (create the directory).
+```js
+// src/stores/auth.js
+export const useAuthStore = defineStore('auth', () => {
+  const role = ref(null)  // 'trainer' | 'member' | null
+  function setRole(newRole) { role.value = newRole }
+  function clearRole() { role.value = null }
+  return { role, setRole, clearRole }
+})
+```
+
+- `App.vue` uses `auth.role` to switch between `TrainerBottomNav` and `BottomNav`.
+- Place new stores in `src/stores/`.
 - Use `defineStore('storeName', () => { ... })` (Composition API style).
 - Import with `useXxxStore()` naming.
 
@@ -177,18 +191,25 @@ hard-code hex colors, px sizes for spacing, or font values.**
 --color-gray-900:    #111111    /* primary text */
 --color-green:       #34C759    /* success states */
 --color-red:         #FF3B30    /* error/destructive */
+--color-yellow:      #FFCC00    /* warnings, calendar pending dots */
 
 /* Typography */
---fs-display: 24px  --fw-display: 700
---fs-title:   20px  --fw-title:   700
---fs-body1:   16px  --fw-body1-bold: 600  --fw-body1-reg: 400
---fs-body2:   14px  --fw-body2:   400
---fs-caption: 12px  --fw-caption: 400
+--fs-display: 24px   --fw-display: 700
+--fs-title:   20px   --fw-title:   700
+--fs-subtitle: 18px  --fw-subtitle: 600
+--fs-body1:   16px   --fw-body1-bold: 600  --fw-body1-reg: 400
+--fs-body2:   14px   --fw-body2:   400
+--fs-caption: 12px   --fw-caption: 400
+--lh-display: 1.4    --lh-body: 1.5
 
 /* Layout */
 --app-max-width: 480px
 --side-margin:   20px
 --nav-height:    68px
+
+/* Spacing */
+--spacing-section: 28px
+--spacing-item:    14px
 
 /* Components */
 --btn-height:     52px
@@ -234,8 +255,12 @@ Bottom-nav spacer pattern (prevents content hiding behind nav):
 |---|---|---|
 | `AppButton` | `variant` (`primary`\|`secondary`\|`outline`), `fullWidth`, `disabled` | Full-width primary by default; use `<slot>` for label |
 | `AppInput` | `modelValue`, `type`, `placeholder` | v-model compatible; `icon` named slot for prefix icon |
+| `AppBottomSheet` | `modelValue`, `title` | v-model toggleable; uses `<Teleport>` + `<Transition>` |
+| `AppCalendar` | `modelValue` (YYYY-MM-DD), `dots` | v-model date picker; dots: `{ day: ['pending'\|'approved'\|'done'\|'cancelled'] }` |
+| `AppTimePicker` | `modelValue` (HH:MM 24h) | v-model scroll-wheel picker; 5-min intervals |
 | `ProgressBar` | `currentStep`, `totalSteps` | Renders step-indicator dots for onboarding flows |
-| `BottomNav` | — | Fixed bottom navigation; hidden via route `meta.hideNav` |
+| `BottomNav` | — | Fixed bottom nav for member role; hidden via route `meta.hideNav` |
+| `TrainerBottomNav` | — | Fixed bottom nav for trainer role; shown when `auth.role === 'trainer'` |
 
 ---
 

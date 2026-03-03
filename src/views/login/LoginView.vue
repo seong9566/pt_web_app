@@ -1,3 +1,4 @@
+<!-- 로그인 페이지. 카카오 OAuth 및 이메일 로그인 버튼 제공 -->
 <template>
   <div class="login-view">
     <div class="login-view__bg-circle login-view__bg-circle--1" />
@@ -52,6 +53,7 @@ import { supabase } from '@/lib/supabase'
 
 const isLoading = ref(false)
 
+/** 카카오 OAuth 로그인 처리 */
 async function handleKakao() {
   isLoading.value = true
   const { error } = await supabase.auth.signInWithOAuth({
@@ -65,6 +67,7 @@ async function handleKakao() {
     isLoading.value = false
   }
 }
+/** 이메일 로그인 처리 (중비 중) */
 function handleEmail() { alert('준비 중입니다') }
 </script>
 

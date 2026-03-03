@@ -1,3 +1,4 @@
+<!-- 트레이너 프로필 생성 (온보딩). 이름, 사진, 전문 분야 선택 → DB 저장 -->
 <template>
   <div class="trainer-profile">
     <div class="trainer-profile__header">

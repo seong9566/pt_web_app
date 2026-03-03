@@ -1,3 +1,4 @@
+<!-- 회원 스케줄 페이지. 캘린더에 예약 현황(dot) 표시, 날짜별 예약 목록 조회 -->
 <template>
   <div class="member-schedule">
 

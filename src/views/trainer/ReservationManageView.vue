@@ -1,3 +1,4 @@
+<!-- 예약 관리 페이지. 예약 목록 조회, 승인/거절/완료/취소 상태 변경 -->
 <template>
   <div class="reservation">
 

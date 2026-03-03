@@ -1,3 +1,4 @@
+<!-- [미구현] 회원 채팅 페이지. 트레이너와의 메시지 기능 (목 데이터) -->
 <template>
   <div class="member-stub">
     <div class="member-stub__content">

@@ -1,3 +1,4 @@
+<!-- [미구현] 수납 기록 페이지. 회원별 결제 이력 목록 (목 데이터) -->
 <template>
   <div class="payment-view">
 
