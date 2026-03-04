@@ -821,3 +821,44 @@ All empty state icons use `stroke="currentColor"` to inherit gray-600 color from
 - TrainerScheduleView no longer shows fake data
 - Users see helpful messages instead of blank screens
 - Consistent UX across all empty states
+
+## Task 17: E2E 크리티컬 패스 검증 (2026-03-04)
+
+### 실행/환경
+- Dev server 시작 성공: `npm run dev` (Vite ready)
+- 주의: 로컬 `localhost:5173`에는 다른 프로젝트(`pt_web_app_fix-auth-flow`) Vite도 떠 있어 404 응답이 섞일 수 있음
+- 본 검증은 현재 프로젝트 Vite가 바인딩된 `http://123.2.156.230:5173` 기준으로 Playwright 수행
+
+### Playwright 검증 결과
+- `/` 진입 시 `/login`으로 정상 리다이렉트 확인
+- `/login` 페이지 렌더링 정상 ("카카오로 시작하기" 버튼 노출)
+- 보호 경로 `/trainer/home` 직접 접근 시 `/login`으로 리다이렉트 확인
+- 콘솔 에러 로그: 0건 (`.sisyphus/evidence/task-17-console-errors.log`)
+- 콘솔 경고: 1건 (`AuthStore`의 세션 user 없음 경고, 비로그인 상태에서 기대 동작)
+
+### 빌드 검증
+- `npm run build` 성공 (exit code 0)
+
+### 코드 레벨 검증 결과
+- 하드코딩 mock 이름 검색: 0건
+  - 패턴: `김앨리스|이재임스|박사라|최마이클|장엠마|Sarah Jenkins|Marcus Chen|Emma Wilson`
+- `auth.logout` 사용: 0건
+- 뷰에서 `supabase.from` 직접 호출: 0건
+- 연결된 composable import 뷰 다수 확인(14개 파일 매치)
+- 빈 상태 문구 존재 확인(7개 파일 매치)
+- "준비 중입니다" 스텁 문구 존재 확인(12개 파일 매치)
+- `alert(` 검색 결과 9건(7개 파일):
+  - 다수는 미구현/스텁 동작("준비 중입니다")
+  - 일부는 기존 동작(`취소되었습니다`, `이동: ...`, `저장되었습니다`)으로 잔존
+
+### 증거 파일
+- `.sisyphus/evidence/task-17-login.png`
+- `.sisyphus/evidence/task-17-protected-route-redirect.png`
+- `.sisyphus/evidence/task-17-console-errors.log`
+- `.sisyphus/evidence/task-17-console-warnings.log`
+- `.sisyphus/evidence/task-17-dev-server.log`
+
+### 결론
+- 인증 없는 크리티컬 패스(앱 진입/로그인/보호 라우트 리다이렉트) 정상
+- JS 에러 없음, 빌드 통과
+- 빈 상태/"준비 중" UI 문구도 코드 상 확인 완료
