@@ -165,6 +165,24 @@ export function useMemos() {
     }
   }
 
+  /** 메모 생성 */
+  async function createMemo(memberId, content, tags) {
+    loading.value = true
+    error.value = null
+    try {
+      const { error: insertError } = await supabase
+        .from('memos')
+        .insert({ trainer_id: auth.user.id, member_id: memberId, content, tags })
+      if (insertError) throw insertError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '메모 저장에 실패했습니다.'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 메모 삭제 */
   async function deleteMemo(memoId) {
     loading.value = true
@@ -193,6 +211,7 @@ export function useMemos() {
     error,
     fetchMemberDetail,
     fetchMemos,
+    createMemo,
     deleteMemo,
   }
 }

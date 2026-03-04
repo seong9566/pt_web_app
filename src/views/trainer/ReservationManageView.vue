@@ -70,11 +70,11 @@
             <div class="res-card__top">
               <div class="res-card__profile">
                 <div class="res-card__avatar">
-                  <img src="@/assets/icons/person.svg" :alt="item.name" width="28" height="28" />
+                  <img src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
                 </div>
                 <div class="res-card__info">
-                  <span class="res-card__name">{{ item.name }}</span>
-                  <span class="res-card__session">{{ item.sessionType }}</span>
+                  <span class="res-card__name">{{ item.partner_name }}</span>
+                  <span class="res-card__session">{{ item.session_type }}</span>
                 </div>
               </div>
               <span class="res-card__status res-card__status--pending">대기중</span>
@@ -94,11 +94,9 @@
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                   <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                {{ item.time }}
+                {{ item.start_time }}
               </span>
             </div>
-
-            <p class="res-card__remaining">잔여 횟수: {{ item.remaining }}회</p>
 
             <div class="res-card__divider" />
 
@@ -133,11 +131,11 @@
             <div class="res-card__top">
               <div class="res-card__profile">
                 <div class="res-card__avatar">
-                  <img src="@/assets/icons/person.svg" :alt="item.name" width="28" height="28" />
+                  <img src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
                 </div>
                 <div class="res-card__info">
-                  <span class="res-card__name">{{ item.name }}</span>
-                  <span class="res-card__session">{{ item.sessionType }}</span>
+                  <span class="res-card__name">{{ item.partner_name }}</span>
+                  <span class="res-card__session">{{ item.session_type }}</span>
                 </div>
               </div>
               <span class="res-card__status res-card__status--approved">
@@ -162,18 +160,17 @@
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                   <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                {{ item.time }}
+                {{ item.start_time }}
               </span>
             </div>
 
             <div class="res-card__divider" />
 
             <div class="res-card__footer">
-              <span class="res-card__elapsed">{{ item.elapsed }}</span>
-              <button class="res-card__detail" @click="handleDetail(item)">
-                상세 보기
+              <button class="res-card__detail" @click="handleComplete(item)">
+                완료
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
             </div>
@@ -182,7 +179,7 @@
       </section>
 
       <!-- 비어있을 때 -->
-      <div v-if="!filteredPending.length && !filteredApproved.length" class="reservation__empty">
+      <div v-if="!filteredPending.length && !filteredApproved.length && !filteredCompleted.length" class="reservation__empty">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
           <path d="M3 9H21" stroke="currentColor" stroke-width="1.8"/>
@@ -198,73 +195,26 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useReservations } from '@/composables/useReservations'
 
 const router = useRouter()
+const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
 
 // ── Filter ──
 const filterChips = [
   { id: 'all',      label: '전체',   icon: 'grid' },
   { id: 'pending',  label: '대기중', icon: 'clock' },
   { id: 'approved', label: '승인됨', icon: 'check' },
-  { id: 'past',     label: '지난 예약', icon: 'history' },
+  { id: 'completed', label: '완료', icon: 'history' },
 ]
 const activeFilter = ref('pending')
 
-// ── Mock data ──
-const reservations = ref([
-  {
-    id: 1,
-    name: '박민수',
-    sessionType: '근력 운동',
-    date: '10월 25일 (수)',
-    time: '02:30PM',
-    remaining: 12,
-    status: 'pending',
-    elapsed: '',
-  },
-  {
-    id: 2,
-    name: '김서연',
-    sessionType: 'PT 세션',
-    date: '10월 26일 (목)',
-    time: '10:00AM',
-    remaining: 8,
-    status: 'pending',
-    elapsed: '',
-  },
-  {
-    id: 3,
-    name: '최동현',
-    sessionType: '유산소 운동',
-    date: '10월 27일 (금)',
-    time: '04:00PM',
-    remaining: 5,
-    status: 'pending',
-    elapsed: '',
-  },
-  {
-    id: 4,
-    name: '이수진',
-    sessionType: '요가 세션',
-    date: '10월 23일 (월)',
-    time: '09:00 AM',
-    remaining: 15,
-    status: 'approved',
-    elapsed: '2시간 전 승인됨',
-  },
-  {
-    id: 5,
-    name: '정하늘',
-    sessionType: '필라테스',
-    date: '10월 22일 (일)',
-    time: '11:00 AM',
-    remaining: 20,
-    status: 'approved',
-    elapsed: '어제 승인됨',
-  },
-])
+// ── Initialize ──
+onMounted(async () => {
+  await fetchMyReservations('trainer')
+})
 
 // ── Computed lists ──
 const filteredPending = computed(() =>
@@ -273,15 +223,23 @@ const filteredPending = computed(() =>
 const filteredApproved = computed(() =>
   reservations.value.filter(r => r.status === 'approved')
 )
+const filteredCompleted = computed(() =>
+  reservations.value.filter(r => r.status === 'completed')
+)
 
 const pendingList = computed(() => {
-  if (activeFilter.value === 'approved' || activeFilter.value === 'past') return []
+  if (activeFilter.value === 'approved' || activeFilter.value === 'completed') return []
   return filteredPending.value
 })
 
 const approvedList = computed(() => {
-  if (activeFilter.value === 'pending') return []
+  if (activeFilter.value === 'pending' || activeFilter.value === 'completed') return []
   return filteredApproved.value
+})
+
+const completedList = computed(() => {
+  if (activeFilter.value !== 'completed' && activeFilter.value !== 'all') return []
+  return filteredCompleted.value
 })
 
 // ── Actions ──
@@ -289,17 +247,26 @@ function handleFilter() {
   alert('준비 중입니다')
 }
 
-function handleReject(item) {
-  if (confirm(`${item.name}님의 예약을 거절하시겠습니까?`)) {
-    reservations.value = reservations.value.filter(r => r.id !== item.id)
+async function handleReject(item) {
+  if (confirm(`${item.partner_name}님의 예약을 거절하시겠습니까?`)) {
+    const success = await updateReservationStatus(item.id, 'rejected')
+    if (success) {
+      await fetchMyReservations('trainer')
+    }
   }
 }
 
-function handleApprove(item) {
-  const target = reservations.value.find(r => r.id === item.id)
-  if (target) {
-    target.status = 'approved'
-    target.elapsed = '방금 승인됨'
+async function handleApprove(item) {
+  const success = await updateReservationStatus(item.id, 'approved')
+  if (success) {
+    await fetchMyReservations('trainer')
+  }
+}
+
+async function handleComplete(item) {
+  const success = await updateReservationStatus(item.id, 'completed')
+  if (success) {
+    await fetchMyReservations('trainer')
   }
 }
 

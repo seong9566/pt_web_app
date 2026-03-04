@@ -285,13 +285,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useReservations } from '@/composables/useReservations'
 
 const router = useRouter()
+const { reservations, loading, error, fetchMyReservations } = useReservations()
 
-// 대기 중 예약 건수 (실제에는 API에서 fetch)
-const pendingCount = ref(3)
+// ── Fetch reservations on mount ──
+onMounted(async () => {
+  await fetchMyReservations('trainer')
+})
+
+// 대기 중 예약 건수 (실제 데이터에서 계산)
+const pendingCount = computed(() => {
+  return reservations.filter(res => res.status === 'pending').length
+})
 
 
 // ── View toggle ──
@@ -324,26 +333,20 @@ const legend = [
   { status: 'cancelled', label: '취소됨' },
 ]
 
-// Sample dot data: date → array of statuses
-const dotData = {
-  3:  ['pending'],
-  5:  ['done', 'done'],
-  7:  ['done'],
-  8:  ['cancelled'],
-  11: ['pending', 'pending'],
-  14: ['approved'],
-  15: ['cancelled'],
-  18: ['approved'],
-  21: ['approved'],
-  22: ['pending'],
-  24: ['approved'],
-  28: ['done'],
-  29: ['cancelled'],
-  30: ['approved'],
-}
+// ── Compute dots from real reservations ──
+const dotsData = computed(() => {
+  const dots = {}
+  reservations.forEach((res) => {
+    if (!dots[res.date]) {
+      dots[res.date] = []
+    }
+    dots[res.date].push(res.status)
+  })
+  return dots
+})
 
 function getDots(date) {
-  return dotData[date] || []
+  return dotsData.value[date] || []
 }
 
 function isSelected(date) {
@@ -399,12 +402,17 @@ const selectedDateLabel = computed(() => {
   return `${currentMonth.value}월 ${selectedDate.value}일 ${dayNames[dayOfWeek]}`
 })
 
-// ── Session data ──
-const sessions = ref([
-  { id: 1, title: '오전 유산소',    time: '07:00 - 08:00', name: 'Sarah Jenkins', status: 'done'     },
-  { id: 2, title: 'HIIT 세션',     time: '10:30 - 11:30', name: 'Marcus Chen',   status: 'approved' },
-  { id: 3, title: '근력 강화 훈련', time: '14:00 - 15:00', name: 'Emma Wilson',   status: 'pending'  },
-])
+// ── Filter reservations by selected date ──
+const sessions = computed(() => {
+  const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
+  return reservations.filter((res) => res.date === selectedDateStr).map((res) => ({
+    id: res.id,
+    title: res.session_type || '운동 세션',
+    time: `${res.start_time} - ${res.end_time}`,
+    name: res.partner_name,
+    status: res.status,
+  }))
+})
 
 // ── Weekly state ──
 // weekStart: first day (Sun) of the displayed week
@@ -468,31 +476,24 @@ const timeSlots = Array.from({ length: 15 }, (_, i) => i + 6)
 const GRID_START_HOUR = 6
 const CELL_HEIGHT = 48  // px per hour row
 
-// Session data keyed by 'YYYY-M-D' (matching fullDate format)
-const weeklySessionData = {
-  '2023-10-5': [
-    { id: 1, title: '오전 유산소',    time: '07:00', status: 'done',     startH: 7,  startM: 0,  endH: 8,  endM: 0  },
-    { id: 2, title: 'HIIT',           time: '10:30', status: 'approved', startH: 10, startM: 30, endH: 11, endM: 30 },
-    { id: 3, title: '근력 훈련',     time: '14:00', status: 'pending',  startH: 14, startM: 0,  endH: 15, endM: 0  },
-  ],
-  '2023-10-3': [
-    { id: 4, title: '스트레칭',         time: '09:00', status: 'approved', startH: 9,  startM: 0,  endH: 10, endM: 0  },
-  ],
-  '2023-10-4': [
-    { id: 5, title: '필라테스',         time: '11:00', status: 'pending',  startH: 11, startM: 0,  endH: 12, endM: 0  },
-    { id: 6, title: '조간 러닝',         time: '07:30', status: 'done',     startH: 7,  startM: 30, endH: 8,  endM: 30 },
-  ],
-  '2023-10-6': [
-    { id: 7, title: '코어',             time: '15:00', status: 'approved', startH: 15, startM: 0,  endH: 16, endM: 0  },
-  ],
-  '2023-10-7': [
-    { id: 8, title: '스핀마스터',       time: '10:00', status: 'approved', startH: 10, startM: 0,  endH: 11, endM: 30 },
-    { id: 9, title: '다이어트',         time: '13:00', status: 'done',     startH: 13, startM: 0,  endH: 14, endM: 0  },
-  ],
-}
-
+// ── Get sessions for weekly view ──
 function getSessionsForDay(fullDate) {
-  return weeklySessionData[fullDate] || []
+  const [y, m, d] = fullDate.split('-').map(Number)
+  const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  return reservations.filter((res) => res.date === dateStr).map((res) => {
+    const [startH, startM] = res.start_time.split(':').map(Number)
+    const [endH, endM] = res.end_time.split(':').map(Number)
+    return {
+      id: res.id,
+      title: res.session_type || '운동 세션',
+      time: res.start_time,
+      status: res.status,
+      startH,
+      startM,
+      endH,
+      endM,
+    }
+  })
 }
 
 function blockStyle(session) {

@@ -85,7 +85,7 @@
 
         <div class="memo-list">
           <div
-            v-for="memo in member.memos"
+            v-for="memo in memos"
             :key="memo.id"
             class="memo-card"
           >
@@ -123,46 +123,22 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useMemos } from '@/composables/useMemos'
 
 const router = useRouter()
 const route = useRoute()
+const { member, memos, loading, error, fetchMemberDetail, fetchMemos } = useMemos()
 
-// 실제 구현 시 useRoute().params.id로 API fetch
-// 현재는 mock 데이터 사용
-const member = {
-  id: 1,
-  name: '김지영',
-  summary: '최근 무릎 통증 호소. 스쿼트 중량 조절 필요. 스트레칭 루틴 강화 요망.',
-  lastVisit: '2023.10.24',
-  nextSession: '2023.10.27 19:00',
-  memos: [
-    {
-      id: 1,
-      date: '2023년 10월 20일',
-      time: '오후 7:30',
-      dotColor: 'blue',
-      tags: ['상체', 'PT 12회차'],
-      content: '벤치프레스 중량 5kg 증량. 어깨 통증 없음 확인. 식단 사진 잘 보내주고 계심. 물 섭취량 늘리도록 지도.',
-    },
-    {
-      id: 2,
-      date: '2023년 10월 15일',
-      time: '오후 6:00',
-      dotColor: 'gray',
-      tags: ['유산소', '상담'],
-      content: '인바디 측정 결과 체지방률 2% 감소. 매우 고무적인 성과. 주말 식단 조절이 관건이라고 말씀하심.',
-    },
-    {
-      id: 3,
-      date: '2023년 10월 10일',
-      time: '오후 8:00',
-      dotColor: 'gray',
-      tags: [],
-      content: '개인 사정으로 수업 취소. 다음주 보강 잡음.',
-    },
-  ],
-}
+// 회원 ID를 route params에서 추출하여 데이터 로드
+onMounted(async () => {
+  const memberId = route.params.id
+  if (memberId) {
+    await fetchMemberDetail(memberId)
+    await fetchMemos(memberId)
+  }
+})
 
 function handleAddMemo() {
   router.push({ name: 'trainer-memo-write', params: { id: route.params.id } })

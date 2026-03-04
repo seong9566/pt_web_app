@@ -115,12 +115,13 @@
 
     <!-- ── Footer ── -->
     <div class="memo-write__footer">
+      <p v-if="error" class="memo-write__error">{{ error }}</p>
       <button
         class="memo-write__submit"
-        :disabled="!canSave"
+        :disabled="!canSave || loading"
         @click="handleSave"
       >
-        메모 저장하기
+        {{ loading ? '저장 중...' : '메모 저장하기' }}
       </button>
     </div>
 
@@ -144,10 +145,13 @@ import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
+import { useMemos } from '@/composables/useMemos'
 
 const router = useRouter()
 const route = useRoute()
 const memberId = route.params.id
+
+const { createMemo, loading, error } = useMemos()
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -224,21 +228,13 @@ function removePhoto(idx) {
 // ── Save ──
 const canSave = computed(() => content.value.trim().length > 0)
 
-function handleSave() {
-  if (!canSave.value) return
+async function handleSave() {
+  if (!canSave.value || loading.value) return
 
-  const memo = {
-    memberId,
-    date: selectedDate.value,
-    time: selectedTime.value,
-    tags: [...selectedTags.value],
-    content: content.value.trim(),
-    photoCount: photos.value.length,
+  const success = await createMemo(memberId, content.value.trim(), [...selectedTags.value])
+  if (success) {
+    router.back()
   }
-
-  console.log('메모 저장:', memo)
-  alert('메모가 저장되었습니다.')
-  router.back()
 }
 </script>
 

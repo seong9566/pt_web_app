@@ -54,8 +54,18 @@
       </button>
     </div>
 
+    <!-- ── Error Message ── -->
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <!-- ── Loading State ── -->
+    <div v-if="loading" class="loading-state">
+      회원 목록을 불러오는 중...
+    </div>
+
     <!-- ── Member List ── -->
-    <div class="member-list-section">
+    <div v-if="!loading" class="member-list-section">
       <div class="member-list-section__header">
         <h2 class="member-list-section__title">
           회원 목록 <span class="member-list-section__count">{{ filteredMembers.length }}</span>
@@ -124,11 +134,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { useMembers } from '@/composables/useMembers'
 
 const router = useRouter()
+const { members, loading, error, fetchMembers } = useMembers()
 
 // ── Search ──
 const searchQuery = ref('')
@@ -168,76 +179,10 @@ const statCards = [
   },
 ]
 
-// ── Member data ──
-// barColor: 'blue' | 'orange' | 'gray'
-// dotStatus: 'active' (green) | 'inactive' (gray)
-const members = ref([
-  {
-    id: 1,
-    name: '김지영',
-    photo: null,
-    sub: '마지막 수업: 2일 전',
-    isToday: false,
-    isNew: false,
-    dotStatus: 'active',
-    done: 8,
-    total: 10,
-    barColor: 'blue',
-    group: 'active',
-  },
-  {
-    id: 2,
-    name: '박민수',
-    photo: null,
-    sub: '마지막 수업: 5일 전',
-    isToday: false,
-    isNew: false,
-    dotStatus: 'inactive',
-    done: 1,
-    total: 20,
-    barColor: 'orange',
-    group: 'active',
-  },
-  {
-    id: 3,
-    name: '이하은',
-    photo: null,
-    sub: '오늘 수업 예정',
-    isToday: true,
-    isNew: false,
-    dotStatus: 'active',
-    done: 15,
-    total: 30,
-    barColor: 'blue',
-    group: 'active',
-  },
-  {
-    id: 4,
-    name: '최현우',
-    photo: null,
-    sub: '마지막 수업: 2주 전',
-    isToday: false,
-    isNew: false,
-    dotStatus: 'inactive',
-    done: 12,
-    total: 20,
-    barColor: 'gray',
-    group: 'ended',
-  },
-  {
-    id: 5,
-    name: '정우성',
-    photo: null,
-    sub: '신규 등록',
-    isToday: false,
-    isNew: true,
-    dotStatus: 'active',
-    done: 0,
-    total: 10,
-    barColor: 'gray',
-    group: 'active',
-  },
-])
+// ── Fetch members on mount ──
+onMounted(() => {
+  fetchMembers()
+})
 
 const filteredMembers = computed(() => {
   let list = members.value

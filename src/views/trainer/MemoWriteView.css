@@ -305,3 +305,10 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.memo-write__error {
+  font-size: var(--fs-caption);
+  color: var(--color-red);
+  margin-bottom: 8px;
+  text-align: center;
+}

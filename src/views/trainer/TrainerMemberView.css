@@ -373,3 +373,22 @@
   color: #9CA3AF;
   line-height: 1;
 }
+
+/* ── Error Message ── */
+.error-message {
+  padding: 16px var(--side-margin);
+  background-color: #FEE2E2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-medium);
+  color: var(--color-red);
+  font-size: var(--fs-body2);
+  margin: 16px var(--side-margin) 0;
+}
+
+/* ── Loading State ── */
+.loading-state {
+  padding: 32px var(--side-margin);
+  text-align: center;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body1);
+}
