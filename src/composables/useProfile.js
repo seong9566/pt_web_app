@@ -99,5 +99,30 @@ export function useProfile() {
     return { loading, error }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile }
+  /** 역할 저장 (profiles 테이블에 role 업데이트) */
+  async function saveRole(userId, role) {
+    const loading = ref(false)
+    const error = ref(null)
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: saveError } = await supabase
+        .from('profiles')
+        .upsert({ id: userId, role: role, name: '', phone: '' })
+
+      if (saveError) {
+        throw saveError
+      }
+    } catch (e) {
+      error.value = e?.message ?? '역할 저장에 실패했습니다. 다시 시도해주세요.'
+    } finally {
+      loading.value = false
+    }
+
+    return { loading, error }
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole }
 }

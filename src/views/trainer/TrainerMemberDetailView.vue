@@ -13,6 +13,9 @@
       <button class="mem-detail__edit">편집</button>
     </div>
 
+    <!-- 에러 메시지 -->
+    <div v-if="error" class="mem-detail__error">{{ error }}</div>
+
     <div class="mem-detail__body">
 
       <!-- ── 회원 요약 ── -->

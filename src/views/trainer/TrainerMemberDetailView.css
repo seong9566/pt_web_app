@@ -10,6 +10,17 @@
   background-color: var(--color-white);
 }
 
+/* ── Error message ── */
+.mem-detail__error {
+  padding: 12px 16px;
+  background-color: #FFE5E5;
+  border-left: 4px solid var(--color-red);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 12px var(--side-margin);
+}
+
 /* ── Header ── */
 .mem-detail__header {
   display: flex;

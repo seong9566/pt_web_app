@@ -17,6 +17,9 @@
       </button>
     </div>
 
+    <!-- 에러 메시지 -->
+    <div v-if="error" class="reservation__error">{{ error }}</div>
+
     <!-- ── Filter Chips ── -->
     <div class="reservation__chips-wrap">
       <div class="reservation__chips">

@@ -7,6 +7,9 @@
       <h1 class="schedule-appbar__title">내 일정</h1>
     </div>
 
+    <!-- 에러 메시지 -->
+    <div v-if="error" class="error-message">{{ error }}</div>
+
     <!-- ── Monthly Calendar ── -->
     <div class="calendar-card">
       <div class="calendar-card__nav">

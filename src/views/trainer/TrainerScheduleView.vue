@@ -13,6 +13,9 @@
       </button>
     </div>
 
+    <!-- 에러 메시지 -->
+    <div v-if="error" class="error-message">{{ error }}</div>
+
     <!-- ── View Toggle ── -->
     <div class="view-toggle">
       <button

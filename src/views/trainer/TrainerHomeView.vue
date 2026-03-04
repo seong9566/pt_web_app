@@ -18,6 +18,11 @@
       </button>
     </header>
 
+    <!-- 에러 메시지 -->
+    <div v-if="reservError || membersError" class="error-message">
+      {{ reservError || membersError }}
+    </div>
+
     <div class="action-card-dark floating-card" v-if="pendingReservationCount > 0">
       <div class="action-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 16H18M17 15V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>

@@ -65,25 +65,25 @@ import { useRouter } from "vue-router";
 import ProgressBar from "@/components/ProgressBar.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from "@/stores/auth";
-import { supabase } from '@/lib/supabase'
+import { useProfile } from "@/composables/useProfile";
+
 const router = useRouter();
 const auth = useAuthStore();
+const { saveRole } = useProfile();
 const selectedRole = ref(null);
 const isLoading = ref(false)
 const errorMsg = ref('')
+
 /** 역할 선택 후 다음 단계로 진행 */
 async function handleNext() {
   if (!selectedRole.value) return
   isLoading.value = true
   errorMsg.value = ''
 
-  // 선택한 역할을 profiles 테이블에 저장
-  const { error: saveError } = await supabase
-    .from('profiles')
-    .upsert({ id: auth.user.id, role: selectedRole.value, name: '', phone: '' })
+  const { loading, error } = await saveRole(auth.user.id, selectedRole.value)
 
-  if (saveError) {
-    errorMsg.value = '역할 저장에 실패했습니다. 다시 시도해주세요.'
+  if (error.value) {
+    errorMsg.value = error.value
     isLoading.value = false
     return
   }
