@@ -223,6 +223,7 @@ export const useAuthStore = defineStore('auth', () => {
     setRole,
     clearRole,
     fetchProfile,
+    hydrateFromSession,
     initialize,
     signOut,
   }

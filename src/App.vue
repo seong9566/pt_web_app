@@ -1,9 +1,9 @@
 <template>
   <div id="container">
     <router-view />
-    <template v-if="!route.meta.hideNav">
+    <template v-if="!route.meta.hideNav && auth.role">
       <TrainerBottomNav v-if="auth.role === 'trainer'" />
-      <BottomNav v-else />
+      <BottomNav v-else-if="auth.role === 'member'" />
     </template>
   </div>
 </template>

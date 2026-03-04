@@ -7,37 +7,53 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 onMounted(async () => {
   try {
-    // Supabase 세션 초기화 및 프로필 데이터 로드
-    await auth.initialize()
+    const code = route.query.code
 
-    // 로그인 상태 확인: 세션 없으면 로그인 페이지로 리다이렉트
-    if (!auth.user) {
+    // code 파라미터 없으면 로그인으로 리다이렉트
+    if (!code) {
       router.replace('/login')
       return
     }
 
-    // 프로필 미생성: 역할 선택 페이지로 리다이렉트
-    if (!auth.role) {
-      router.replace('/onboarding/role')
+    // 1. PKCE 인가 코드 → 세션 교환 (단일 경로 — detectSessionInUrl: false이므로 자동 교환 없음)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    if (exchangeError) {
+      console.error('PKCE 코드 교환 실패:', exchangeError.message)
+      router.replace('/login')
       return
     }
 
-    // 역할에 따라 홈 페이지 결정: 트레이너 → /trainer/home, 회원 → /home
-    if (auth.role === 'trainer') {
+    // 2. 교환 후 세션 확인
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session) {
+      console.error('세션 확인 실패:', sessionError?.message)
+      router.replace('/login')
+      return
+    }
+
+    // 3. store 상태 동기화 — fetchProfile → setProfile → syncRoleFromProfile 체인 실행
+    await auth.hydrateFromSession(session)
+
+    // 4. 역할에 따라 리다이렉트
+    if (!auth.role) {
+      router.replace('/onboarding/role')
+    } else if (auth.role === 'trainer') {
       router.replace('/trainer/home')
     } else {
       router.replace('/home')
     }
   } catch (e) {
-    console.error('Auth callback error:', e)
+    console.error('Auth callback 오류:', e)
     router.replace('/login')
   }
 })

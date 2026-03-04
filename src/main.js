@@ -19,6 +19,8 @@ app.use(pinia)
 app.use(router)
 
 const auth = useAuthStore(pinia) // Pinia 인스턴스를 직접 전달하여 setup 밖에서도 사용 가능
-auth.initialize() // 페이지 로드 시 Supabase 세션 복원 + onAuthStateChange 리스너 등록
 
-app.mount('#app')
+;(async () => {
+  await auth.initialize() // 세션 복원 완료 후 마운트 — 레이스 컨디션 방지
+  app.mount('#app')
+})()

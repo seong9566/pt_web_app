@@ -38,7 +38,6 @@ function buildDefaultDays() {
 
 /** HH:MM:SS → HH:MM 형식으로 변환 */
 function trimSeconds(timeStr) {
-function trimSeconds(timeStr) {
   if (!timeStr) return '09:00'
   return timeStr.slice(0, 5)
 }
