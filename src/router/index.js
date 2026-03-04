@@ -190,52 +190,56 @@ const router = createRouter({
  * 4. 역할 불일치 → 해당 역할의 홈으로 리다이렉트
  */
 router.beforeEach(async (to) => {
-  const auth = useAuthStore();
+  try {
+    const auth = useAuthStore();
 
-  // Wait for auth initialization to complete
-  if (auth.loading) {
-    await auth.initialize();
-  }
-
-  const isPublic = PUBLIC_ROUTES.includes(to.path);
-  const isAuthenticated = !!auth.user;
-  const isOnboarding = to.path.startsWith("/onboarding");
-
-  // Unauthenticated user accessing protected route → redirect to login
-  if (!isAuthenticated && !isPublic) {
-    return "/login";
-  }
-
-  // Authenticated user accessing login → redirect based on role
-  if (isAuthenticated && to.path === "/login") {
-    if (auth.role === "trainer") return "/trainer/home";
-    if (auth.role === "member") return "/home";
-    return "/onboarding/role";
-  }
-
-  // Onboarding routes: require auth but no role check
-  if (isOnboarding) {
-    return;
-  }
-
-  // Role-based access control (only for authenticated users with a role)
-  if (isAuthenticated && auth.role) {
-    const isTrainerRoute =
-      to.path.startsWith("/trainer/") || to.path === "/search";
-    const isMemberRoute =
-      to.path.startsWith("/member/") ||
-      to.path === "/home" ||
-      to.path.startsWith("/invite/");
-
-    // Trainer accessing member routes → redirect to trainer home
-    if (auth.role === "trainer" && isMemberRoute) {
-      return "/trainer/home";
+    // Wait for auth initialization to complete
+    if (auth.loading) {
+      await auth.initialize();
     }
 
-    // Member accessing trainer routes → redirect to member home
-    if (auth.role === "member" && isTrainerRoute) {
-      return "/home";
+    const isPublic = PUBLIC_ROUTES.includes(to.path);
+    const isAuthenticated = !!auth.user;
+    const isOnboarding = to.path.startsWith("/onboarding");
+
+    // Unauthenticated user accessing protected route → redirect to login
+    if (!isAuthenticated && !isPublic) {
+      return "/login";
     }
+
+    // Authenticated user accessing login → redirect based on role
+    if (isAuthenticated && to.path === "/login") {
+      if (auth.role === "trainer") return "/trainer/home";
+      if (auth.role === "member") return "/home";
+      return "/onboarding/role";
+    }
+
+    // Onboarding routes: require auth but no role check
+    if (isOnboarding) {
+      return;
+    }
+
+    // Role-based access control (only for authenticated users with a role)
+    if (isAuthenticated && auth.role) {
+      const isTrainerRoute =
+        to.path.startsWith("/trainer/") || to.path === "/search";
+      const isMemberRoute =
+        to.path.startsWith("/member/") ||
+        to.path === "/home" ||
+        to.path.startsWith("/invite/");
+
+      // Trainer accessing member routes → redirect to trainer home
+      if (auth.role === "trainer" && isMemberRoute) {
+        return "/trainer/home";
+      }
+
+      // Member accessing trainer routes → redirect to member home
+      if (auth.role === "member" && isTrainerRoute) {
+        return "/home";
+      }
+    }
+  } catch(e) {
+    console.error("Router beforeEach Error: ", e);
   }
 });
 

@@ -22,5 +22,6 @@ const auth = useAuthStore(pinia) // Pinia 인스턴스를 직접 전달하여 se
 
 ;(async () => {
   await auth.initialize() // 세션 복원 완료 후 마운트 — 레이스 컨디션 방지
+  await router.isReady() // 라우터 초기 네비게이션 완료 대기 - 새로고침 시 화면 하얗게 되는 현상 방지
   app.mount('#app')
 })()
