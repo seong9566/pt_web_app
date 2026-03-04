@@ -182,7 +182,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 ## TODOs
 
-- [ ] 1. TrainerProfileView 저장 로직 추가 (P0 블로커)
+- [x] 1. TrainerProfileView 저장 로직 추가 (P0 블로커)
 
   **What to do**:
   - `src/composables/useProfile.js`에 `saveTrainerProfile(userId, name, specialties)` 함수 추가
@@ -252,7 +252,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Files: `src/composables/useProfile.js`, `src/views/trainer/TrainerProfileView.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 2. TrainerHomeView 실제 데이터 연결
+- [x] 2. TrainerHomeView 실제 데이터 연결
 
   **What to do**:
   - `src/views/trainer/TrainerHomeView.vue`에서:
@@ -318,7 +318,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(views): Wave 1 뷰 composable 연결`
   - Files: `src/views/trainer/TrainerHomeView.vue`
 
-- [ ] 3. MemberReservationView composable 연결
+- [x] 3. MemberReservationView composable 연결
 
   **What to do**:
   - `src/views/member/MemberReservationView.vue`에서:
@@ -383,7 +383,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   **Commit**: YES (groups with T2, T4-T6)
   - Files: `src/views/member/MemberReservationView.vue`
 
-- [ ] 4. MemberScheduleView composable 연결
+- [x] 4. MemberScheduleView composable 연결
 
   **What to do**:
   - `src/views/member/MemberScheduleView.vue`에서:
@@ -431,7 +431,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   **Commit**: YES (groups with T2, T3, T5, T6)
   - Files: `src/views/member/MemberScheduleView.vue`
 
-- [ ] 5. WorkTimeSettingView composable 연결
+- [x] 5. WorkTimeSettingView composable 연결
 
   **What to do**:
   - `src/views/trainer/WorkTimeSettingView.vue`에서:
@@ -476,7 +476,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   **Commit**: YES (groups with T2-T4, T6)
   - Files: `src/views/trainer/WorkTimeSettingView.vue`
 
-- [ ] 6. TrainerSearchView composable 연결
+- [x] 6. TrainerSearchView composable 연결
 
   **What to do**:
   - `src/views/trainer/TrainerSearchView.vue`에서:
@@ -523,7 +523,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   **Commit**: YES (groups with T2-T5)
   - Files: `src/views/trainer/TrainerSearchView.vue`
 
-- [ ] 7. TrainerMemberView composable 연결
+- [x] 7. TrainerMemberView composable 연결
 
   **What to do**:
   - `src/views/trainer/TrainerMemberView.vue`에서:
@@ -566,7 +566,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T8-T12)
 
-- [ ] 8. TrainerMemberDetailView composable 연결
+- [x] 8. TrainerMemberDetailView composable 연결
 
   **What to do**:
   - `src/views/trainer/TrainerMemberDetailView.vue`에서:
@@ -607,7 +607,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T7, T9-T12)
 
-- [ ] 9. ReservationManageView composable 연결
+- [x] 9. ReservationManageView composable 연결
 
   **What to do**:
   - `src/views/trainer/ReservationManageView.vue`에서:
@@ -651,7 +651,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T7-T8, T10-T12)
 
-- [ ] 10. TrainerScheduleView composable 연결
+- [x] 10. TrainerScheduleView composable 연결
 
   **What to do**:
   - `src/views/trainer/TrainerScheduleView.vue`에서:
@@ -692,7 +692,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T7-T9, T11-T12)
 
-- [ ] 11. useMemos.createMemo() 추가 + MemoWriteView 연결
+- [x] 11. useMemos.createMemo() 추가 + MemoWriteView 연결
 
   **What to do**:
   - `src/composables/useMemos.js`에 `createMemo(memberId, content, tags)` 함수 추가
@@ -741,7 +741,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   **Commit**: YES (groups with T7-T10, T12)
   - Files: `src/composables/useMemos.js`, `src/views/trainer/MemoWriteView.vue`
 
-- [ ] 12. MemberSettingsView 실제 데이터 + signOut 수정
+- [x] 12. MemberSettingsView 실제 데이터 + signOut 수정
 
   **What to do**:
   - `src/views/member/MemberSettingsView.vue`에서:
