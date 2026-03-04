@@ -6,55 +6,93 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
-const route = useRoute()
 const auth = useAuthStore()
 
-onMounted(async () => {
-  try {
-    const code = route.query.code
+let authListener = null
 
-    // code 파라미터 없으면 로그인으로 리다이렉트
-    if (!code) {
-      router.replace('/login')
-      return
-    }
+/**
+ * 역할에 따라 최종 리다이렉트 처리
+ */
+async function handleRedirect(session) {
+  console.log('[AuthCallback] handleRedirect 호출됨 - session 유무:', !!session)
 
-    // 1. PKCE 인가 코드 → 세션 교환 (단일 경로 — detectSessionInUrl: false이므로 자동 교환 없음)
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-    if (exchangeError) {
-      console.error('PKCE 코드 교환 실패:', exchangeError.message)
-      router.replace('/login')
-      return
-    }
-
-    // 2. 교환 후 세션 확인
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session) {
-      console.error('세션 확인 실패:', sessionError?.message)
-      router.replace('/login')
-      return
-    }
-
-    // 3. store 상태 동기화 — fetchProfile → setProfile → syncRoleFromProfile 체인 실행
-    await auth.hydrateFromSession(session)
-
-    // 4. 역할에 따라 리다이렉트
-    if (!auth.role) {
-      router.replace('/onboarding/role')
-    } else if (auth.role === 'trainer') {
-      router.replace('/trainer/home')
-    } else {
-      router.replace('/home')
-    }
-  } catch (e) {
-    console.error('Auth callback 오류:', e)
+  if (!session) {
+    console.warn('[AuthCallback] session 없음 - /login 으로 리다이렉트')
     router.replace('/login')
+    return
+  }
+
+  // store 상태 동기화 (이미 onAuthStateChange에서 처리됐을 수 있지만, 명시적으로 실행)
+  console.log('[AuthCallback] auth store 동기화 시작 (hydrateFromSession)')
+  await auth.hydrateFromSession(session)
+  console.log('[AuthCallback] auth store 동기화 완료 - 저장된 역할:', auth.role)
+
+  if (!auth.role) {
+    console.log('[AuthCallback] role 없음 → /onboarding/role 으로 이동')
+    router.replace('/onboarding/role')
+  } else if (auth.role === 'trainer') {
+    console.log('[AuthCallback] 트레이너 → /trainer/home 으로 이동')
+    router.replace('/trainer/home')
+  } else {
+    console.log('[AuthCallback] 일반 회원 → /home 으로 이동')
+    router.replace('/home')
+  }
+}
+
+onMounted(async () => {
+  console.log('[AuthCallback] 컴포넌트 마운트됨')
+
+  // Supabase SDK가 detectSessionInUrl: true에 의해 URL의 code를 자동 교환함
+  // SIGNED_IN 이벤트가 오면 리다이렉트를 처리함
+  const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log(`[AuthCallback] Auth 이벤트: ${event}`, 'session 유무:', !!session)
+
+    if (event === 'SIGNED_IN') {
+      // 리스너 정리
+      if (authListener) {
+        authListener.subscription.unsubscribe()
+        authListener = null
+      }
+      await handleRedirect(session)
+    }
+  })
+  authListener = data
+
+  // 이미 세션이 있는 경우(재진입 시) 즉시 처리
+  const { data: { session }, error } = await supabase.auth.getSession()
+  console.log('[AuthCallback] 현재 세션 확인:', { session: !!session, error: error?.message })
+
+  if (session) {
+    // 이미 세션이 있으므로 리스너를 정리하고 바로 리다이렉트
+    if (authListener) {
+      authListener.subscription.unsubscribe()
+      authListener = null
+    }
+    await handleRedirect(session)
+    return
+  }
+
+  // 3분 타임아웃: 세션이 오지 않으면 로그인 화면으로 보냄
+  setTimeout(() => {
+    if (authListener) {
+      console.warn('[AuthCallback] 세션 획득 타임아웃 - /login 으로 이동')
+      authListener.subscription.unsubscribe()
+      authListener = null
+      router.replace('/login')
+    }
+  }, 180000)
+})
+
+onUnmounted(() => {
+  if (authListener) {
+    authListener.subscription.unsubscribe()
+    authListener = null
   }
 })
 </script>

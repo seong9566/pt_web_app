@@ -77,30 +77,54 @@ export const useAuthStore = defineStore('auth', () => {
    * PGRST116(레코드 없음) 에러는 신규 사용자로 간주하고 무시
    */
   async function fetchProfile(userId = user.value?.id) {
+    console.log('[AuthStore] fetchProfile 호출 - userId:', userId)
     if (!userId) {
+      console.warn('[AuthStore] userId가 없어서 프로필 조회를 건너뜁니다.')
       setProfile(null)
       return null
     }
 
     error.value = null
 
-    const { data, error: fetchError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    try {
+      // 15초 타임아웃 설정
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Supabase fetchProfile Timeout (15s)')), 15000)
+      );
 
-    if (fetchError || !data) {
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        error.value = fetchError.message
+      const fetchPromise = supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+
+      console.log('[AuthStore] fetchProfile Supabase 요청 시작...')
+      const { data, error: fetchError } = await Promise.race([fetchPromise, timeoutPromise])
+      console.log('[AuthStore] fetchProfile Supabase 응답 받음:', { data, fetchError })
+
+      if (fetchError || !data) {
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('[AuthStore] 프로필 조회 에러:', fetchError.message, fetchError)
+          error.value = fetchError.message
+        } else if (fetchError?.code === 'PGRST116') {
+          console.log('[AuthStore] 프로필이 아직 없습니다 (PGRST116). 신규 사용자입니다.')
+        } else {
+          console.log('[AuthStore] 프로필 데이터가 없습니다.', fetchError)
+        }
+
+        setProfile(null)
+        return null
       }
 
+      console.log('[AuthStore] 프로필 조회 성공:', data)
+      setProfile(data)
+      return data
+    } catch (e) {
+      console.error('[AuthStore] fetchProfile 과정 중 예외 발생:', e)
+      error.value = e.message
       setProfile(null)
       return null
     }
-
-    setProfile(data)
-    return data
   }
 
   /**
@@ -108,14 +132,18 @@ export const useAuthStore = defineStore('auth', () => {
    * onAuthStateChange 이벤트와 initialize()에서 호출
    */
   async function hydrateFromSession(nextSession) {
+    console.log('[AuthStore] hydrateFromSession 호출 - nextSession 유무:', !!nextSession)
     session.value = nextSession ?? null
     user.value = nextSession?.user ?? null
 
     if (user.value) {
+      console.log('[AuthStore] 세션에서 유저 확인됨. 프로필 조회 시작 id:', user.value.id)
       await fetchProfile(user.value.id)
+      console.log('[AuthStore] hydrateFromSession 완료')
       return
     }
 
+    console.warn('[AuthStore] 세션 데이터에 user 정보가 없습니다. 프로필 초기화됨.')
     setProfile(null)
   }
 
@@ -127,11 +155,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (_authSubscription) return
 
     const { data } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      console.log(`[AuthStore] Supabase Auth 이벤트 감지: ${event}`)
       loading.value = true
       error.value = null
 
       try {
         if (event === 'SIGNED_OUT') {
+          console.log('[AuthStore] 로그아웃 됨. 세션 삭재.')
           resetAuthState()
           return
         }
@@ -142,9 +172,11 @@ export const useAuthStore = defineStore('auth', () => {
           event === 'INITIAL_SESSION' ||
           event === 'USER_UPDATED'
         ) {
+          console.log(`[AuthStore] ${event} 이벤트로 인해 세션 상태 갱신`)
           await hydrateFromSession(nextSession)
         }
       } catch (e) {
+        console.error('[AuthStore] Auth state change listener 에러:', e)
         error.value = e?.message ?? 'Auth state change failed'
       } finally {
         loading.value = false
