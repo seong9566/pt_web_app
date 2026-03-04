@@ -717,3 +717,107 @@ All unimplemented views now follow this pattern:
 ### 빌드 결과
 - ✓ `npm run build` → exit code 0
 - ✓ 171 modules transformed, 959ms
+
+## Task 13: 빈 상태 UI 전체 추가 (2026-03-04)
+
+### Objective
+Add empty state messages to all wired views missing them + fix TrainerScheduleView's hardcoded session cards.
+
+### Changes Made
+
+#### 1. TrainerScheduleView.vue (CRITICAL FIX)
+**Fixed 3 bugs:**
+- `pendingCount` computed: `reservations.filter()` → `reservations.value.filter()` (ref access)
+- `currentYear/currentMonth/selectedDate`: hardcoded 2023/10/5 → current date via `new Date()`
+- `weekStart`: hardcoded Oct 1, 2023 → current week's Sunday
+
+**Replaced hardcoded session cards (lines 183-283):**
+- Removed: 3 fake cards (Sarah Jenkins, Marcus Chen, Emma Wilson)
+- Added: `v-for="session in sessions"` loop over computed property
+- Added: Empty state message + calendar icon when `sessions.length === 0`
+- CSS: Added `.schedule-list__empty` (flex column, centered, 40px padding)
+
+#### 2. TrainerMemberView.vue
+**Added empty state:**
+- Condition: `v-if="filteredMembers.length === 0 && !loading"`
+- Message: "연결된 회원이 없습니다."
+- Button: "초대 코드 생성하기" → `router.push('/invite/manage')`
+- Icon: User + plus SVG
+- CSS: `.member-list__empty` + `.member-list__empty-btn` (blue button)
+
+#### 3. TrainerHomeView.vue
+**Added router import + empty state:**
+- Import: `useRouter` (was missing)
+- Condition: `v-if="todayReservations.length === 0"`
+- Two-state message:
+  - If `memberCount === 0`: "아직 연결된 회원이 없습니다." + invite button
+  - Else: "오늘 예약이 없습니다."
+- Icon: User + plus SVG
+- CSS: `.schedule-list__empty` + `.schedule-list__invite-btn`
+
+#### 4. TrainerMemberDetailView.vue
+**Added empty state to memo list:**
+- Condition: `v-if="memos.length === 0"`
+- Message: "작성된 메모가 없습니다."
+- Icon: Document/note SVG
+- CSS: `.memo-list__empty` (flex column, centered, 40px padding)
+
+#### 5. MemberReservationView.vue
+**Added computed property + empty state:**
+- Computed: `hasAnySlots = computed(() => amTimes.length > 0 || pmTimes.length > 0 || eveningTimes.length > 0)`
+- Condition: `v-if="!loading && selectedDate && !hasAnySlots"`
+- Message: "트레이너가 아직 근무시간을 설정하지 않았습니다."
+- Icon: Calendar SVG
+- CSS: `.no-slots-message` (flex column, centered, 40px padding, white bg, shadow)
+
+### CSS Pattern (Consistent)
+All empty states follow this pattern:
+```css
+.selector__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+```
+
+### Icon Pattern
+All empty state icons use `stroke="currentColor"` to inherit gray-600 color from parent.
+
+### Build Status
+- ✓ `npm run build` → exit code 0
+- ✓ 171 modules transformed
+- ✓ dist/ generated successfully
+- ✓ No TypeScript errors
+- ✓ All imports valid
+- ✓ All CSS valid
+
+### Files Modified
+1. TrainerScheduleView.vue — 3 bug fixes + hardcoded cards → v-for loop + empty state
+2. TrainerScheduleView.css — added `.schedule-list__empty`
+3. TrainerMemberView.vue — added empty state + button
+4. TrainerMemberView.css — added `.member-list__empty` + `.member-list__empty-btn`
+5. TrainerHomeView.vue — added router import + two-state empty message
+6. TrainerHomeView.css — added `.schedule-list__empty` + `.schedule-list__invite-btn`
+7. TrainerMemberDetailView.vue — added empty state to memo list
+8. TrainerMemberDetailView.css — added `.memo-list__empty`
+9. MemberReservationView.vue — added `hasAnySlots` computed + empty state
+10. MemberReservationView.css — added `.no-slots-message`
+
+### Key Insights
+1. **Ref access in computed**: `reservations.value.filter()` not `reservations.filter()` (ref is a wrapper)
+2. **Current date initialization**: Use `new Date()` to get today, extract year/month/date
+3. **Week start calculation**: `const dayOfWeek = today.getDay()` then `new Date(year, month, date - dayOfWeek)`
+4. **Empty state conditions**: Check both data length AND loading state to avoid flashing empty message during load
+5. **Router in views**: Always import `useRouter` when using `router.push()` in template
+6. **Two-state messages**: Use `<template v-if>` + `<template v-else>` for conditional empty state content
+
+### Impact
+- All wired views now have proper empty states
+- TrainerScheduleView no longer shows fake data
+- Users see helpful messages instead of blank screens
+- Consistent UX across all empty states

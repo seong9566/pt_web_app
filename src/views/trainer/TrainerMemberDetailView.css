@@ -254,6 +254,17 @@
   gap: 12px;
 }
 
+.memo-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+
 /* ── Memo Card ── */
 .memo-card {
   background-color: var(--color-white);

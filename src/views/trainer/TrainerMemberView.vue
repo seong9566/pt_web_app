@@ -79,6 +79,16 @@
       </div>
 
       <div class="member-list">
+        <div v-if="filteredMembers.length === 0 && !loading" class="member-list__empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="17" cy="15" r="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M14 21C14 19.3431 15.3431 18 17 18C18.6569 18 20 19.3431 20 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>연결된 회원이 없습니다.</p>
+          <button class="member-list__empty-btn" @click="router.push('/invite/manage')">초대 코드 생성하기</button>
+        </div>
         <div
           v-for="member in filteredMembers"
           :key="member.id"

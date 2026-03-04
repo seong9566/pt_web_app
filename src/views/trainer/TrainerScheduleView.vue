@@ -182,104 +182,43 @@
 
     <!-- ── Session Cards ── -->
     <div class="schedule-list">
-
-      <!-- Card 1: Completed -->
-      <div class="scard scard--completed" @click="goWorkout('Sarah Jenkins')">
+      <div v-if="sessions.length === 0" class="schedule-list__empty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <p>등록된 예약이 없습니다</p>
+      </div>
+      <div
+        v-for="session in sessions"
+        :key="session.id"
+        class="scard"
+        :class="`scard--${session.status}`"
+      >
         <div class="scard__border" />
         <div class="scard__body">
           <div class="scard__top">
-            <h3 class="scard__title">오전 유산소</h3>
-            <span class="scard__badge scard__badge--done">완료</span>
+            <h3 class="scard__title">{{ session.title }}</h3>
+            <span class="scard__badge" :class="`scard__badge--${session.status === 'completed' ? 'done' : session.status}`">
+              {{ session.status === 'pending' ? '대기중' : session.status === 'approved' ? '승인됨' : '완료' }}
+            </span>
           </div>
-          <div class="scard__time">
+          <div class="scard__time" :class="{ 'scard__time--approved': session.status === 'approved' }">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
               <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            07:00 - 08:00
+            {{ session.time }}
           </div>
           <div class="scard__user">
             <div class="scard__avatar">
-              <img src="@/assets/icons/person.svg" alt="Sarah Jenkins" width="20" height="20" />
+              <img src="@/assets/icons/person.svg" :alt="session.name" width="20" height="20" />
             </div>
-            <span class="scard__name">Sarah Jenkins</span>
+            <span class="scard__name">{{ session.name }}</span>
           </div>
         </div>
       </div>
-
-      <!-- Card 2: Approved -->
-      <div class="scard scard--approved" @click="goWorkout('Marcus Chen')">
-        <div class="scard__border" />
-        <div class="scard__body">
-          <div class="scard__top">
-            <h3 class="scard__title">HIIT 세션</h3>
-            <span class="scard__badge scard__badge--approved">승인됨</span>
-          </div>
-          <div class="scard__time scard__time--approved">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            10:30 - 11:30
-          </div>
-          <div class="scard__user-row">
-            <div class="scard__user">
-              <div class="scard__avatar">
-                <img src="@/assets/icons/person.svg" alt="Marcus Chen" width="20" height="20" />
-              </div>
-              <span class="scard__name">Marcus Chen</span>
-            </div>
-            <button class="scard__more">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="5" r="1.5" fill="#9CA3AF"/>
-                <circle cx="12" cy="12" r="1.5" fill="#9CA3AF"/>
-                <circle cx="12" cy="19" r="1.5" fill="#9CA3AF"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3: Pending -->
-      <div class="scard scard--pending" @click="goWorkout('Emma Wilson')">
-        <div class="scard__border" />
-        <div class="scard__body scard__body--with-actions">
-          <div class="scard__main">
-            <div class="scard__top">
-              <h3 class="scard__title">근력 강화 훈련</h3>
-              <span class="scard__badge scard__badge--pending">대기중</span>
-            </div>
-            <div class="scard__time">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              14:00 - 15:00
-            </div>
-            <div class="scard__user">
-              <div class="scard__avatar">
-                <img src="@/assets/icons/person.svg" alt="Emma Wilson" width="20" height="20" />
-              </div>
-              <span class="scard__name">Emma Wilson</span>
-            </div>
-          </div>
-          <div class="scard__actions">
-            <div class="scard__action-btns">
-              <button class="scard__action-btn scard__action-btn--approve">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 6L9 17L4 12" stroke="#34C759" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-              <button class="scard__action-btn scard__action-btn--reject">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="#FF3B30" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <div style="height: calc(var(--nav-height) + 32px);" />
@@ -302,7 +241,7 @@ onMounted(async () => {
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)
 const pendingCount = computed(() => {
-  return reservations.filter(res => res.status === 'pending').length
+  return reservations.value.filter(res => res.status === 'pending').length
 })
 
 
@@ -315,9 +254,10 @@ const viewTabs = [
 const activeView = ref('monthly')
 
 // ── Calendar state ──
-const currentYear  = ref(2023)
-const currentMonth = ref(10)
-const selectedDate = ref(5)
+const now = new Date()
+const currentYear  = ref(now.getFullYear())
+const currentMonth = ref(now.getMonth() + 1)
+const selectedDate = ref(now.getDate())
 
 const weekdays = [
   { label: '일', cls: 'calendar-card__weekday--sun' },
@@ -419,7 +359,9 @@ const sessions = computed(() => {
 
 // ── Weekly state ──
 // weekStart: first day (Sun) of the displayed week
-const weekStart = ref(new Date(2023, 9, 1))  // Sun Oct 1, 2023
+const today = new Date()
+const dayOfWeek = today.getDay()
+const weekStart = ref(new Date(today.getFullYear(), today.getMonth(), today.getDate() - dayOfWeek))
 
 const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 

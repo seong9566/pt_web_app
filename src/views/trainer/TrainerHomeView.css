@@ -216,6 +216,28 @@
     gap: 16px;
 }
 
+.schedule-list__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px var(--side-margin);
+    color: var(--color-gray-600);
+    font-size: var(--fs-body2);
+    text-align: center;
+}
+
+.schedule-list__invite-btn {
+    margin-top: 8px;
+    padding: 10px 20px;
+    background-color: var(--color-blue-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--radius-medium);
+    font-size: var(--fs-body2);
+    cursor: pointer;
+}
+
 .schedule-card {
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-large);

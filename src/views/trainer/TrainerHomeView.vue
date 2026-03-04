@@ -77,8 +77,20 @@
       </div>
 
       <div class="schedule-list">
-         <div v-if="todayReservations.length === 0" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
-           오늘 예약이 없습니다.
+         <div v-if="todayReservations.length === 0" class="schedule-list__empty">
+           <template v-if="memberCount === 0">
+             <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+               <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+               <path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+               <path d="M17 11V17M14 14H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+             </svg>
+             <p>아직 연결된 회원이 없습니다.</p>
+             <p style="font-size: var(--fs-caption); color: var(--color-gray-600);">초대 코드를 생성하여 회원을 초대하세요.</p>
+             <button class="schedule-list__invite-btn" @click="router.push('/invite/manage')">초대 코드 생성</button>
+           </template>
+           <template v-else>
+             <p>오늘 예약이 없습니다.</p>
+           </template>
          </div>
          <div v-for="reservation in todayReservations" :key="reservation.id" class="schedule-card">
            <div class="schedule-card__main">
@@ -114,10 +126,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
 import { useMembers } from '@/composables/useMembers'
 
+const router = useRouter()
 const auth = useAuthStore()
 const { reservations, loading: reservLoading, error: reservError, fetchMyReservations } = useReservations()
 const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()

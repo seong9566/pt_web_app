@@ -31,6 +31,16 @@
           <span class="reservation-section__badge">오전/오후</span>
         </div>
 
+        <!-- No slots message -->
+        <div v-if="!loading && selectedDate && !hasAnySlots" class="no-slots-message">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>트레이너가 아직 근무시간을 설정하지 않았습니다.</p>
+        </div>
+
         <!-- AM Times -->
         <div class="time-group">
           <h3 class="time-group__label">오전</h3>
@@ -216,6 +226,8 @@ function selectTime(val) {
 const amTimes = computed(() => slots.value.am || [])
 const pmTimes = computed(() => slots.value.pm || [])
 const eveningTimes = computed(() => slots.value.evening || [])
+
+const hasAnySlots = computed(() => amTimes.value.length > 0 || pmTimes.value.length > 0 || eveningTimes.value.length > 0)
 
 const formattedSelection = computed(() => {
   if (!selectedDate.value) return '날짜를 선택해주세요'

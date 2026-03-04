@@ -87,6 +87,13 @@
         </div>
 
         <div class="memo-list">
+          <div v-if="memos.length === 0" class="memo-list__empty">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M14 2v6h6M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <p>작성된 메모가 없습니다.</p>
+          </div>
           <div
             v-for="memo in memos"
             :key="memo.id"
