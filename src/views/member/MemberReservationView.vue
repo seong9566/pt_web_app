@@ -20,7 +20,7 @@
       <section class="reservation-section">
         <h2 class="reservation-section__title">날짜 선택</h2>
         <div class="date-selector-card">
-          <AppCalendar v-model="selectedDate" />
+          <AppCalendar :modelValue="selectedDate" @update:modelValue="handleDateChange" />
         </div>
       </section>
 
@@ -116,6 +116,15 @@
         </div>
       </section>
 
+      <!-- Error Message -->
+      <div v-if="error" class="error-message">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="error-message__icon">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="error-message__text">{{ error }}</p>
+      </div>
+
       <!-- Info Box -->
       <div class="info-box">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="info-box__icon">
@@ -138,10 +147,10 @@
       </div>
       <button 
         class="reservation-action__btn" 
-        :disabled="!selectedTime"
+        :disabled="!selectedTime || isSubmitting || loading"
         @click="submitReservation"
       >
-        예약 요청하기
+        {{ isSubmitting ? '예약 중...' : '예약 요청하기' }}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -152,39 +161,61 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useReservations } from '@/composables/useReservations'
 import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
+const auth = useAuthStore()
+const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId } = useReservations()
 
 // Date Selection
 const today = new Date()
-const selectedDate = ref(`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`)
+const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+const selectedDate = ref(todayStr)
 
 // Time Selection
-const selectedTime = ref('11:00')
+const selectedTime = ref(null)
 
-const amTimes = ref([
-  { label: '10:00', val: '10:00', status: '가능' },
-  { label: '11:00', val: '11:00', status: '가능' },
-])
+// Trainer Connection
+const trainerId = ref(null)
+const isSubmitting = ref(false)
 
-const pmTimes = ref([
-  { label: '14:00', val: '14:00', status: '마감' },
-  { label: '15:00', val: '15:00', status: '가능' },
-  { label: '16:00', val: '16:00', status: '가능' },
-])
+// Initialize trainer ID on mount
+onMounted(async () => {
+  const connectedTrainerId = await getConnectedTrainerId()
+  if (connectedTrainerId) {
+    trainerId.value = connectedTrainerId
+    // Fetch available slots for today
+    await fetchAvailableSlots(connectedTrainerId, selectedDate.value)
+  }
+})
 
-const eveningTimes = ref([
-  { label: '19:00', val: '19:00', status: '가능' },
-  { label: '20:00', val: '20:00', status: '마감' },
-  { label: '21:00', val: '21:00', status: '마감' },
-])
+// Validate and handle date selection
+async function handleDateChange(newDate) {
+  // Prevent selecting past dates
+  if (newDate < todayStr) {
+    return
+  }
+  selectedDate.value = newDate
+  selectedTime.value = null
+  
+  // Fetch available slots for the selected date
+  if (trainerId.value) {
+    await fetchAvailableSlots(trainerId.value, newDate)
+  }
+}
 
 function selectTime(val) {
   selectedTime.value = val
 }
+
+// Computed properties for time slots
+const amTimes = computed(() => slots.value.am || [])
+const pmTimes = computed(() => slots.value.pm || [])
+const eveningTimes = computed(() => slots.value.evening || [])
 
 const formattedSelection = computed(() => {
   if (!selectedDate.value) return '날짜를 선택해주세요'
@@ -200,11 +231,18 @@ const formattedSelection = computed(() => {
   return `${month}월 ${day}일 (${dow}) ${timeStr}`
 })
 
-function submitReservation() {
-  if (!selectedTime.value) return
-  // Proceed with reservation
-  alert(`${formattedSelection.value} 예약 요청이 완료되었습니다.`)
-  router.back()
+async function submitReservation() {
+  if (!selectedTime.value || !trainerId.value) return
+  
+  isSubmitting.value = true
+  const result = await createReservation(trainerId.value, selectedDate.value, selectedTime.value, 'PT')
+  isSubmitting.value = false
+  
+  if (result) {
+    // Success: navigate back
+    router.back()
+  }
+  // Error message is displayed via error ref in template
 }
 </script>
 

@@ -10,8 +10,12 @@
         </svg>
       </button>
       <h1 class="wt-setting__title">근무 시간 및 예약 설정</h1>
-      <button class="wt-setting__save-btn" @click="handleSave">저장</button>
+      <button class="wt-setting__save-btn" @click="handleSave" :disabled="loading">저장</button>
     </div>
+
+    <!-- ── Error/Success Messages ── -->
+    <div v-if="error" class="wt-setting__error">{{ error }}</div>
+    <div v-if="successMessage" class="wt-setting__success">{{ successMessage }}</div>
 
     <!-- ── Body ── -->
     <div class="wt-setting__body">
@@ -99,12 +103,12 @@
 
     <!-- ── Footer ── -->
     <div class="wt-setting__footer">
-      <button class="wt-setting__submit" @click="handleSave">
+      <button class="wt-setting__submit" @click="handleSave" :disabled="loading">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M17 21V13H7V21M7 3V8H15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        일정 업데이트
+        {{ loading ? '저장 중...' : '일정 업데이트' }}
       </button>
     </div>
 
@@ -118,12 +122,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
+import { useWorkHours } from '@/composables/useWorkHours'
 
 const router = useRouter()
+const { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours } = useWorkHours()
 
 // ── 예약 단위 ──
 const unitOptions = [
@@ -132,18 +138,9 @@ const unitOptions = [
   { value: 90,  label: '1시간 30분' },
   { value: 120, label: '2시간' },
 ]
-const selectedUnit = ref(60)
 
-// ── 근무 일정 ──
-const days = ref([
-  { id: 'mon', label: '월요일', enabled: true,  start: '09:00', end: '18:00' },
-  { id: 'tue', label: '화요일', enabled: true,  start: '09:00', end: '18:00' },
-  { id: 'wed', label: '수요일', enabled: true,  start: '09:00', end: '18:00' },
-  { id: 'thu', label: '목요일', enabled: false, start: '09:00', end: '18:00' },
-  { id: 'fri', label: '금요일', enabled: true,  start: '10:00', end: '16:00' },
-  { id: 'sat', label: '토요일', enabled: false, start: '09:00', end: '18:00' },
-  { id: 'sun', label: '일요일', enabled: false, start: '09:00', end: '18:00' },
-])
+// ── 저장 성공 메시지 ──
+const successMessage = ref('')
 
 // ── 시간 포맷 (24h → 12h AM/PM) ──
 function formatTime(hhmm) {
@@ -174,17 +171,21 @@ function confirmTime() {
 }
 
 // ── 저장 ──
-function handleSave() {
-  const result = {
-    unit: selectedUnit.value,
-    schedule: days.value
-      .filter(d => d.enabled)
-      .map(d => ({ day: d.id, start: d.start, end: d.end })),
+async function handleSave() {
+  successMessage.value = ''
+  const success = await saveWorkHours(days.value, selectedUnit.value)
+  if (success) {
+    successMessage.value = '근무시간이 저장되었습니다.'
+    setTimeout(() => {
+      router.back()
+    }, 1000)
   }
-  console.log('근무 시간 저장:', result)
-  alert('저장되었습니다.')
-  router.back()
 }
+
+// ── 초기화: 기존 근무시간 설정 로드 ──
+onMounted(async () => {
+  await fetchWorkHours()
+})
 </script>
 
 <style src="./WorkTimeSettingView.css" scoped></style>

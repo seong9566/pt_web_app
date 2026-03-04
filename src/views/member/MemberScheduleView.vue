@@ -139,10 +139,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useReservations } from '@/composables/useReservations'
 
 const router = useRouter()
+const { reservations, loading, error, fetchMyReservations } = useReservations()
 
 // ── Calendar state ──
 const now = new Date()
@@ -167,24 +169,25 @@ const legend = [
   { status: 'cancelled', label: '취소됨' },
 ]
 
-// ── Mock dot data ──
-const dotData = {
-  3:  ['approved'],
-  5:  ['done', 'done'],
-  7:  ['approved'],
-  10: ['pending'],
-  12: ['approved'],
-  14: ['done'],
-  17: ['approved'],
-  19: ['pending'],
-  21: ['approved'],
-  24: ['done'],
-  26: ['cancelled'],
-  28: ['approved'],
-}
+// ── Fetch reservations on mount ──
+onMounted(async () => {
+  await fetchMyReservations('member')
+})
+
+// ── Compute dots from real reservations ──
+const dotsData = computed(() => {
+  const dots = {}
+  reservations.forEach((res) => {
+    if (!dots[res.date]) {
+      dots[res.date] = []
+    }
+    dots[res.date].push(res.status)
+  })
+  return dots
+})
 
 function getDots(date) {
-  return dotData[date] || []
+  return dotsData.value[date] || []
 }
 
 function isSelected(date) {
@@ -240,37 +243,16 @@ const selectedDateLabel = computed(() => {
   return `${currentMonth.value}월 ${selectedDate.value}일 ${dayNames[dayOfWeek]}`
 })
 
-// ── Mock session data (회원 본인 일정만) ──
-const sessionData = {
-  5:  [
-    { id: 1, title: '하체 집중 훈련', time: '10:00 - 11:00', trainer: '마이크 트레이너', status: 'done' },
-    { id: 2, title: '코어 강화',      time: '14:00 - 15:00', trainer: '마이크 트레이너', status: 'done' },
-  ],
-  7:  [
-    { id: 3, title: '전신 파워 루틴', time: '09:00 - 10:00', trainer: '마이크 트레이너', status: 'approved' },
-  ],
-  10: [
-    { id: 4, title: '상체 근력 훈련', time: '11:00 - 12:00', trainer: '마이크 트레이너', status: 'pending' },
-  ],
-  12: [
-    { id: 5, title: 'HIIT 세션',     time: '10:00 - 11:00', trainer: '마이크 트레이너', status: 'approved' },
-  ],
-  17: [
-    { id: 6, title: '유산소 + 스트레칭', time: '08:00 - 09:00', trainer: '마이크 트레이너', status: 'approved' },
-  ],
-  19: [
-    { id: 7, title: '재활 운동',      time: '15:00 - 16:00', trainer: '마이크 트레이너', status: 'pending' },
-  ],
-  21: [
-    { id: 8, title: '하체 집중 훈련', time: '10:00 - 11:00', trainer: '마이크 트레이너', status: 'approved' },
-  ],
-  26: [
-    { id: 9, title: '전신 파워 루틴', time: '09:00 - 10:00', trainer: '마이크 트레이너', status: 'cancelled' },
-  ],
-}
-
+// ── Filter reservations by selected date ──
 const selectedDaySessions = computed(() => {
-  return sessionData[selectedDate.value] || []
+  const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
+  return reservations.filter((res) => res.date === selectedDateStr).map((res) => ({
+    id: res.id,
+    title: res.session_type || '운동 세션',
+    time: `${res.start_time} - ${res.end_time}`,
+    trainer: res.partner_name,
+    status: res.status,
+  }))
 })
 
 function statusLabel(status) {

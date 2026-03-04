@@ -13,39 +13,80 @@
     <div class="trainer-search__search-wrap">
       <div class="trainer-search__search">
         <img src="@/assets/icons/search.svg" alt="search" width="18" height="18" />
-        <input class="trainer-search__input" type="text" v-model="searchQuery" placeholder="이름 검색" />
+        <input class="trainer-search__input" type="text" v-model="searchQuery" @input="handleSearchChange" placeholder="이름 검색" />
       </div>
     </div>
-    <div class="trainer-search__list">
-      <div v-for="trainer in trainers" :key="trainer.id" class="trainer-card">
-        <div class="trainer-card__img">
-          <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
-        </div>
-        <div class="trainer-card__info">
-          <p class="trainer-card__name">{{ trainer.name }}</p>
-          <div class="trainer-card__tags">
-            <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
-          </div>
-        </div>
-        <button class="trainer-card__btn" :class="trainer.connected ? 'trainer-card__btn--outline' : 'trainer-card__btn--primary'">
-          {{ trainer.connected ? '프로필 보기' : '연동 요청하기' }}
-          <svg v-if="!trainer.connected" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
-    </div>
+     <div class="trainer-search__list">
+       <div v-if="loading" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
+         로딩 중...
+       </div>
+       <div v-else-if="trainers.length === 0" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
+         검색 결과가 없습니다.
+       </div>
+       <div v-for="trainer in trainers" v-else :key="trainer.id" class="trainer-card">
+         <div class="trainer-card__img">
+           <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
+         </div>
+         <div class="trainer-card__info">
+           <p class="trainer-card__name">{{ trainer.name }}</p>
+           <div class="trainer-card__tags">
+             <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
+           </div>
+         </div>
+         <button 
+           class="trainer-card__btn" 
+           :class="trainer.connected ? 'trainer-card__btn--outline' : 'trainer-card__btn--primary'"
+           :disabled="trainer.connected || requestingId === trainer.id"
+           @click="handleRequestConnection(trainer.id)"
+         >
+           {{ trainer.connected ? '프로필 보기' : '연동 요청하기' }}
+           <svg v-if="!trainer.connected" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+         </button>
+       </div>
+     </div>
+     <div v-if="error" style="padding: 16px; margin: 16px; background-color: var(--color-red); color: var(--color-white); border-radius: var(--radius-medium); font-size: var(--fs-caption); text-align: center;">
+       {{ error }}
+     </div>
     <div style="height: calc(var(--nav-height) + 16px);" />
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTrainerSearch } from '@/composables/useTrainerSearch'
+
 const router = useRouter()
 const searchQuery = ref('')
-const trainers = [
-  { id: 1, name: '김민수 트레이너', specialties: ['근력 증가', '스포츠 퍼포먼스'], connected: false },
-  { id: 2, name: '이지영 트레이너', specialties: ['다이어트/식단', '체력 증진'], connected: true },
-  { id: 3, name: '박성훈 트레이너', specialties: ['재활/교정'], connected: false },
-  { id: 4, name: '최유나 트레이너', specialties: ['근력 증가', '바디 프로필'], connected: false },
-]
+const requestingId = ref(null)
+
+const { trainers, loading, error, searchTrainers, requestConnection } = useTrainerSearch()
+
+/** 검색 쿼리 변경 시 debounce 적용하여 검색 */
+let searchTimeout
+function handleSearchChange() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    searchTrainers(searchQuery.value)
+  }, 300)
+}
+
+/** 연결 요청 버튼 클릭 */
+async function handleRequestConnection(trainerId) {
+  requestingId.value = trainerId
+  try {
+    const success = await requestConnection(trainerId)
+    if (success) {
+      // 성공 시 목록 새로고침
+      await searchTrainers(searchQuery.value)
+    }
+  } finally {
+    requestingId.value = null
+  }
+}
+
+/** 초기 로드: 모든 트레이너 목록 */
+onMounted(() => {
+  searchTrainers()
+})
 </script>
 <style src="./TrainerSearchView.css" scoped></style>

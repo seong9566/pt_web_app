@@ -18,8 +18,8 @@
           </svg>
         </div>
         <div class="settings__profile-info">
-          <span class="settings__profile-name">{{ user.name }}</span>
-          <span class="settings__profile-email">{{ user.email }}</span>
+          <span class="settings__profile-name">{{ auth.profile?.name || '사용자' }}</span>
+          <span class="settings__profile-email">{{ auth.user?.email || '' }}</span>
         </div>
         <span class="settings__profile-badge">{{ roleBadge }}</span>
       </section>
@@ -156,13 +156,6 @@ import IconManual from '@/assets/icons/menual.svg'
 const router = useRouter()
 const auth = useAuthStore()
 
-// 실제 구현 시 API에서 사용자 정보 fetch
-// 현재는 mock 데이터 사용
-const user = {
-  name: '박트레이너',
-  email: 'trainer@ptapp.com',
-}
-
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
 })
@@ -186,9 +179,9 @@ function handleNav(target) {
 }
 
 // ── 로그아웃 ──
-function handleLogout() {
+async function handleLogout() {
   if (confirm('로그아웃 하시겠습니까?')) {
-    auth.clearRole()
+    await auth.signOut()
     router.push({ name: 'login' })
   }
 }
