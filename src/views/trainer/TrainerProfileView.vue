@@ -46,15 +46,22 @@
           </button>
         </div>
       </div>
+      <div v-if="errorMsg" class="trainer-profile__error">
+        {{ errorMsg }}
+      </div>
     </div>
     <div class="trainer-profile__footer">
-      <AppButton @click="router.push('/trainer/home')">완료 ✓</AppButton>
+      <AppButton @click="handleSave" :disabled="isLoading">
+        {{ isLoading ? '저장 중...' : '완료 ✓' }}
+      </AppButton>
     </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
 import ProgressBar from '@/components/ProgressBar.vue'
 import AppButton from "@/components/AppButton.vue";
 import AppInput from "@/components/AppInput.vue";
@@ -65,7 +72,12 @@ import dietIcon from '@/assets/icons/food.svg'
 import sportsIcon from '@/assets/icons/sports.svg'
 
 const router = useRouter()
+const auth = useAuthStore()
+const { saveTrainerProfile } = useProfile()
+
 const name = ref("");
+const isLoading = ref(false)
+const errorMsg = ref(null)
 
 const specialties = [
   {
@@ -99,6 +111,27 @@ const toggleSpecialty = (id) => {
   } else {
     selectedSpecialties.value.splice(index, 1)
   }
+}
+
+async function handleSave() {
+  errorMsg.value = null
+  isLoading.value = true
+
+  const { loading, error } = await saveTrainerProfile(
+    auth.user.id,
+    name.value,
+    selectedSpecialties.value
+  )
+
+  if (error.value) {
+    errorMsg.value = error.value
+    isLoading.value = false
+    return
+  }
+
+  await auth.fetchProfile()
+  isLoading.value = false
+  router.push('/trainer/home')
 }
 </script>
 <style src="./TrainerProfileView.css" scoped></style>

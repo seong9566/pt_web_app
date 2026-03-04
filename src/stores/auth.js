@@ -86,20 +86,26 @@ export const useAuthStore = defineStore('auth', () => {
 
     error.value = null
 
+    let timeoutId
     try {
-      // 15초 타임아웃 설정
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Supabase fetchProfile Timeout (15s)')), 15000)
-      );
-
-      const fetchPromise = supabase
+      // thenable → Promise 변환 (.then 생략 시 Promise.race 동작 불가)
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle()
+        .then(res => res)
+
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error('Supabase fetchProfile Timeout (1.5s)')),
+          1500
+        )
+      })
 
       console.log('[AuthStore] fetchProfile Supabase 요청 시작...')
-      const { data, error: fetchError } = await Promise.race([fetchPromise, timeoutPromise])
+      const { data, error: fetchError } = await Promise.race([profilePromise, timeoutPromise])
+      clearTimeout(timeoutId)
       console.log('[AuthStore] fetchProfile Supabase 응답 받음:', { data, fetchError })
 
       if (fetchError || !data) {
@@ -120,6 +126,7 @@ export const useAuthStore = defineStore('auth', () => {
       setProfile(data)
       return data
     } catch (e) {
+      clearTimeout(timeoutId)
       console.error('[AuthStore] fetchProfile 과정 중 예외 발생:', e)
       error.value = e.message
       setProfile(null)
@@ -155,13 +162,15 @@ export const useAuthStore = defineStore('auth', () => {
     if (_authSubscription) return
 
     const { data } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      if (!_initialized) return
+
       console.log(`[AuthStore] Supabase Auth 이벤트 감지: ${event}`)
       loading.value = true
       error.value = null
 
       try {
         if (event === 'SIGNED_OUT') {
-          console.log('[AuthStore] 로그아웃 됨. 세션 삭재.')
+          console.log('[AuthStore] 로그아웃 됨. 세션 삭제.')
           resetAuthState()
           return
         }
@@ -169,7 +178,6 @@ export const useAuthStore = defineStore('auth', () => {
         if (
           event === 'SIGNED_IN' ||
           event === 'TOKEN_REFRESHED' ||
-          event === 'INITIAL_SESSION' ||
           event === 'USER_UPDATED'
         ) {
           console.log(`[AuthStore] ${event} 이벤트로 인해 세션 상태 갱신`)

@@ -1,10 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/fix-auth-callback-pkce.md",
-  "started_at": "2026-03-04T04:20:21.212Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/mvp-roadmap.md",
+  "started_at": "2026-03-04T07:30:26.232Z",
   "session_ids": [
-    "ses_3498f1300ffe3j1VVTtO27s31h"
+    "ses_3483eace7ffeB97DBIXOA8HccL"
   ],
-  "plan_name": "fix-auth-callback-pkce",
-  "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app_fix-auth-flow",
+  "plan_name": "mvp-roadmap",
+  "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas"
 }

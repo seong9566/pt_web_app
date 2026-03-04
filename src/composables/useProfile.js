@@ -60,5 +60,44 @@ export function useProfile() {
     }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto }
+  /** 트레이너 프로필 저장 (이름 + 전문 분야) */
+  async function saveTrainerProfile(userId, name, specialties) {
+    const loading = ref(false)
+    const error = ref(null)
+
+    loading.value = true
+    error.value = null
+
+    try {
+      // profiles 테이블에 name 저장
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ name })
+        .eq('id', userId)
+
+      if (profileError) {
+        throw profileError
+      }
+
+      // trainer_profiles 테이블에 specialties 저장
+      const { error: trainerError } = await supabase
+        .from('trainer_profiles')
+        .upsert({
+          id: userId,
+          specialties: specialties,
+        })
+
+      if (trainerError) {
+        throw trainerError
+      }
+    } catch (e) {
+      error.value = e?.message ?? '프로필 저장에 실패했습니다. 다시 시도해주세요.'
+    } finally {
+      loading.value = false
+    }
+
+    return { loading, error }
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile }
 }
