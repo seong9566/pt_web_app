@@ -69,7 +69,7 @@ import { useProfile } from "@/composables/useProfile";
 
 const router = useRouter();
 const auth = useAuthStore();
-const { saveRole } = useProfile();
+const { saveRole, error: roleError, uploading } = useProfile();
 const selectedRole = ref(null);
 const isLoading = ref(false)
 const errorMsg = ref('')
@@ -80,10 +80,10 @@ async function handleNext() {
   isLoading.value = true
   errorMsg.value = ''
 
-  const { loading, error } = await saveRole(auth.user.id, selectedRole.value)
+  const success = await saveRole(auth.user.id, selectedRole.value)
 
-  if (error.value) {
-    errorMsg.value = error.value
+  if (!success) {
+    errorMsg.value = roleError.value
     isLoading.value = false
     return
   }

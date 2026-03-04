@@ -62,10 +62,7 @@ export function useProfile() {
 
   /** 트레이너 프로필 저장 (이름 + 전문 분야) */
   async function saveTrainerProfile(userId, name, specialties) {
-    const loading = ref(false)
-    const error = ref(null)
-
-    loading.value = true
+    uploading.value = true
     error.value = null
 
     try {
@@ -90,21 +87,19 @@ export function useProfile() {
       if (trainerError) {
         throw trainerError
       }
+
+      return true
     } catch (e) {
       error.value = e?.message ?? '프로필 저장에 실패했습니다. 다시 시도해주세요.'
+      return false
     } finally {
-      loading.value = false
+      uploading.value = false
     }
-
-    return { loading, error }
   }
 
   /** 역할 저장 (profiles 테이블에 role 업데이트) */
   async function saveRole(userId, role) {
-    const loading = ref(false)
-    const error = ref(null)
-
-    loading.value = true
+    uploading.value = true
     error.value = null
 
     try {
@@ -115,13 +110,14 @@ export function useProfile() {
       if (saveError) {
         throw saveError
       }
+
+      return true
     } catch (e) {
       error.value = e?.message ?? '역할 저장에 실패했습니다. 다시 시도해주세요.'
+      return false
     } finally {
-      loading.value = false
+      uploading.value = false
     }
-
-    return { loading, error }
   }
 
   return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole }

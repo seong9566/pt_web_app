@@ -73,7 +73,7 @@ import sportsIcon from '@/assets/icons/sports.svg'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { saveTrainerProfile } = useProfile()
+const { saveTrainerProfile, error: profileError, uploading } = useProfile()
 
 const name = ref("");
 const isLoading = ref(false)
@@ -117,14 +117,14 @@ async function handleSave() {
   errorMsg.value = null
   isLoading.value = true
 
-  const { loading, error } = await saveTrainerProfile(
+  const success = await saveTrainerProfile(
     auth.user.id,
     name.value,
     selectedSpecialties.value
   )
 
-  if (error.value) {
-    errorMsg.value = error.value
+  if (!success) {
+    errorMsg.value = profileError.value
     isLoading.value = false
     return
   }

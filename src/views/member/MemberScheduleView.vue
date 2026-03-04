@@ -147,7 +147,7 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 
 const router = useRouter()
-const { reservations, loading, error, fetchMyReservations } = useReservations()
+const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
 
 // ── Calendar state ──
 const now = new Date()
@@ -249,7 +249,7 @@ const selectedDateLabel = computed(() => {
 // ── Filter reservations by selected date ──
 const selectedDaySessions = computed(() => {
   const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
-  return reservations.filter((res) => res.date === selectedDateStr).map((res) => ({
+  return reservations.value.filter((res) => res.date === selectedDateStr).map((res) => ({
     id: res.id,
     title: res.session_type || '운동 세션',
     time: `${res.start_time} - ${res.end_time}`,
@@ -270,9 +270,12 @@ function handleReserve() {
   router.push('/member/reservation')
 }
 
-function handleCancel(session) {
+async function handleCancel(session) {
   if (confirm(`"${session.title}" 예약을 취소하시겠습니까?`)) {
-    alert('취소되었습니다')
+    const success = await updateReservationStatus(session.id, 'cancelled')
+    if (success) {
+      await fetchMyReservations('member')
+    }
   }
 }
 </script>

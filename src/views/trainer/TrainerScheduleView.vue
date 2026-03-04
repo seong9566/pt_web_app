@@ -279,7 +279,7 @@ const legend = [
 // ── Compute dots from real reservations ──
 const dotsData = computed(() => {
   const dots = {}
-  reservations.forEach((res) => {
+  reservations.value.forEach((res) => {
     if (!dots[res.date]) {
       dots[res.date] = []
     }
@@ -348,7 +348,7 @@ const selectedDateLabel = computed(() => {
 // ── Filter reservations by selected date ──
 const sessions = computed(() => {
   const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
-  return reservations.filter((res) => res.date === selectedDateStr).map((res) => ({
+  return reservations.value.filter((res) => res.date === selectedDateStr).map((res) => ({
     id: res.id,
     title: res.session_type || '운동 세션',
     time: `${res.start_time} - ${res.end_time}`,
@@ -383,7 +383,7 @@ const weekDays = computed(() => {
       isSun: dow === 0,
       isSat: dow === 6,
       isSelected: y === currentYear.value && m === currentMonth.value && dateNum === selectedDate.value,
-      dots: dotData[dateNum] || [],
+      dots: dotsData.value[fullDate] || [],
     }
   })
 })
@@ -425,7 +425,7 @@ const CELL_HEIGHT = 48  // px per hour row
 function getSessionsForDay(fullDate) {
   const [y, m, d] = fullDate.split('-').map(Number)
   const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-  return reservations.filter((res) => res.date === dateStr).map((res) => {
+  return reservations.value.filter((res) => res.date === dateStr).map((res) => {
     const [startH, startM] = res.start_time.split(':').map(Number)
     const [endH, endM] = res.end_time.split(':').map(Number)
     return {

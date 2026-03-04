@@ -120,7 +120,7 @@ function handleNav(target) {
     router.push({ name: 'member-profile' })
   } else {
     // router.push({ name: target })
-    alert('이동: ' + target)
+    alert('준비 중입니다')
   }
 }
 
