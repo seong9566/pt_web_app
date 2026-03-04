@@ -353,7 +353,7 @@ When adding real error handling: show inline error messages near the relevant fi
 
 - **Hard-coded hex in inline SVGs**: `stroke="#007AFF"` in 12+ view files. Should use `stroke="currentColor"` + CSS color.
 - **Hard-coded px in CSS**: Widespread despite convention. Design token vars exist but only cover spacing/typography at macro level; component-specific values still raw px.
-- **Direct Supabase in views**: `RoleSelectView.vue` calls `supabase.from('profiles').upsert(...)` directly — should use a composable.
+- **Direct Supabase in views**: ~~`RoleSelectView.vue`~~ FIXED — now uses `useProfile.saveRole()` composable. No remaining direct Supabase calls in views.
 - **Auth listener leak**: `_authSubscription` in auth store never unsubscribed (low risk in SPA but not ideal).
 
 ---
@@ -361,6 +361,6 @@ When adding real error handling: show inline error messages near the relevant fi
 ## Notes
 
 - **Korean throughout**: All code comments, error messages, and UI strings are in Korean (한국어).
-- **Mock data views**: Many trainer views are placeholder with hard-coded data (chat, manual, payment, workout, memo). Look for `[미구현]` markers.
+- **준비 중 스텁 views**: Chat, manual, workout, payment views now show "준비 중" stubs (Phase 2 예정). MemoWriteView is now live. Look for `준비 중입니다` text in stub views.
 - **No test runner, no linting**: Code quality is convention-based only. No ESLint, Prettier, or Vitest configured.
 - **Dev server on 0.0.0.0**: Vite binds all interfaces for mobile testing on local network.

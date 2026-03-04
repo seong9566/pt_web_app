@@ -20,18 +20,18 @@ member management, scheduling, reservations, settings, and several mock-data pla
 | `WorkTimeSettingView` | `/trainer/settings/work-time` | `useWorkHours` |
 | `SettingsView` | `/trainer/settings` | (auth store) |
 | `TrainerSearchView` | `/search` | `useTrainerSearch` |
+| `MemoWriteView` | `/trainer/members/:id/memo/write` | `useMemos` |
 
-### Mock Data (hard-coded, not yet implemented)
+### 준비 중 스텁 (Phase 2 예정 — DB 테이블 없음)
 
 | View | Route | Notes |
 |------|-------|-------|
-| `TrainerChatView` | `/trainer/chat` | No companion CSS |
-| `TrainerManualView` | `/trainer/settings/manual` | List view |
-| `ManualRegisterView` | `/trainer/settings/manual/register` | Form view |
-| `TodayWorkoutView` | `/trainer/schedule/workout` | Workout plan |
-| `MemberPaymentView` | `/trainer/members/:id/payment` | Payment records |
-| `PaymentWriteView` | `/trainer/members/:id/payment/write` | Payment form |
-| `MemoWriteView` | `/trainer/members/:id/memo/write` | Memo form |
+| `TrainerChatView` | `/trainer/chat` | 준비 중 스텁 (No companion CSS) |
+| `TrainerManualView` | `/trainer/settings/manual` | 준비 중 스텁 |
+| `ManualRegisterView` | `/trainer/settings/manual/register` | 일부 mock 콘텐츠 잔존 |
+| `TodayWorkoutView` | `/trainer/schedule/workout` | 준비 중 스텁 |
+| `MemberPaymentView` | `/trainer/members/:id/payment` | 준비 중 스텁 |
+| `PaymentWriteView` | `/trainer/members/:id/payment/write` | 준비 중 스텁 |
 
 ---
 
@@ -49,3 +49,4 @@ member management, scheduling, reservations, settings, and several mock-data pla
 
 - Hard-coded SVG colors (`fill="#9CA3AF"`) in `TrainerScheduleView.vue` — use `currentColor`
 - 3 TODO comments in `ManualRegisterView.vue` and `SettingsView.vue` (API integration, notifications)
+- Stat card counts (24, 18, 4) in `TrainerMemberView.vue` remain hardcoded — not yet connected to real data
