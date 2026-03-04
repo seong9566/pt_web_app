@@ -1,0 +1,15 @@
+  function syncRoleFromProfile() {
+  function resetAuthState() {
+  function setProfile(nextProfile) {
+    syncRoleFromProfile()
+    syncRoleFromProfile()
+    syncRoleFromProfile()
+      setProfile(null)
+      setProfile(null)
+    setProfile(data)
+    setProfile(null)
+  function registerAuthListener() {
+          resetAuthState()
+    registerAuthListener()
+        resetAuthState()
+      resetAuthState()

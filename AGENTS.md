@@ -2,13 +2,17 @@
 
 Reference guide for AI coding agents working in this repository.
 
+**Generated:** 2026-03-04
+**Commit:** b53c4a9
+**Branch:** main
+
 ---
 
 ## Project Overview
 
-A Vue 3 mobile-first PWA for managing personal training sessions. The app centers on a
-480 px max-width container layout (simulated phone shell). Stack: **Vue 3 + Vite + Pinia +
-Vue Router 4**. No TypeScript — plain JavaScript throughout.
+A Vue 3 mobile-first PWA for managing personal training (PT) sessions between trainers and members.
+480 px max-width container layout (simulated phone shell). Backend: **Supabase** (PostgreSQL + Auth + Storage).
+Stack: **Vue 3 + Vite + Pinia + Vue Router 4 + Supabase**. No TypeScript — plain JavaScript throughout.
 
 ---
 
@@ -34,28 +38,49 @@ There is **no test runner** configured. No lint/format tooling (ESLint, Prettier
 ```
 pt_web_app/
 ├── src/
-│   ├── main.js               # App bootstrap: createApp → Pinia → Router → mount
-│   ├── App.vue               # Root: <router-view> + role-based <BottomNav>
+│   ├── main.js               # Bootstrap: createApp → Pinia → Router → auth.initialize() → mount
+│   ├── App.vue               # Root: <router-view> + role-based bottom nav
 │   ├── assets/
-│   │   ├── css/global.css    # Design system: CSS custom properties, reset, base styles
+│   │   ├── css/global.css    # Design system tokens (CSS custom properties)
 │   │   └── icons/            # SVG icon files
 │   ├── components/           # Shared UI primitives (App-prefixed)
-│   ├── router/index.js       # All route definitions (flat list, lazy-loaded)
-│   ├── stores/               # Pinia stores (Composition API style)
-│   │   └── auth.js           # Role state: 'trainer' | 'member' | null
+│   ├── composables/          # Supabase data access layer (useXxx pattern)
+│   ├── lib/
+│   │   └── supabase.js       # Supabase client singleton (PKCE auth flow)
+│   ├── router/index.js       # Routes + beforeEach guard (auth + role access control)
+│   ├── stores/
+│   │   └── auth.js           # Auth state: user, profile, role, session, loading
 │   └── views/                # Feature pages, grouped by domain
+│       ├── auth/             # OAuth callback handler
 │       ├── home/             # Member home dashboard
 │       ├── invite/           # Invite code management
-│       ├── login/
-│       ├── member/           # Member-side views (schedule, chat, settings, reservation)
+│       ├── login/            # Kakao OAuth login
+│       ├── member/           # Member-side views (10 files)
 │       ├── onboarding/       # Role selection, profile setup
-│       └── trainer/          # Trainer-side views (31 files — largest domain)
-├── docs/                     # Design specs (font_color_guide.md, PRD)
-│   └── ui/                   # UI reference screenshots
+│       └── trainer/          # Trainer-side views (31 files — see trainer/AGENTS.md)
+├── supabase/
+│   └── schema.sql            # Full DB schema: tables, RLS, RPC functions
+├── docs/                     # PRD, font/color guide, UI reference screenshots
 ├── index.html
 ├── vite.config.js
 └── package.json
 ```
+
+---
+
+## Where to Look
+
+| Task | Location | Notes |
+|------|----------|-------|
+| Add new page | `src/views/<domain>/` + `src/router/index.js` | Create `*View.vue` + `.css`, add lazy route |
+| Add data fetching | `src/composables/use*.js` | Never call Supabase directly from views |
+| Add shared component | `src/components/App*.vue` | `App` prefix for shared primitives |
+| Change design tokens | `src/assets/css/global.css` | Colors, typography, spacing, radii |
+| Add Pinia store | `src/stores/*.js` | Composition API style, `useXxxStore()` naming |
+| Change auth/guards | `src/stores/auth.js` + `src/router/index.js` | Auth store + router `beforeEach` |
+| Modify DB schema | `supabase/schema.sql` | Include RLS policies |
+| Check design specs | `docs/` | PRD, font/color guide, `docs/ui/` screenshots |
+| Environment vars | `.env.local` (from `.env.example`) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
 
 ---
 
@@ -159,10 +184,17 @@ Pinia is installed and registered in `main.js`. One store exists:
 ```js
 // src/stores/auth.js
 export const useAuthStore = defineStore('auth', () => {
-  const role = ref(null)  // 'trainer' | 'member' | null
-  function setRole(newRole) { role.value = newRole }
-  function clearRole() { role.value = null }
-  return { role, setRole, clearRole }
+  const user = ref(null)      // Supabase auth.users object
+  const profile = ref(null)   // profiles table data (name, role, photo_url)
+  const role = ref(null)      // 'trainer' | 'member' | null (synced from profile.role)
+  const session = ref(null)   // Supabase session (access_token)
+  const loading = ref(true)   // initialization/auth in progress
+  const error = ref(null)     // last error message
+
+  // Double-init prevention: _initialized flag + _initializePromise
+  async function initialize() { /* getSession() → hydrateFromSession() → fetchProfile() */ }
+  async function signOut() { /* supabase.auth.signOut() + resetAuthState() */ }
+  return { user, profile, role, session, loading, error, setRole, clearRole, fetchProfile, initialize, signOut }
 })
 ```
 
@@ -170,6 +202,24 @@ export const useAuthStore = defineStore('auth', () => {
 - Place new stores in `src/stores/`.
 - Use `defineStore('storeName', () => { ... })` (Composition API style).
 - Import with `useXxxStore()` naming.
+
+---
+
+## Auth Flow
+
+```
+Kakao OAuth button → Supabase PKCE flow → /auth/callback
+  → auth.initialize() → getSession() → hydrateFromSession() → fetchProfile()
+  → Has profile+role? → role-based home (/trainer/home or /home)
+  → No profile? → /onboarding/role (role selection)
+```
+
+Router guard (`beforeEach`) — three stages:
+1. Wait for `auth.initialize()` if `auth.loading`
+2. Unauthenticated + protected route → `/login`
+3. Role mismatch → redirect to role-appropriate home
+
+Public routes (no auth): `/login`, `/auth/callback`
 
 ---
 
@@ -296,3 +346,21 @@ When adding real error handling: show inline error messages near the relevant fi
 8. Large view CSS goes in a companion `.css` file; small components use inline `<style scoped>`.
 9. No TypeScript — plain JavaScript. Do not add `.ts` files or `lang="ts"`.
 10. Mobile-first layout: all views are designed for max-width 480 px.
+
+---
+
+## Anti-Patterns (Known Tech Debt)
+
+- **Hard-coded hex in inline SVGs**: `stroke="#007AFF"` in 12+ view files. Should use `stroke="currentColor"` + CSS color.
+- **Hard-coded px in CSS**: Widespread despite convention. Design token vars exist but only cover spacing/typography at macro level; component-specific values still raw px.
+- **Direct Supabase in views**: `RoleSelectView.vue` calls `supabase.from('profiles').upsert(...)` directly — should use a composable.
+- **Auth listener leak**: `_authSubscription` in auth store never unsubscribed (low risk in SPA but not ideal).
+
+---
+
+## Notes
+
+- **Korean throughout**: All code comments, error messages, and UI strings are in Korean (한국어).
+- **Mock data views**: Many trainer views are placeholder with hard-coded data (chat, manual, payment, workout, memo). Look for `[미구현]` markers.
+- **No test runner, no linting**: Code quality is convention-based only. No ESLint, Prettier, or Vitest configured.
+- **Dev server on 0.0.0.0**: Vite binds all interfaces for mobile testing on local network.

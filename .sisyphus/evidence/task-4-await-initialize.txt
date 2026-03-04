@@ -1,0 +1,2 @@
+24:  await auth.initialize() // 세션 복원 완료 후 마운트 — 레이스 컨디션 방지
+25:  app.mount('#app')

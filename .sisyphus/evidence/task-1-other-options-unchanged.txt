@@ -1,0 +1,3 @@
+    flowType: 'pkce',
+    persistSession: true,
+    autoRefreshToken: true,

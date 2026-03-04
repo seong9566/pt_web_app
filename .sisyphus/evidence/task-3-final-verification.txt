@@ -1,0 +1,55 @@
+=== TASK 3: AuthCallbackView.vue Rewrite ===
+
+✓ TEMPLATE BLOCK (lines 2-6): UNCHANGED
+✓ STYLE BLOCK (lines 62-76): UNCHANGED
+✓ SCRIPT SETUP BLOCK (lines 8-60): REWRITTEN
+
+VERIFICATION RESULTS:
+---
+1. No direct ref assignments:
+   grep "auth.user =" → CLEAN (no matches)
+   grep "auth.session =" → CLEAN (no matches)
+
+2. hydrateFromSession called:
+   Line 45: await auth.hydrateFromSession(session)
+   ✓ Confirmed
+
+3. Code extraction from route:
+   Line 20: const code = route.query.code
+   ✓ Confirmed
+
+4. Role-based redirects:
+   Line 48: if (!auth.role) → /onboarding/role
+   Line 50: else if (auth.role === 'trainer') → /trainer/home
+   Line 52: else → /home
+   ✓ Confirmed
+
+5. Supabase import retained:
+   Line 12: import { supabase } from '@/lib/supabase'
+   Line 29: supabase.auth.exchangeCodeForSession(code)
+   Line 37: supabase.auth.getSession()
+   ✓ Confirmed
+
+6. Error handling:
+   - Line 23-26: No code → redirect to /login
+   - Line 30-34: Exchange error → console.error + redirect
+   - Line 38-42: Session error/missing → console.error + redirect
+   - Line 55-58: Catch block → console.error + redirect
+   ✓ Confirmed
+
+7. Build verification:
+   npm run build → ✓ SUCCESS (built in 968ms)
+
+LOGIC FLOW:
+1. Extract code from route.query.code
+2. If no code → router.replace('/login') + return
+3. exchangeCodeForSession(code) → if error → console.error + redirect + return
+4. getSession() → if error or no session → console.error + redirect + return
+5. await auth.hydrateFromSession(session) [NEW - replaces direct assignments]
+6. Role-based redirect:
+   - null → /onboarding/role
+   - 'trainer' → /trainer/home
+   - else → /home
+7. Catch block → console.error + redirect
+
+STATUS: ✓ COMPLETE
