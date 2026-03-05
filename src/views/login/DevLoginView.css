@@ -1,0 +1,128 @@
+.dev-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px var(--side-margin);
+  background-color: var(--color-white);
+}
+
+.dev-login__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-900);
+  margin-left: -8px;
+}
+
+.dev-login__header {
+  margin-top: 24px;
+  margin-bottom: 40px;
+}
+
+.dev-login__title {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-display);
+  color: var(--color-gray-900);
+  margin: 0 0 8px;
+}
+
+.dev-login__subtitle {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.dev-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dev-login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dev-login__label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.dev-login__input {
+  height: 48px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  padding: 0 16px;
+  font-size: var(--fs-body1);
+  font-family: inherit;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-100);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dev-login__input:focus {
+  border-color: var(--color-blue-primary);
+}
+
+.dev-login__input::placeholder {
+  color: var(--color-gray-600);
+}
+
+.dev-login__error {
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 0;
+}
+
+.dev-login__success {
+  font-size: var(--fs-body2);
+  color: var(--color-green);
+  margin: 0;
+}
+
+.dev-login__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dev-login__btn {
+  width: 100%;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.dev-login__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dev-login__btn:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.dev-login__btn--primary {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+.dev-login__btn--secondary {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+  border: 1.5px solid var(--color-gray-200);
+}

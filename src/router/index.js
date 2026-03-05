@@ -9,7 +9,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-const PUBLIC_ROUTES = ["/login", "/auth/callback"]; // 인증 없이 접근 가능한 경로
+const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login"]; // 인증 없이 접근 가능한 경로
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +25,12 @@ const router = createRouter({
       path: "/auth/callback",
       name: "auth-callback",
       component: () => import("@/views/auth/AuthCallbackView.vue"),
+      meta: { hideNav: true },
+    },
+    {
+      path: "/dev-login",
+      name: "dev-login",
+      component: () => import("@/views/login/DevLoginView.vue"),
       meta: { hideNav: true },
     },
     {

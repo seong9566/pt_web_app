@@ -49,8 +49,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 
+const router = useRouter()
 const isLoading = ref(false)
 
 /** 카카오 OAuth 로그인 처리 */
@@ -67,7 +69,9 @@ async function handleKakao() {
     isLoading.value = false
   }
 }
-function handleEmail() { }
+function handleEmail() {
+  router.push('/dev-login')
+}
 </script>
 
 <style src="./LoginView.css" scoped></style>
