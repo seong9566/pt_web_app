@@ -4,7 +4,13 @@
     <header class="home-header">
       <div class="home-header__profile">
         <div class="profile-avatar">
-          <img src="@/assets/icons/person.svg" alt="avatar" />
+          <img
+            v-if="auth.profile?.photo_url"
+            :src="auth.profile.photo_url"
+            alt="avatar"
+            class="profile-avatar__img"
+          />
+          <img v-else src="@/assets/icons/person.svg" alt="avatar" />
           <div class="status-dot"></div>
         </div>
         <div class="profile-text">
@@ -122,7 +128,10 @@
         <!-- 예약 목록 -->
         <div v-for="reservation in filteredReservations" :key="reservation.id" class="schedule-card">
           <div class="schedule-card__main">
-            <div class="schedule-avatar"><img src="@/assets/icons/person.svg" alt="" /></div>
+            <div class="schedule-avatar">
+              <img v-if="reservation.partner_photo" :src="reservation.partner_photo" alt="" class="schedule-avatar__img" />
+              <img v-else src="@/assets/icons/person.svg" alt="" />
+            </div>
             <div class="schedule-info">
               <h3 class="schedule-name">{{ reservation.partner_name }}</h3>
               <p class="schedule-time">{{ reservation.start_time }} 수업 시작</p>
