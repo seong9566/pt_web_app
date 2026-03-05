@@ -116,11 +116,11 @@
 }
 
 .time-group__label {
-  font-size: var(--fs-body2);
-  color: var(--color-blue-primary);
-  font-weight: 500;
+  font-size: var(--fs-body1);
+  color: var(--color-gray-900);
+  font-weight: var(--fw-body1-bold);
   margin: 0;
-  opacity: 0.7;
+  letter-spacing: -0.2px;
 }
 
 .time-grid {
@@ -191,12 +191,18 @@
 
 .time-slot__check {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  background-color: white;
+  border-radius: 50%;
+  border: 2px solid var(--color-blue-primary);
   color: var(--color-blue-primary);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.25);
 }
 
 /* ── Error Message ── */
