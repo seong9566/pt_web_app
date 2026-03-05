@@ -72,6 +72,18 @@ export function useReservations() {
         return slots.value
       }
 
+      // 휴일 확인
+      const { data: holidayData } = await supabase
+        .from('trainer_holidays')
+        .select('id')
+        .eq('trainer_id', trainerId)
+        .eq('date', dateStr)
+        .maybeSingle()
+      if (holidayData) {
+        slots.value = resetSlots()
+        return slots.value
+      }
+
       const dayOfWeek = getDayOfWeek(dateStr)
       const { data: schedule, error: scheduleError } = await supabase
         .from('work_schedules')
@@ -306,6 +318,22 @@ export function useReservations() {
     }
   }
 
+  /** 잔여 PT 횟수 확인 (예약 전 클라이언트 검증) */
+  async function checkPtCount(trainerId) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data, error: err } = await supabase
+        .from('pt_sessions')
+        .select('change_amount')
+        .eq('member_id', user.id)
+        .eq('trainer_id', trainerId)
+      if (err) return 0
+      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+    } catch {
+      return 0
+    }
+  }
+
   return {
     slots,
     reservations,
@@ -318,5 +346,6 @@ export function useReservations() {
     updateReservationStatus,
     checkTrainerConnection,
     getConnectedTrainerId,
+    checkPtCount,
   }
 }

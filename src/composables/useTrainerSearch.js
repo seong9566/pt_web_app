@@ -86,43 +86,88 @@ export function useTrainerSearch() {
     }
   }
 
-  /** 특정 트레이너에 연결 요청 */
+  /** 특정 트레이너에 연결 요청 (status='pending') */
   async function requestConnection(trainerId) {
     const auth = useAuthStore()
+    loading.value = true
     error.value = null
 
-    if (!auth.user?.id) {
-      error.value = '로그인이 필요합니다.'
-      return false
-    }
-
-    // 이미 연결된 경우 체크
-    const existing = trainers.value.find(t => t.id === trainerId)
-    if (existing?.connected) {
-      error.value = '이미 연결된 트레이너입니다.'
-      return false
-    }
-
     try {
-      const { error: insertError } = await supabase
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error: err } = await supabase
         .from('trainer_members')
-        .insert({
-          trainer_id: trainerId,
-          member_id: auth.user.id,
-          status: 'active',
-        })
-
-      if (insertError) {
-        error.value = insertError.message
-        return false
-      }
-
+        .insert({ trainer_id: trainerId, member_id: user.id, status: 'pending' })
+      if (err) throw err
       return true
     } catch (e) {
-      error.value = e.message || '연결 요청 중 오류가 발생했습니다.'
+      error.value = e.message
       return false
+    } finally {
+      loading.value = false
     }
   }
 
-  return { trainers, loading, error, searchTrainers, requestConnection }
+  /** 트레이너가 받은 대기 중 연결 요청 목록 */
+  async function fetchPendingRequests() {
+    loading.value = true
+    error.value = null
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data, error: err } = await supabase
+        .from('trainer_members')
+        .select('*, member:profiles!member_id(id, name, photo_url)')
+        .eq('trainer_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+      if (err) throw err
+      return data || []
+    } catch (e) {
+      error.value = e.message
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** pending → active 상태로 변경 */
+  async function approveConnection(connectionId) {
+    loading.value = true
+    error.value = null
+    try {
+      const { error: err } = await supabase
+        .from('trainer_members')
+        .update({ status: 'active' })
+        .eq('id', connectionId)
+        .eq('status', 'pending')
+      if (err) throw err
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** pending 상태의 연결 요청 삭제 */
+  async function rejectConnection(connectionId) {
+    loading.value = true
+    error.value = null
+    try {
+      const { error: err } = await supabase
+        .from('trainer_members')
+        .delete()
+        .eq('id', connectionId)
+        .eq('status', 'pending')
+      if (err) throw err
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { trainers, loading, error, searchTrainers, requestConnection, fetchPendingRequests, approveConnection, rejectConnection }
 }

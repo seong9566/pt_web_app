@@ -271,7 +271,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 ## TODOs
 
-- [ ] 1. Vitest 테스트 인프라 설정
+- [x] 1. Vitest 테스트 인프라 설정
 
   **What to do**:
   - `npm install -D vitest` 실행
@@ -317,7 +317,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `chore: Vitest 테스트 인프라 설정`
   - Files: `vite.config.js`, `package.json`, `src/__tests__/setup.js`, `src/__tests__/example.test.js`
 
-- [ ] 2. DB 스키마 — messages 테이블 + RLS
+- [x] 2. DB 스키마 — messages 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -386,7 +386,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T3-T10)
 
-- [ ] 3. DB 스키마 — payments + pt_sessions 테이블 + RLS
+- [x] 3. DB 스키마 — payments + pt_sessions 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -454,7 +454,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2, T4-T10)
 
-- [ ] 4. DB 스키마 — manuals + manual_media 테이블 + RLS
+- [x] 4. DB 스키마 — manuals + manual_media 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -522,7 +522,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T3, T5-T10)
 
-- [ ] 5. DB 스키마 — workout_plans 테이블 + RLS
+- [x] 5. DB 스키마 — workout_plans 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -574,7 +574,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T4, T6-T10)
 
-- [ ] 6. DB 스키마 — notifications 테이블 + RLS
+- [x] 6. DB 스키마 — notifications 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -636,7 +636,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T5, T7-T10)
 
-- [ ] 7. DB 스키마 — trainer_holidays 테이블 + RLS
+- [x] 7. DB 스키마 — trainer_holidays 테이블 + RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -683,7 +683,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T6, T8-T10)
 
-- [ ] 8. DB 변경 — connection_status enum 'pending' 추가 + memos 회원 읽기 RLS
+- [x] 8. DB 변경 — connection_status enum 'pending' 추가 + memos 회원 읽기 RLS
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -735,7 +735,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T7, T9-T10)
 
-- [ ] 9. Storage 버킷 — chat-files + manual-media 생성
+- [x] 9. Storage 버킷 — chat-files + manual-media 생성
 
   **What to do**:
   - Supabase MCP로 SQL 실행:
@@ -782,7 +782,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T8, T10)
 
-- [ ] 10. DB 변경 — create_reservation RPC PT횟수 검증 + PT 자동 차감 trigger
+- [x] 10. DB 변경 — create_reservation RPC PT횟수 검증 + PT 자동 차감 trigger
 
   **What to do**:
   - create_reservation RPC 수정: 예약 생성 전 PT 잔여 횟수 확인

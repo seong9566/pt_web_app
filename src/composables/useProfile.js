@@ -120,5 +120,74 @@ export function useProfile() {
     }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole }
+  /** 트레이너 프로필 수정 (이름, 전문 분야, 소개글) */
+  async function updateTrainerProfile(name, specialties = [], bio = null) {
+    if (!name || !name.trim()) {
+      error.value = '이름을 입력해주세요'
+      return false
+    }
+    uploading.value = true
+    error.value = null
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (!userId) throw new Error('인증이 필요합니다')
+
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .update({ name: name.trim() })
+        .eq('id', userId)
+      if (profileErr) throw profileErr
+
+      const { error: trainerErr } = await supabase
+        .from('trainer_profiles')
+        .upsert({ id: userId, specialties, bio }, { onConflict: 'id' })
+      if (trainerErr) throw trainerErr
+
+      // Sync auth store
+      const authStore = useAuthStore()
+      await authStore.fetchProfile()
+      return true
+    } catch (e) {
+      error.value = e.message || '프로필 수정에 실패했습니다'
+      return false
+    } finally {
+      uploading.value = false
+    }
+  }
+
+  /** 회원 프로필 수정 (이름, 나이, 키, 몸무게, 목표, 메모) */
+  async function updateMemberProfile(name, age = null, height = null, weight = null, goals = [], notes = null) {
+    if (!name || !name.trim()) {
+      error.value = '이름을 입력해주세요'
+      return false
+    }
+    uploading.value = true
+    error.value = null
+    try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
+      if (!userId) throw new Error('인증이 필요합니다')
+
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .update({ name: name.trim() })
+        .eq('id', userId)
+      if (profileErr) throw profileErr
+
+      const { error: memberErr } = await supabase
+        .from('member_profiles')
+        .upsert({ id: userId, age, height, weight, goals, notes }, { onConflict: 'id' })
+      if (memberErr) throw memberErr
+
+      const authStore = useAuthStore()
+      await authStore.fetchProfile()
+      return true
+    } catch (e) {
+      error.value = e.message || '프로필 수정에 실패했습니다'
+      return false
+    } finally {
+      uploading.value = false
+    }
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile }
 }
