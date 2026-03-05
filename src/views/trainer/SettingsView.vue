@@ -133,6 +133,22 @@
         </div>
       </section> -->
 
+      <!-- ── 계정 관리 ── -->
+      <section class="settings__group">
+        <h2 class="settings__group-title">계정 관리</h2>
+        <div class="settings__card">
+          <button class="settings__row" @click="showDeleteSheet = true">
+            <span class="settings__row-icon settings__row-icon--danger">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label settings__row-label--danger">계정 삭제</span>
+          </button>
+        </div>
+      </section>
+
       <!-- ── 로그아웃 + 버전 ── -->
       <div class="settings__footer">
         <button class="settings__logout" @click="handleLogout">로그아웃</button>
@@ -144,30 +160,43 @@
     </div>
 
   </div>
+
+  <AppBottomSheet v-model="showDeleteSheet" title="계정 삭제">
+    <p class="settings__sheet-desc">계정을 삭제하면 복구할 수 없습니다.<br>'탈퇴'를 입력하세요.</p>
+    <input v-model="deleteConfirmInput" class="settings__sheet-input" placeholder="탈퇴" type="text" />
+    <button
+      class="settings__sheet-btn settings__sheet-btn--delete"
+      :disabled="deleteConfirmInput !== '탈퇴'"
+      @click="handleDeleteAccount"
+    >삭제</button>
+  </AppBottomSheet>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 import IconManual from '@/assets/icons/menual.svg'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { softDeleteAccount } = useProfile()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
 })
 
-// ── 알림 토글 ──
 const notificationOn = ref(true)
+const showDeleteSheet = ref(false)
+const deleteConfirmInput = ref('')
 
 function toggleNotification() {
   notificationOn.value = !notificationOn.value
 }
 
-// ── 네비게이션 (미구현 페이지 placeholder) ──
 function handleNav(target) {
   if (target === 'work-hours') {
     router.push({ name: 'trainer-work-time' })
@@ -178,7 +207,15 @@ function handleNav(target) {
   }
 }
 
-// ── 로그아웃 ──
+async function handleDeleteAccount() {
+  if (deleteConfirmInput.value !== '탈퇴') return
+  const ok = await softDeleteAccount()
+  if (ok) {
+    showDeleteSheet.value = false
+    router.push({ name: 'login' })
+  }
+}
+
 async function handleLogout() {
   if (confirm('로그아웃 하시겠습니까?')) {
     await auth.signOut()

@@ -8,14 +8,18 @@
       @click="handleNav(item)"
     >
       <span class="trainer-nav__icon" :style="{ maskImage: `url(${item.icon})`, WebkitMaskImage: `url(${item.icon})` }" />
+      <span v-if="item.id === 'chat' && chatUnreadCount > 0" class="trainer-nav__badge">
+        {{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}
+      </span>
       <span class="trainer-nav__label">{{ item.label }}</span>
     </button>
   </nav>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useChat } from '@/composables/useChat'
 
 import IconHome from '@/assets/icons/home.svg'
 import IconMembers from '@/assets/icons/people.svg'
@@ -25,6 +29,25 @@ import IconSettings from '@/assets/icons/setting.svg'
 
 const router = useRouter()
 const route = useRoute()
+const { getUnreadCount } = useChat()
+const chatUnreadCount = ref(0)
+let pollInterval = null
+
+onMounted(async () => {
+  // 초기 로드
+  chatUnreadCount.value = (await getUnreadCount()) ?? 0
+  
+  // 30초마다 폴링
+  pollInterval = setInterval(async () => {
+    chatUnreadCount.value = (await getUnreadCount()) ?? 0
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+  }
+})
 
 const navItems = [
   { id: 'home',     label: '홈',    to: '/trainer/home',     icon: IconHome },
@@ -79,6 +102,7 @@ function handleNav(item) {
   flex: 1;
   padding: 8px 0;
   font-family: inherit;
+  position: relative;
 }
 
 .trainer-nav__item--active {
@@ -104,6 +128,23 @@ function handleNav(item) {
 .trainer-nav__label {
   font-size: var(--fs-caption);
   font-weight: var(--fw-caption);
+  line-height: 1;
+}
+.trainer-nav__badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 20px);
+  min-width: 16px;
+  height: 16px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
   line-height: 1;
 }
 </style>

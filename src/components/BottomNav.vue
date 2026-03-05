@@ -8,15 +8,40 @@
       :class="{ 'bottom-nav__item--active': isActive(item) }"
     >
       <span class="bottom-nav__icon" v-html="item.icon" />
+      <span v-if="item.name === 'member-chat' && chatUnreadCount > 0" class="bottom-nav__badge">
+        {{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}
+      </span>
       <span class="bottom-nav__label">{{ item.label }}</span>
     </router-link>
   </nav>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useChat } from '@/composables/useChat'
 
 const route = useRoute()
+const { getUnreadCount } = useChat()
+const chatUnreadCount = ref(0)
+let pollInterval = null
+
+onMounted(async () => {
+  // 초기 로드
+  await getUnreadCount()
+  chatUnreadCount.value = (await getUnreadCount()) ?? 0
+  
+  // 30초마다 폴링
+  pollInterval = setInterval(async () => {
+    chatUnreadCount.value = (await getUnreadCount()) ?? 0
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+  }
+})
 
 const navItems = [
   {
@@ -95,6 +120,7 @@ function isActive(item) {
   text-decoration: none;
   flex: 1;
   padding: 8px 0;
+  position: relative;
 }
 .bottom-nav__item--active {
   color: var(--color-blue-primary);
@@ -109,6 +135,23 @@ function isActive(item) {
 .bottom-nav__label {
   font-size: var(--fs-caption);
   font-weight: var(--fw-caption);
+  line-height: 1;
+}
+.bottom-nav__badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 20px);
+  min-width: 16px;
+  height: 16px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
   line-height: 1;
 }
 </style>

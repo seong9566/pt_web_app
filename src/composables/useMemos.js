@@ -204,6 +204,37 @@ export function useMemos() {
     }
   }
 
+  /** 회원 본인의 메모 목록 조회 (읽기 전용) */
+  async function getMemberMemos() {
+    loading.value = true
+    error.value = null
+    try {
+      const me = auth.user?.id
+      if (!me) { memos.value = []; return }
+      
+      const { data, error: fetchError } = await supabase
+        .from('memos')
+        .select('*')
+        .eq('member_id', me)
+        .order('created_at', { ascending: false })
+      
+      if (fetchError) throw fetchError
+      
+      memos.value = (data ?? []).map((memo, index) => ({
+        id: memo.id,
+        content: memo.content,
+        tags: Array.isArray(memo.tags) ? memo.tags : [],
+        date: formatKoreanDate(memo.created_at),
+        time: formatKoreanTime(memo.created_at),
+        dotColor: index === 0 ? 'blue' : 'gray',
+      }))
+    } catch (e) {
+      error.value = e?.message ?? '메모를 불러오지 못했습니다'
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     member,
     memos,
@@ -213,5 +244,6 @@ export function useMemos() {
     fetchMemos,
     createMemo,
     deleteMemo,
+    getMemberMemos,
   }
 }

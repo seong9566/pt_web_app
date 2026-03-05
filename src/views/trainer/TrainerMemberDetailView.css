@@ -375,3 +375,50 @@
     right: calc(50% - 240px + var(--side-margin));
   }
 }
+
+.quick-action--danger .quick-action__icon {
+  background-color: var(--color-gray-100);
+  color: var(--color-red);
+}
+
+.quick-action--danger .quick-action__label {
+  color: var(--color-red);
+}
+
+.mem-detail__sheet-desc {
+  font-size: var(--fs-body1);
+  color: var(--color-gray-900);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.mem-detail__sheet-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.mem-detail__sheet-btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.mem-detail__sheet-btn:active {
+  opacity: 0.7;
+}
+
+.mem-detail__sheet-btn--cancel {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.mem-detail__sheet-btn--confirm {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}

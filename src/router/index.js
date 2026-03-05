@@ -154,6 +154,12 @@ const router = createRouter({
       component: () => import('@/views/member/MemberScheduleView.vue'),
     },
     {
+      path: '/member/memos',
+      name: 'member-memos',
+      component: () => import('@/views/member/MemberMemoView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/member/chat',
       name: 'member-chat',
       component: () => import('@/views/member/MemberChatView.vue'),
@@ -178,6 +184,18 @@ const router = createRouter({
       path: '/member/reservation',
       name: 'member-reservation',
       component: () => import('@/views/member/MemberReservationView.vue'),
+      meta: { hideNav: true },
+    },
+    {
+      path: '/trainer/profile-edit',
+      name: 'trainer-profile-edit',
+      component: () => import('@/views/trainer/TrainerProfileEditView.vue'),
+      meta: { hideNav: true },
+    },
+    {
+      path: '/member/profile-edit',
+      name: 'member-profile-edit',
+      component: () => import('@/views/member/MemberProfileEditView.vue'),
       meta: { hideNav: true },
     },
     {

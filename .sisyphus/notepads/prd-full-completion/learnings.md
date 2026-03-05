@@ -266,3 +266,78 @@ Covers: `http(s)://`, `www.` optional, both `youtube.com/watch?v=` and `youtu.be
 
 ### build check
 - 171 modules, built in ~955ms — file has zero side effects on bundle
+
+## TrainerSearchView + TrainerMemberView — Connection Status & Pending Tab (2026-03-05)
+
+### useTrainerSearch.js — searchTrainers() update
+- Changed single `status='active'` query to `in('status', ['active', 'pending'])` + select `trainer_id, status`
+- Use `forEach` to populate two Sets: `connectedTrainerIds` and `pendingTrainerIds`
+- Added `pending` field to trainer object alongside existing `connected`
+
+### TrainerSearchView.vue — 3-state button pattern
+- `trainer.pending` → `<div class="trainer-card__badge trainer-card__badge--pending">요청 중</div>`
+- `trainer.connected` → `<div class="trainer-card__badge trainer-card__badge--connected">연결됨</div>`
+- neither → `<button class="trainer-card__btn trainer-card__btn--primary" ...>연결 요청</button>`
+- Badge is a `<div>` (not a button) — no interactivity needed for status display
+
+### TrainerMemberView.vue — Tab system pattern
+- `activeTab` ref ('members' | 'pending'), tab bar between header and search
+- `<template v-if="activeTab === 'members'">` wraps all existing content
+- `<template v-else-if="activeTab === 'pending'">` for pending content
+- `pendingRequests` ref managed locally in component (fetchPendingRequests returns array, no internal ref)
+- Badge on tab: `v-if="pendingRequests.length > 0"` red badge
+- `switchToPending()`: avoids re-fetch if data already loaded and pendingRequests.length > 0
+  → But on first switch (length === 0 && !loading), always triggers load
+- `processingId` ref prevents double-tap during approve/reject API calls
+
+### formatRelativeTime helper
+- Pure function, no composable needed — simple date math inline in view
+- Returns: 방금 전 / N분 전 / N시간 전 / N일 전
+
+### Pending operations pattern
+- approve: DB update → filter local array → refresh active members (`fetchMembers()`)
+- reject: DB delete → filter local array only (no member list refresh needed)
+
+### CSS conventions followed
+- Tab bar uses `border-bottom` underline pattern (not background-color active)
+- Badge uses `var(--color-red)` for urgency indicator on tab
+- Pending item approve/reject buttons: approve=blue-primary filled, reject=white+red-border
+
+## Profile Edit Views (2026-03-05)
+
+### TrainerProfileEditView + MemberProfileEditView
+
+- Both views follow the same structure as their onboarding counterparts (TrainerProfileView/MemberProfileView) but pre-fill from `auth.profile` refs
+- `onMounted` pre-fills form from `auth.profile?.name`, `auth.profile?.phone`, `auth.profile?.trainer_profiles?.specialties` etc. — always use optional chaining since `trainer_profiles`/`member_profiles` may be null (fetchProfile only does `select('*')` on profiles table — no join)
+- `useProfile()` returns `{ uploading, error, ... }` — rename `error` to `profileError` via destructuring alias to avoid shadowing in template
+- Photo upload flow: click → `triggerFileInput()` → file `@change` → `URL.createObjectURL()` for local preview → `uploadAvatar(file)` → `updateProfilePhoto(url)` — no separate loading state needed (uploading ref handles it)
+- Trainer specialty chips: `{ id: 'rehab'|'strength'|'diet'|'sports'|'core'|'flexibility', label: '재활'|'근력'|'다이어트'|'스포츠'|'코어'|'유연성' }` — 6 options in 2-column grid
+- Member goal chips: `{ id: 'weight-loss'|'muscle-gain'|'rehab'|'endurance'|'flexibility'|'stress-relief', label: '체중감량'|'근력강화'|'재활'|'체력향상'|'유연성'|'스트레스해소' }` — 6 options in 2-column grid
+- `updateTrainerProfile(name, specialties, bio)` → phone not saved (API limitation; phone field shown for display only)
+- `updateMemberProfile(name, parseInt(age)||null, parseFloat(height)||null, parseFloat(weight)||null, goals)` → same pattern
+- Routes: `/trainer/profile-edit` (name: `trainer-profile-edit`), `/member/profile-edit` (name: `member-profile-edit`), both `meta: { hideNav: true }`
+- `npm run build` → exit 0 ✓ (188 modules)
+
+## Account Management Features (2026-03-05)
+
+### Pattern: useProfile composable extension
+- Added `disconnectMember(memberId)`, `disconnectTrainer()`, `softDeleteAccount()` to `useProfile.js`
+- All three follow the same try/catch/error.value pattern already used in the file
+- `softDeleteAccount()` calls `supabase.auth.signOut()` directly (not `auth.signOut()` from store) to avoid store dependency issues — the composable already imports supabase directly
+- New functions added to return object alongside existing ones
+
+### Pattern: Bottom sheet confirmation flows
+- AppBottomSheet uses `<Teleport to="body">` so placement in template doesn't affect rendering
+- For two-button (cancel/confirm) sheets: wrap in `.settings__sheet-actions` with `flex: 1` on buttons
+- For input+submit sheets: standalone input + full-width button (no wrapper needed)
+- `v-model` controls open/close; close on cancel by setting ref to false
+
+### CSS: Danger variant pattern
+- No `--color-red-light` token exists — use `var(--color-gray-100)` for danger icon bg + `var(--color-red)` for text/icon color
+- Override via BEM modifier: `.settings__row-icon--danger` + `.settings__row-label--danger`
+- For quick-action danger: use child selectors `.quick-action--danger .quick-action__icon` and `.quick-action--danger .quick-action__label` to avoid extra modifier classes on child elements
+
+### Shared CSS file strategy
+- `SettingsView.css` is imported by both `SettingsView.vue` (trainer) AND `MemberSettingsView.vue`
+- New sheet styles added to SettingsView.css are therefore available in both settings views
+- TrainerMemberDetailView has its own CSS file — detail-specific sheet styles go there

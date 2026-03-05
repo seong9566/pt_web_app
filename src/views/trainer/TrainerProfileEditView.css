@@ -1,0 +1,197 @@
+.trainer-profile-edit {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+.trainer-profile-edit__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.trainer-profile-edit__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--color-gray-900);
+}
+
+.trainer-profile-edit__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.trainer-profile-edit__nav-title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.trainer-profile-edit__content {
+  flex: 1;
+  padding: 24px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+}
+
+.trainer-profile-edit__photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  align-self: center;
+  cursor: pointer;
+}
+
+.trainer-profile-edit__photo {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  border: 2px dashed var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.trainer-profile-edit__photo-btn {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  color: var(--color-gray-600);
+}
+
+.trainer-profile-edit__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trainer-profile-edit__section-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.trainer-profile-edit__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trainer-profile-edit__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trainer-profile-edit__label {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.trainer-profile-edit__required {
+  color: var(--color-red);
+}
+
+.trainer-profile-edit__field-error {
+  font-size: var(--fs-caption);
+  color: var(--color-red);
+  margin: 0;
+}
+
+.trainer-profile-edit__chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.spec-chip {
+  padding: 14px 16px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.spec-chip--selected {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.trainer-profile-edit__textarea {
+  width: 100%;
+  background-color: var(--color-gray-100);
+  border: none;
+  border-radius: var(--radius-medium);
+  padding: 14px 16px;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.trainer-profile-edit__textarea::placeholder {
+  color: var(--color-gray-600);
+}
+
+.trainer-profile-edit__textarea:focus {
+  box-shadow: 0 0 0 2px var(--color-blue-primary);
+}
+
+.trainer-profile-edit__error {
+  padding: 12px 16px;
+  background-color: var(--color-gray-100);
+  border-left: 4px solid var(--color-red);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  line-height: 1.5;
+}
+
+.trainer-profile-edit__footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-gray-200);
+}

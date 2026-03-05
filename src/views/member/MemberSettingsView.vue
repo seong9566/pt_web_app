@@ -81,6 +81,38 @@
         </div>
       </section>
 
+      <!-- ── 연결 관리 ── -->
+      <section class="settings__group">
+        <h2 class="settings__group-title">연결 관리</h2>
+        <div class="settings__card">
+          <button class="settings__row" @click="showDisconnectSheet = true">
+            <span class="settings__row-icon settings__row-icon--danger">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M15 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M10 17L15 12M15 12L10 7M15 12H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label settings__row-label--danger">트레이너 연결 해제</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ── 계정 관리 ── -->
+      <section class="settings__group">
+        <h2 class="settings__group-title">계정 관리</h2>
+        <div class="settings__card">
+          <button class="settings__row" @click="showDeleteSheet = true">
+            <span class="settings__row-icon settings__row-icon--danger">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label settings__row-label--danger">계정 삭제</span>
+          </button>
+        </div>
+      </section>
+
       <!-- ── 로그아웃 + 버전 ── -->
       <div class="settings__footer">
         <button class="settings__logout" @click="handleLogout">로그아웃</button>
@@ -92,39 +124,77 @@
     </div>
 
   </div>
+
+  <AppBottomSheet v-model="showDisconnectSheet" title="트레이너 연결 해제">
+    <p class="settings__sheet-desc">정말 연결을 해제하시겠습니까?</p>
+    <div class="settings__sheet-actions">
+      <button class="settings__sheet-btn settings__sheet-btn--cancel" @click="showDisconnectSheet = false">취소</button>
+      <button class="settings__sheet-btn settings__sheet-btn--confirm" @click="handleDisconnect">확인</button>
+    </div>
+  </AppBottomSheet>
+
+  <AppBottomSheet v-model="showDeleteSheet" title="계정 삭제">
+    <p class="settings__sheet-desc">계정을 삭제하면 복구할 수 없습니다.<br>'탈퇴'를 입력하세요.</p>
+    <input v-model="deleteConfirmInput" class="settings__sheet-input" placeholder="탈퇴" type="text" />
+    <button
+      class="settings__sheet-btn settings__sheet-btn--delete"
+      :disabled="deleteConfirmInput !== '탈퇴'"
+      @click="handleDeleteAccount"
+    >삭제</button>
+  </AppBottomSheet>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import '@/views/trainer/SettingsView.css'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { disconnectTrainer, softDeleteAccount } = useProfile()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
 })
 
-// 내 수강권 Mock
 const ptCount = { remain: 8, total: 20, trainer: '이선생' }
 const ptCountPct = computed(() => {
   if (!ptCount.total) return 0
   return Math.round((ptCount.remain / ptCount.total) * 100)
 })
 
-// ── 네비게이션 ──
+const showDisconnectSheet = ref(false)
+const showDeleteSheet = ref(false)
+const deleteConfirmInput = ref('')
+
 function handleNav(target) {
   if (target === 'profile-edit') {
     router.push({ name: 'member-profile' })
   } else {
-    // router.push({ name: target })
     alert('준비 중입니다')
   }
 }
 
-// ── 로그아웃 ──
+async function handleDisconnect() {
+  const ok = await disconnectTrainer()
+  if (ok) {
+    showDisconnectSheet.value = false
+    router.push('/home')
+  }
+}
+
+async function handleDeleteAccount() {
+  if (deleteConfirmInput.value !== '탈퇴') return
+  const ok = await softDeleteAccount()
+  if (ok) {
+    showDeleteSheet.value = false
+    router.push('/login')
+  }
+}
+
 async function handleLogout() {
   await auth.signOut()
   router.push('/login')

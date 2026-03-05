@@ -189,5 +189,56 @@ export function useProfile() {
     }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile }
+  async function disconnectMember(memberId) {
+    error.value = null
+    try {
+      const { error: disconnectError } = await supabase
+        .from('trainer_members')
+        .update({ status: 'disconnected' })
+        .eq('trainer_id', auth.user.id)
+        .eq('member_id', memberId)
+
+      if (disconnectError) throw disconnectError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '연결 해제에 실패했습니다.'
+      return false
+    }
+  }
+
+  async function disconnectTrainer() {
+    error.value = null
+    try {
+      const { error: disconnectError } = await supabase
+        .from('trainer_members')
+        .update({ status: 'disconnected' })
+        .eq('member_id', auth.user.id)
+        .eq('status', 'active')
+
+      if (disconnectError) throw disconnectError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '연결 해제에 실패했습니다.'
+      return false
+    }
+  }
+
+  async function softDeleteAccount() {
+    error.value = null
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ name: '탈퇴한 사용자', phone: null, photo_url: null })
+        .eq('id', auth.user.id)
+
+      if (updateError) throw updateError
+      await supabase.auth.signOut()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '계정 삭제에 실패했습니다.'
+      return false
+    }
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount }
 }

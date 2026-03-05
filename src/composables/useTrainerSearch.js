@@ -47,25 +47,29 @@ export function useTrainerSearch() {
         return
       }
 
-      // 2) 현재 회원의 활성 연결 목록 조회
+      // 2) 현재 회원의 활성 및 대기 중 연결 목록 조회
       let connectedTrainerIds = new Set()
+      let pendingTrainerIds = new Set()
 
       if (auth.user?.id) {
         const { data: connections, error: connError } = await supabase
           .from('trainer_members')
-          .select('trainer_id')
+          .select('trainer_id, status')
           .eq('member_id', auth.user.id)
-          .eq('status', 'active')
+          .in('status', ['active', 'pending'])
 
         if (connError) {
           error.value = connError.message
           return
         }
 
-        connectedTrainerIds = new Set((connections || []).map(c => c.trainer_id))
+        ;(connections || []).forEach(c => {
+          if (c.status === 'active') connectedTrainerIds.add(c.trainer_id)
+          else if (c.status === 'pending') pendingTrainerIds.add(c.trainer_id)
+        })
       }
 
-      // 3) 기존 목 데이터 형태로 변환
+      // 3) 트레이너 목록 변환 (connected + pending 상태 포함)
       trainers.value = (data || []).map(d => {
         const rawSpecialties = d.trainer_profiles?.[0]?.specialties || d.trainer_profiles?.specialties || []
         const specialties = (Array.isArray(rawSpecialties) ? rawSpecialties : []).map(
@@ -77,6 +81,7 @@ export function useTrainerSearch() {
           name: `${d.name || '이름 없음'} 트레이너`,
           specialties,
           connected: connectedTrainerIds.has(d.id),
+          pending: pendingTrainerIds.has(d.id),
         }
       })
     } catch (e) {

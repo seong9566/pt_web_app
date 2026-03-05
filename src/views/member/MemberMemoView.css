@@ -1,0 +1,176 @@
+/* =====================================================
+   MemberMemoView.css
+   ===================================================== */
+
+/* ── Page shell ── */
+.member-memo {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ── Error message ── */
+.member-memo__error {
+  padding: 12px 16px;
+  background-color: #FFE5E5;
+  border-left: 4px solid var(--color-red);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 12px var(--side-margin);
+}
+
+/* ── Header ── */
+.member-memo__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.member-memo__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.member-memo__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.member-memo__title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Body scroll area ── */
+.member-memo__body {
+  flex: 1;
+  padding: 24px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Loading state ── */
+.member-memo__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+
+/* ── Memo list ── */
+.memo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memo-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+
+/* ── Memo Card ── */
+.memo-card {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-large);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Top row: dot + date + time */
+.memo-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memo-card__date-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.memo-card__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.memo-card__dot--blue { background-color: var(--color-blue-primary); }
+.memo-card__dot--gray { background-color: #D1D5DB; }
+
+.memo-card__date {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.memo-card__time {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+}
+
+/* Tags row */
+.memo-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.memo-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  background-color: var(--color-gray-100);
+  border-radius: 20px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+}
+
+/* Content text */
+.memo-card__text {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  line-height: 1.6;
+  margin: 0;
+
+  /* clamp to 3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

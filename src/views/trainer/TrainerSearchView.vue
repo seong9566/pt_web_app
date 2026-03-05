@@ -33,15 +33,21 @@
              <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
            </div>
          </div>
-         <button 
-           class="trainer-card__btn" 
-           :class="trainer.connected ? 'trainer-card__btn--outline' : 'trainer-card__btn--primary'"
-           :disabled="trainer.connected || requestingId === trainer.id"
-           @click="handleRequestConnection(trainer.id)"
-         >
-           {{ trainer.connected ? '프로필 보기' : '연동 요청하기' }}
-           <svg v-if="!trainer.connected" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-         </button>
+          <div v-if="trainer.pending" class="trainer-card__badge trainer-card__badge--pending">
+            요청 중
+          </div>
+          <div v-else-if="trainer.connected" class="trainer-card__badge trainer-card__badge--connected">
+            연결됨
+          </div>
+          <button
+            v-else
+            class="trainer-card__btn trainer-card__btn--primary"
+            :disabled="requestingId === trainer.id"
+            @click="handleRequestConnection(trainer.id)"
+          >
+            {{ requestingId === trainer.id ? '요청 중...' : '연결 요청' }}
+            <svg v-if="requestingId !== trainer.id" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
        </div>
      </div>
      <div v-if="error" style="padding: 16px; margin: 16px; background-color: var(--color-red); color: var(--color-white); border-radius: var(--radius-medium); font-size: var(--fs-caption); text-align: center;">

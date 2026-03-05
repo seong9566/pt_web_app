@@ -77,6 +77,18 @@
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
+        <button class="quick-action quick-action--danger" @click="showDisconnectSheet = true">
+          <div class="quick-action__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M10 17L15 12M15 12L10 7M15 12H3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="quick-action__label">연결 해제</span>
+          <svg class="quick-action__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </section>
 
       <!-- ── 메모 기록 ── -->
@@ -130,18 +142,30 @@
 
     <div style="height: calc(var(--nav-height) + 32px);" />
   </div>
+
+  <AppBottomSheet v-model="showDisconnectSheet" title="회원 연결 해제">
+    <p class="mem-detail__sheet-desc">정말 연결을 해제하시겠습니까?</p>
+    <div class="mem-detail__sheet-actions">
+      <button class="mem-detail__sheet-btn mem-detail__sheet-btn--cancel" @click="showDisconnectSheet = false">취소</button>
+      <button class="mem-detail__sheet-btn mem-detail__sheet-btn--confirm" @click="handleDisconnect">확인</button>
+    </div>
+  </AppBottomSheet>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
+import { useProfile } from '@/composables/useProfile'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { member, memos, loading, error, fetchMemberDetail, fetchMemos } = useMemos()
+const { disconnectMember } = useProfile()
 
-// 회원 ID를 route params에서 추출하여 데이터 로드
+const showDisconnectSheet = ref(false)
+
 onMounted(async () => {
   const memberId = route.params.id
   if (memberId) {
@@ -156,6 +180,14 @@ function handleAddMemo() {
 
 function goPayment() {
   router.push({ name: 'trainer-member-payment', params: { id: route.params.id } })
+}
+
+async function handleDisconnect() {
+  const ok = await disconnectMember(route.params.id)
+  if (ok) {
+    showDisconnectSheet.value = false
+    router.push({ name: 'trainer-members' })
+  }
 }
 </script>
 
