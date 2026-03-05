@@ -71,6 +71,20 @@
               <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
+          <div class="settings__divider" />
+          <button class="settings__row" @click="handleNav('invite')">
+            <span class="settings__row-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M16 21V19C16 16.7909 13.3137 15 10 15C6.68629 15 4 16.7909 4 19V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <circle cx="10" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M20 11V17M17 14H23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label">초대 코드 관리</span>
+            <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
       </section>
 
@@ -157,6 +171,8 @@ function handleNav(target) {
     router.push({ name: 'trainer-profile-edit' })
   } else if (target === 'account') {
     router.push({ name: 'trainer-profile-edit' })
+  } else if (target === 'invite') {
+    router.push({ name: 'invite-manage' })
   }
 }
 

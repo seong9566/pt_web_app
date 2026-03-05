@@ -42,7 +42,7 @@
             />
           </div>
           <p class="settings__pt-desc">
-            현재 {{ trainerName || '트레이너' }}님과 함께하고 있습니다.
+            {{ trainerName ? `현재 ${trainerName}님과 함께하고 있습니다.` : '트레이너를 연결하면 PT 횟수가 표시됩니다.' }}
           </p>
         </div>
       </section>
@@ -85,7 +85,7 @@
       <section class="settings__group">
         <h2 class="settings__group-title">연결 관리</h2>
         <div class="settings__card">
-          <button class="settings__row" @click="showDisconnectSheet = true">
+          <button v-if="trainerName" class="settings__row" @click="showDisconnectSheet = true">
             <span class="settings__row-icon settings__row-icon--danger">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M15 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -93,6 +93,18 @@
               </svg>
             </span>
             <span class="settings__row-label settings__row-label--danger">트레이너 연결 해제</span>
+          </button>
+          <button v-else class="settings__row" @click="router.push({ name: 'trainer-search' })">
+            <span class="settings__row-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label">트레이너 연결하기</span>
+            <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
         </div>
       </section>

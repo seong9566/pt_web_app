@@ -257,12 +257,10 @@ router.beforeEach(async (to) => {
 
     // Role-based access control (only for authenticated users with a role)
     if (isAuthenticated && auth.role) {
-      const isTrainerRoute =
-        to.path.startsWith("/trainer/") || to.path === "/search";
+      const isTrainerRoute = to.path.startsWith("/trainer/");
       const isMemberRoute =
         to.path.startsWith("/member/") ||
-        to.path === "/home" ||
-        to.path.startsWith("/invite/");
+        to.path === "/home";
 
       // Trainer accessing member routes → redirect to trainer home
       if (auth.role === "trainer" && isMemberRoute) {
