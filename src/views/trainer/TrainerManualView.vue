@@ -167,8 +167,7 @@ function goToDetail(id) {
 
 async function handleDelete(manual) {
   if (!confirm(`'${manual.title}' 매뉴얼을 삭제하시겠습니까?`)) return
-  const ok = await deleteManual(manual.id)
-  if (!ok) alert('삭제에 실패했습니다')
+  await deleteManual(manual.id)
 }
 
 onMounted(() => {

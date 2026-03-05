@@ -2531,7 +2531,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: NO (검증 태스크)
 
-- [ ] 41. 최종 빌드 + 정리
+- [x] 41. 최종 빌드 + 정리
 
   **What to do**:
   - `npm run build` → dist/ 생성 확인
