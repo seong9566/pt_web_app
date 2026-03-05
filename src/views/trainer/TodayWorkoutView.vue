@@ -1,23 +1,209 @@
-<!-- [미구현] 오늘의 운동 페이지. 운동 루틴 리스트 + 세트/랩 구성 (준비 중) -->
+<!-- 운동 배정 페이지 — 회원 선택, 날짜 선택, 운동 내용 입력, 저장 및 이력 조회 -->
 <template>
-  <div class="trainer-stub">
-    <div class="trainer-stub__content">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"
-          fill="currentColor"/>
-      </svg>
-      <p class="trainer-stub__title">오늘의 운동</p>
-      <p class="trainer-stub__desc">오늘의 운동 기능을 준비 중입니다</p>
+  <div class="today-workout">
+
+    <!-- ── Header ── -->
+    <div class="today-workout__header">
+      <button class="today-workout__back" @click="router.back()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1 class="today-workout__title">오늘의 운동</h1>
+      <div class="today-workout__header-spacer" />
     </div>
-    <div style="height: calc(var(--nav-height) + 16px);" />
+
+    <!-- ── Body (scrollable) ── -->
+    <div class="today-workout__body">
+
+      <!-- ① 회원 선택 -->
+      <section class="today-workout__section">
+        <h2 class="today-workout__section-title">회원 선택</h2>
+        <p v-if="membersLoading" class="today-workout__placeholder">회원 목록 불러오는 중...</p>
+        <p v-else-if="membersError" class="today-workout__error-inline">{{ membersError }}</p>
+        <p v-else-if="members.length === 0" class="today-workout__empty">연결된 회원이 없습니다</p>
+        <div v-else class="today-workout__member-list">
+          <button
+            v-for="member in members"
+            :key="member.id"
+            class="today-workout__member-item"
+            :class="{ 'today-workout__member-item--active': selectedMemberId === member.id }"
+            @click="selectMember(member.id)"
+          >
+            <div class="today-workout__avatar">
+              <img v-if="member.photo" :src="member.photo" :alt="member.name" class="today-workout__avatar-img" />
+              <span v-else class="today-workout__avatar-initial">{{ member.name.charAt(0) }}</span>
+            </div>
+            <span class="today-workout__member-name">{{ member.name }}</span>
+            <svg
+              v-if="selectedMemberId === member.id"
+              class="today-workout__member-check"
+              width="20" height="20" viewBox="0 0 24 24" fill="none"
+            >
+              <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <template v-if="selectedMemberId">
+
+        <!-- ② 날짜 선택 -->
+        <section class="today-workout__section">
+          <h2 class="today-workout__section-title">날짜 선택</h2>
+          <input
+            type="date"
+            class="today-workout__date-input"
+            v-model="selectedDate"
+            @change="onDateChange"
+          />
+        </section>
+
+        <!-- ③ 운동 내용 -->
+        <section class="today-workout__section">
+          <h2 class="today-workout__section-title">운동 내용</h2>
+
+          <!-- UPSERT 경고 배너 -->
+          <div v-if="currentPlan" class="today-workout__warning">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 20H22L12 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M12 9V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="1" fill="currentColor"/>
+            </svg>
+            <span>이미 배정된 운동이 있습니다. 덮어쓰시겠습니까?</span>
+          </div>
+
+          <textarea
+            class="today-workout__textarea"
+            v-model="workoutContent"
+            placeholder="오늘의 운동 내용을 입력하세요 (예: 스쿼트 3세트 10회, 벤치프레스 3세트 8회)"
+          />
+
+          <p v-if="error" class="today-workout__error-inline">{{ error }}</p>
+          <p v-if="saveSuccess" class="today-workout__success-inline">저장되었습니다</p>
+        </section>
+
+        <!-- ④ 배정 이력 -->
+        <section class="today-workout__section">
+          <h2 class="today-workout__section-title">배정 이력</h2>
+          <p v-if="historyLoading" class="today-workout__placeholder">불러오는 중...</p>
+          <p v-else-if="workoutPlans.length === 0" class="today-workout__empty">배정 이력이 없습니다</p>
+          <div v-else class="today-workout__history">
+            <div
+              v-for="plan in workoutPlans"
+              :key="plan.id"
+              class="today-workout__history-item"
+            >
+              <span class="today-workout__history-date">{{ formatDate(plan.date) }}</span>
+              <span class="today-workout__history-content">
+                {{ (plan.content ?? '').slice(0, 50) }}{{ (plan.content?.length ?? 0) > 50 ? '...' : '' }}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 저장 버튼 (nav 위 sticky) -->
+        <div class="today-workout__save-wrap">
+          <button
+            class="today-workout__save-btn"
+            :disabled="isSaving || !workoutContent.trim()"
+            @click="handleSave"
+          >
+            {{ isSaving ? '저장 중...' : '저장' }}
+          </button>
+        </div>
+
+      </template>
+
+      <!-- 하단 네비게이션 스페이서 -->
+      <div style="height: calc(var(--nav-height) + 16px);" />
+
+    </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useMembers } from '@/composables/useMembers'
 
-<style scoped>
-.trainer-stub { min-height: 100vh; display: flex; flex-direction: column; background-color: var(--color-white); }
-.trainer-stub__content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; color: var(--color-gray-600); }
-.trainer-stub__title { font-size: var(--fs-title); font-weight: var(--fw-title); color: var(--color-gray-900); margin: 0; }
-.trainer-stub__desc { font-size: var(--fs-body2); color: var(--color-gray-600); margin: 0; }
-</style>
+const router = useRouter()
+
+// ── 컴포저블 ──
+const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()
+const {
+  workoutPlans,
+  currentPlan,
+  loading,
+  error,
+  fetchWorkoutPlan,
+  fetchWorkoutPlans,
+  saveWorkoutPlan,
+} = useWorkoutPlans()
+
+// ── 상태 ──
+const selectedMemberId = ref(null)
+const selectedDate = ref(new Date().toISOString().split('T')[0])
+const workoutContent = ref('')
+const saveSuccess = ref(false)
+const isSaving = ref(false)
+const historyLoading = ref(false)
+
+// ── 초기화 ──
+onMounted(() => {
+  fetchMembers()
+})
+
+// ── 회원 선택 ──
+async function selectMember(memberId) {
+  if (selectedMemberId.value === memberId) return
+  selectedMemberId.value = memberId
+  saveSuccess.value = false
+  workoutContent.value = ''
+  await loadPlanAndHistory()
+}
+
+// ── 날짜 변경 ──
+async function onDateChange() {
+  if (!selectedMemberId.value) return
+  saveSuccess.value = false
+  await fetchWorkoutPlan(selectedMemberId.value, selectedDate.value)
+  workoutContent.value = currentPlan.value?.content ?? ''
+}
+
+// ── 날짜별 계획 + 전체 이력 로드 ──
+async function loadPlanAndHistory() {
+  if (!selectedMemberId.value) return
+  historyLoading.value = true
+  await fetchWorkoutPlan(selectedMemberId.value, selectedDate.value)
+  workoutContent.value = currentPlan.value?.content ?? ''
+  await fetchWorkoutPlans(selectedMemberId.value)
+  historyLoading.value = false
+}
+
+// ── 저장 ──
+async function handleSave() {
+  if (!selectedMemberId.value || !workoutContent.value.trim() || isSaving.value) return
+  isSaving.value = true
+  saveSuccess.value = false
+  const success = await saveWorkoutPlan(
+    selectedMemberId.value,
+    selectedDate.value,
+    workoutContent.value.trim()
+  )
+  isSaving.value = false
+  if (success) {
+    saveSuccess.value = true
+    await fetchWorkoutPlans(selectedMemberId.value)
+  }
+}
+
+// ── 날짜 포맷 (YYYY-MM-DD → YYYY년 M월 D일) ──
+function formatDate(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${y}년 ${Number(m)}월 ${Number(d)}일`
+}
+</script>
+
+<style src="./TodayWorkoutView.css" scoped></style>

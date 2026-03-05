@@ -58,7 +58,7 @@
           :class="{ 'cal-cell--empty': !cell.date }"
           @click="cell.date && selectDate(cell.date)"
         >
-          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date) }">
+          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--holiday': isHolidayCell(cell.date) }">
             <span
               class="cal-cell__num"
               :class="{
@@ -180,6 +180,24 @@
       <p class="schedule-date-header__count">{{ sessions.length }}개의 예약이 있습니다</p>
     </div>
 
+    <!-- ── Holiday Toggle ── -->
+    <div class="holiday-toggle">
+      <button 
+        v-if="!isHolidaySelected" 
+        class="holiday-toggle__btn holiday-toggle__btn--set"
+        @click="handleSetHoliday"
+      >
+        휴무 설정
+      </button>
+      <button 
+        v-else 
+        class="holiday-toggle__btn holiday-toggle__btn--remove"
+        @click="handleRemoveHoliday"
+      >
+        휴무 해제
+      </button>
+    </div>
+
     <!-- ── Session Cards ── -->
     <div class="schedule-list">
       <div v-if="sessions.length === 0" class="schedule-list__empty">
@@ -230,13 +248,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
+import { useHolidays } from '@/composables/useHolidays'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth = useAuthStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
+const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
 
-// ── Fetch reservations on mount ──
+// ── Fetch reservations and holidays on mount ──
 onMounted(async () => {
   await fetchMyReservations('trainer')
+  await fetchHolidays(auth.user?.id)
 })
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)
@@ -298,6 +321,26 @@ function isSelected(date) {
 
 function selectDate(date) {
   selectedDate.value = date
+}
+
+// ── Holiday helpers ──
+function isHolidayCell(date) {
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+  return isHoliday(dateStr)
+}
+
+const selectedDateStr = computed(() => {
+  return `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
+})
+
+const isHolidaySelected = computed(() => isHoliday(selectedDateStr.value))
+
+async function handleSetHoliday() {
+  await setHoliday(selectedDateStr.value)
+}
+
+async function handleRemoveHoliday() {
+  await removeHoliday(selectedDateStr.value)
 }
 
 // Build calendar cells (including leading empty cells for day-of-week offset)

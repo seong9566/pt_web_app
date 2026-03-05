@@ -1,0 +1,191 @@
+/* ──────────────────────────────────────────
+   NotificationListView — 인앱 알림 목록
+   ────────────────────────────────────────── */
+
+/* ── Root ── */
+.notification-list {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ── Header ── */
+.notification-list__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.notification-list__back {
+  color: var(--color-gray-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.notification-list__title {
+  flex: 1;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+  line-height: var(--lh-display);
+}
+
+.notification-list__mark-all {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+  padding: 6px 10px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-blue-light);
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.notification-list__mark-all--disabled {
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Loading ── */
+.notification-list__loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+/* ── Empty State ── */
+.notification-list__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: var(--spacing-section) var(--side-margin);
+}
+
+.notification-list__empty-icon {
+  color: var(--color-gray-200);
+}
+
+.notification-list__empty-text {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+/* ── Items Container ── */
+.notification-list__items {
+  flex: 1;
+}
+
+/* ── Notification Item ── */
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px var(--side-margin) 16px calc(var(--side-margin) - 4px);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.notification-item:active {
+  background-color: var(--color-gray-100);
+}
+
+.notification-item--unread {
+  border-left-color: var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+}
+
+.notification-item--unread:active {
+  filter: brightness(0.97);
+}
+
+/* ── Icon ── */
+.notification-item__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.notification-item__icon--calendar,
+.notification-item__icon--connection {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.notification-item__icon--message {
+  background-color: var(--color-gray-100);
+  color: var(--color-green);
+}
+
+.notification-item__icon--payment {
+  background-color: var(--color-gray-100);
+  color: var(--color-red);
+}
+
+/* ── Content ── */
+.notification-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item__title {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  margin-bottom: 2px;
+}
+
+.notification-item__body {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  line-height: var(--lh-body);
+}
+
+/* ── Meta (시간 + 읽지 않음 dot) ── */
+.notification-item__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.notification-item__time {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+.notification-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-blue-primary);
+  display: block;
+}

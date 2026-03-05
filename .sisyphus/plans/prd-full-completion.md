@@ -859,7 +859,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T2-T9)
 
-- [ ] 11. useChat composable — 실시간 채팅
+- [x] 11. useChat composable — 실시간 채팅
 
   **What to do**:
   - `src/composables/useChat.js` 생성:
@@ -915,7 +915,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T12-T20)
 
-- [ ] 12. useNotifications composable
+- [x] 12. useNotifications composable
 
   **What to do**:
   - `src/composables/useNotifications.js` 생성:
@@ -948,7 +948,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11, T13-T20)
 
-- [ ] 13. usePayments composable
+- [x] 13. usePayments composable
 
   **What to do**:
   - `src/composables/usePayments.js` 생성:
@@ -979,7 +979,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T12, T14-T20)
 
-- [ ] 14. usePtSessions composable
+- [x] 14. usePtSessions composable
 
   **What to do**:
   - `src/composables/usePtSessions.js` 생성:
@@ -1010,7 +1010,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T13, T15-T20)
 
-- [ ] 15. useManuals composable + 미디어 업로드
+- [x] 15. useManuals composable + 미디어 업로드
 
   **What to do**:
   - `src/composables/useManuals.js` 생성:
@@ -1045,7 +1045,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T14, T16-T20)
 
-- [ ] 16. useWorkoutPlans composable
+- [x] 16. useWorkoutPlans composable
 
   **What to do**:
   - `src/composables/useWorkoutPlans.js` 생성:
@@ -1076,7 +1076,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T15, T17-T20)
 
-- [ ] 17. useHolidays composable
+- [x] 17. useHolidays composable
 
   **What to do**:
   - `src/composables/useHolidays.js` 생성:
@@ -1104,7 +1104,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T16, T18-T20)
 
-- [ ] 18. useProfile 확장 — 프로필 수정 기능
+- [x] 18. useProfile 확장 — 프로필 수정 기능
 
   **What to do**:
   - `src/composables/useProfile.js`에 함수 추가:
@@ -1133,7 +1133,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T17, T19-T20)
 
-- [ ] 19. useTrainerSearch 확장 — 승인 플로우
+- [x] 19. useTrainerSearch 확장 — 승인 플로우
 
   **What to do**:
   - `src/composables/useTrainerSearch.js` 수정:
@@ -1168,7 +1168,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T18, T20)
 
-- [ ] 20. useReservations 확장 — 휴무일 + PT횟수 검증
+- [x] 20. useReservations 확장 — 휴무일 + PT횟수 검증
 
   **What to do**:
   - `src/composables/useReservations.js` 수정:
@@ -1198,7 +1198,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T11-T19)
 
-- [ ] 21. 1:1 채팅 뷰 — TrainerChatView + MemberChatView
+- [x] 21. 1:1 채팅 뷰 — TrainerChatView + MemberChatView
 
   **What to do**:
   - `src/views/trainer/TrainerChatView.vue` 교체 (현재 스텁):
@@ -1263,7 +1263,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T22-T28)
 
-- [ ] 22. 운동 매뉴얼 뷰 (트레이너) — TrainerManualView + ManualRegisterView
+- [x] 22. 운동 매뉴얼 뷰 (트레이너) — TrainerManualView + ManualRegisterView
 
   **What to do**:
   - `src/views/trainer/TrainerManualView.vue` 교체 (현재 스텁):
@@ -1317,7 +1317,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21, T23-T28)
 
-- [ ] 23. 운동 매뉴얼 뷰 (회원) — MemberManualView + ManualDetailView
+- [x] 23. 운동 매뉴얼 뷰 (회원) — MemberManualView + ManualDetailView
 
   **What to do**:
   - `src/views/member/MemberManualView.vue` 교체 (현재 스텁):
@@ -1352,7 +1352,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21-T22, T24-T28)
 
-- [ ] 24. 오늘의 운동 뷰 — TodayWorkoutView
+- [x] 24. 오늘의 운동 뷰 — TodayWorkoutView
 
   **What to do**:
   - `src/views/trainer/TodayWorkoutView.vue` 교체 (현재 스텁):
@@ -1385,7 +1385,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21-T23, T25-T28)
 
-- [ ] 25. PT 횟수 관리 뷰 — PtCountManageView (신규)
+- [x] 25. PT 횟수 관리 뷰 — PtCountManageView (신규)
 
   **What to do**:
   - `src/views/trainer/PtCountManageView.vue` 신규 생성:
@@ -1435,7 +1435,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21-T24, T26-T28)
 
-- [ ] 26. 수납 기록 뷰 — MemberPaymentView + PaymentWriteView
+- [x] 26. 수납 기록 뷰 — MemberPaymentView + PaymentWriteView
 
   **What to do**:
   - `src/views/trainer/MemberPaymentView.vue` 교체 (현재 스텁):
@@ -1475,7 +1475,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21-T25, T27-T28)
 
-- [ ] 27. 알림 목록 뷰 — NotificationListView + 라우트 추가
+- [x] 27. 알림 목록 뷰 — NotificationListView + 라우트 추가
 
   **What to do**:
   - `src/views/common/NotificationListView.vue` 신규 생성:
@@ -1513,7 +1513,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T21-T26, T28)
 
-- [ ] 28. 휴무일 설정 — TrainerScheduleView 확장
+- [x] 28. 휴무일 설정 — TrainerScheduleView 확장
 
   **What to do**:
   - `src/views/trainer/TrainerScheduleView.vue` 수정:

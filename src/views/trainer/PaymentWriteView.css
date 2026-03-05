@@ -299,3 +299,30 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── 필수 항목 표시 ── */
+.pay-write__label-required {
+  color: var(--color-red);
+  margin-left: 2px;
+}
+
+/* ── 에러 상태 input wrap ── */
+.pay-write__input-wrap--error {
+  border-color: var(--color-red);
+  background-color: var(--color-white);
+}
+
+/* ── 필드 에러 메시지 ── */
+.pay-write__field-error {
+  font-size: var(--fs-caption);
+  color: var(--color-red);
+  margin: 4px 0 0;
+}
+
+/* ── 푸터 에러 메시지 ── */
+.pay-write__error {
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 0 0 12px;
+  text-align: center;
+}

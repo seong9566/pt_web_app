@@ -320,3 +320,13 @@
 .manual-reg__save-btn:not(:disabled):active {
   opacity: 0.85;
 }
+
+.manual-reg__error {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: var(--radius-small);
+  background-color: #fff0ef;
+  color: var(--color-red);
+  font-size: var(--fs-body2);
+  line-height: var(--lh-body);
+}

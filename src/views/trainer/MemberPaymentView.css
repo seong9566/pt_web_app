@@ -323,3 +323,75 @@
     right: calc(50% - 240px + var(--side-margin));
   }
 }
+
+/* ── Header spacer (타이틀 중앙 정렬용) ── */
+.payment-view__header-spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* ── Stats top padding (프로필 섹션 없을 때) ── */
+.payment-stats {
+  padding-top: 20px;
+}
+
+/* ── Stat text container ── */
+.payment-stat__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Stat label/value margin reset ── */
+.payment-stat__label,
+.payment-stat__value {
+  margin: 0;
+}
+
+/* ── 로딩 상태 ── */
+.payment-view__loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-body1);
+  color: var(--color-gray-600);
+  padding: 80px var(--side-margin);
+}
+
+/* ── 빈 상태 ── */
+.payment-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+.payment-empty p {
+  margin: 0;
+}
+
+/* ── 삭제 버튼 ── */
+.payment-card__delete {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--color-red);
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: background-color 0.15s;
+}
+
+.payment-card__delete:active {
+  background-color: rgba(255, 59, 48, 0.08);
+}

@@ -1,5 +1,5 @@
 /* =====================================================
-   TodayWorkoutView.css
+   TodayWorkoutView.css — 운동 배정 페이지
    ===================================================== */
 
 /* ── Page shell ── */
@@ -14,7 +14,6 @@
 .today-workout__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 16px var(--side-margin);
   background-color: var(--color-white);
   border-bottom: 1px solid var(--color-gray-200);
@@ -32,6 +31,7 @@
   cursor: pointer;
   border-radius: 50%;
   flex-shrink: 0;
+  color: var(--color-gray-900);
   transition: background-color 0.15s;
 }
 
@@ -40,23 +40,27 @@
 }
 
 .today-workout__title {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
+  flex: 1;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
   color: var(--color-gray-900);
   margin: 0;
-  flex: 1;
-  text-align: left;
-  padding-left: 8px;
+  text-align: center;
+}
+
+.today-workout__header-spacer {
+  width: 40px;
+  flex-shrink: 0;
 }
 
 /* ── Body ── */
 .today-workout__body {
   flex: 1;
   overflow-y: auto;
-  padding: 20px var(--side-margin) 0;
+  padding: var(--spacing-section) var(--side-margin) 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-section);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -64,123 +68,129 @@
 .today-workout__section {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
 .today-workout__section-title {
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
-  margin: 0 0 12px;
+  margin: 0;
 }
 
-.today-workout__hint {
-  font-weight: var(--fw-body1-reg);
-  color: var(--color-gray-600);
-  font-size: var(--fs-body2);
-}
-
-/* ── Calendar card ── */
-.today-workout__calendar-card {
-  background-color: var(--color-white);
-  border: 1.5px solid var(--color-gray-200);
-  border-radius: var(--radius-large);
-  padding: 16px;
-  box-shadow: var(--shadow-card);
-}
-
-/* ── Routine list ── */
-.today-workout__routines {
+/* ── Member list ── */
+.today-workout__member-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.today-workout__routine-item {
+.today-workout__member-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 12px 14px;
   background-color: var(--color-white);
   border: 1.5px solid var(--color-gray-200);
   border-radius: var(--radius-medium);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
+  text-align: left;
+  width: 100%;
 }
 
-.today-workout__routine-item:active {
-  background-color: var(--color-gray-50);
-  border-color: var(--color-gray-300);
+.today-workout__member-item:active {
+  background-color: var(--color-blue-light);
 }
 
-.today-workout__routine-info {
-  flex: 1;
+.today-workout__member-item--active {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+}
+
+/* ── Avatar ── */
+.today-workout__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--color-gray-200);
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.today-workout__routine-name {
+.today-workout__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.today-workout__avatar-initial {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  line-height: 1;
+}
+
+.today-workout__member-name {
+  flex: 1;
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
-  margin: 0;
 }
 
-.today-workout__routine-detail {
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-reg);
-  color: var(--color-gray-600);
-  margin: 0;
-}
-
-.today-workout__routine-remove {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-gray-600);
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.today-workout__routine-remove:active {
-  background-color: var(--color-gray-100);
-  color: var(--color-red);
-}
-
-/* ── Add button (dashed) ── */
-.today-workout__add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px;
-  border: 2px dashed var(--color-blue-light);
-  border-radius: var(--radius-medium);
-  background: none;
+.today-workout__member-check {
   color: var(--color-blue-primary);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.15s;
+  flex-shrink: 0;
 }
 
-.today-workout__add-btn:active {
-  background-color: var(--color-blue-light);
+/* ── Date input ── */
+.today-workout__date-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-family: inherit;
+  color: var(--color-gray-900);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  box-shadow: var(--shadow-card);
+}
+
+.today-workout__date-input:focus {
+  border-color: var(--color-blue-primary);
+}
+
+/* ── UPSERT Warning banner ── */
+.today-workout__warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background-color: #FFF9E5;
+  border: 1px solid var(--color-yellow);
+  border-radius: var(--radius-small);
+  color: #7A5C00;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+}
+
+.today-workout__warning svg {
+  flex-shrink: 0;
+  color: #B88900;
 }
 
 /* ── Textarea ── */
 .today-workout__textarea {
   width: 100%;
-  height: calc(var(--fs-body1) * 1.6 * 3 + 28px);
+  min-height: 120px;
   padding: 14px 16px;
   background-color: var(--color-white);
   border: 1.5px solid var(--color-gray-200);
@@ -189,12 +199,12 @@
   font-weight: var(--fw-body1-reg);
   color: var(--color-gray-900);
   font-family: inherit;
-  line-height: 1.6;
-  resize: none;
-  overflow-y: auto;
+  line-height: var(--lh-body);
+  resize: vertical;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.15s;
+  box-shadow: var(--shadow-card);
 }
 
 .today-workout__textarea::placeholder {
@@ -206,149 +216,87 @@
   border-color: var(--color-blue-primary);
 }
 
-/* ── Footer ── */
-.today-workout__footer {
-  padding: 16px var(--side-margin);
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  background-color: transparent;
-  flex-shrink: 0;
-}
-
-.today-workout__auto-save {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: var(--btn-height);
-  background-color: var(--color-blue-light);
-  color: var(--color-blue-primary);
-  border-radius: var(--radius-medium);
+/* ── Feedback messages ── */
+.today-workout__error-inline {
   font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
-}
-
-.today-workout__auto-save svg {
-  color: var(--color-blue-primary);
-}
-
-/* ── Add Routine Form ── */
-.workout-add-form {
-  padding: 8px 16px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.workout-add-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.workout-add-label {
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
-}
-
-.workout-add-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  border: 1.5px solid var(--color-gray-200);
-  border-radius: var(--radius-medium);
-  font-size: var(--fs-body1);
-  font-family: inherit;
-  color: var(--color-gray-900);
-  outline: none;
-  background-color: transparent;
-  transition: border-color 0.15s;
-}
-
-.workout-add-input:focus {
-  border-color: var(--color-blue-primary);
-}
-
-.workout-add-row {
-  display: flex;
-  gap: 16px;
-}
-
-.workout-add-row .workout-add-field {
-  flex: 1;
-}
-
-.workout-add-stepper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 48px;
-  border: 1.5px solid var(--color-gray-200);
-  border-radius: var(--radius-medium);
-  overflow: hidden;
-  background-color: var(--color-white);
-}
-
-.workout-add-stepper__btn {
-  width: 48px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-gray-100);
-  border: none;
-  color: var(--color-gray-900);
-  cursor: pointer;
-  transition: background-color 0.15s;
-  flex-shrink: 0;
-}
-
-.workout-add-stepper__btn:active:not(:disabled) {
-  background-color: var(--color-gray-200);
-}
-
-.workout-add-stepper__btn:disabled {
-  color: var(--color-gray-400);
-  cursor: not-allowed;
-  background-color: var(--color-gray-50);
-}
-
-.workout-add-stepper__value {
-  flex: 1;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 4px;
-}
-
-.workout-add-stepper__input {
-  width: 40px;
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
-  border: none;
-  background: transparent;
-  outline: none;
-  text-align: center;
-  padding: 0;
-  font-family: inherit;
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.workout-add-stepper__input::-webkit-outer-spin-button,
-.workout-add-stepper__input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  color: var(--color-red);
   margin: 0;
+  padding: 8px 12px;
+  background-color: #FFF0EF;
+  border-radius: var(--radius-small);
 }
 
-.workout-add-stepper__value small {
+.today-workout__success-inline {
   font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-reg);
-  color: var(--color-gray-600);
+  color: var(--color-green);
+  font-weight: var(--fw-body1-bold);
+  margin: 0;
+  padding: 8px 12px;
+  background-color: #F0FFF4;
+  border-radius: var(--radius-small);
 }
 
-.workout-add-submit {
+.today-workout__placeholder {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+  padding: 4px 0;
+}
+
+.today-workout__empty {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  background-color: var(--color-white);
+  border-radius: var(--radius-medium);
+  border: 1px dashed var(--color-gray-200);
+}
+
+/* ── History list ── */
+.today-workout__history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.today-workout__history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.today-workout__history-date {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+}
+
+.today-workout__history-content {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  line-height: var(--lh-body);
+  white-space: pre-line;
+}
+
+/* ── Sticky save button ── */
+.today-workout__save-wrap {
+  position: sticky;
+  bottom: calc(var(--nav-height) + 8px);
+  padding: 12px 0;
+  background-color: var(--color-gray-100);
+}
+
+.today-workout__save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: var(--btn-height);
   background-color: var(--color-blue-primary);
@@ -358,12 +306,17 @@
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   font-family: inherit;
-  margin-top: 12px;
   cursor: pointer;
   transition: opacity 0.15s;
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
 }
 
-.workout-add-submit:disabled {
+.today-workout__save-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+.today-workout__save-btn:active:not(:disabled) {
+  opacity: 0.85;
 }

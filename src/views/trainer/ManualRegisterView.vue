@@ -1,4 +1,4 @@
-<!-- [미구현] 매뉴얼 등록 페이지. 운동 매뉴얼 생성/편집 (목 데이터) -->
+<!-- 매뉴얼 등록 — 카테고리/제목/설명/사진/YouTube URL -->
 <template>
   <div class="manual-reg">
 
@@ -16,7 +16,7 @@
     <!-- ── Body ── -->
     <div class="manual-reg__body">
 
-            <!-- 카테고리 -->
+      <!-- 카테고리 -->
       <section class="manual-reg__section">
         <label class="manual-reg__label">카테고리</label>
         <div class="manual-reg__chips">
@@ -55,18 +55,17 @@
         />
       </section>
 
-
       <!-- 사진 및 영상 -->
       <section class="manual-reg__section">
         <div class="manual-reg__label-row">
           <label class="manual-reg__label">사진 및 영상</label>
-          <span class="manual-reg__label-sub">최대 5장</span>
+          <span class="manual-reg__label-sub">최대 10장</span>
         </div>
 
         <div class="manual-reg__media-row">
           <!-- 추가하기 버튼 -->
           <button
-            v-if="mediaFiles.length < 5"
+            v-if="mediaFiles.length < 10"
             class="manual-reg__media-add"
             @click="openFilePicker"
           >
@@ -75,7 +74,6 @@
               <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.8"/>
             </svg>
             <span>추가하기</span>
-            <!-- + badge -->
             <span class="manual-reg__media-add-plus">+</span>
           </button>
 
@@ -87,14 +85,12 @@
           >
             <img v-if="file.isImage" :src="file.url" :alt="file.name" />
             <video v-else :src="file.url" />
-            <!-- 영상 아이콘 오버레이 -->
             <div v-if="!file.isImage" class="manual-reg__media-video-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)"/>
                 <path d="M10 8L16 12L10 16V8Z" fill="white"/>
               </svg>
             </div>
-            <!-- 삭제 버튼 -->
             <button class="manual-reg__media-remove" @click="removeMedia(idx)">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
@@ -131,6 +127,9 @@
         </div>
       </section>
 
+      <!-- 오류 메시지 -->
+      <p v-if="error" class="manual-reg__error">{{ error }}</p>
+
       <div style="height: 100px;" />
     </div>
 
@@ -138,10 +137,10 @@
     <div class="manual-reg__footer">
       <button
         class="manual-reg__save-btn"
-        :disabled="!form.title.trim()"
+        :disabled="!form.title.trim() || loading"
         @click="handleSave"
       >
-        저장하기
+        {{ loading ? '저장 중...' : '저장하기' }}
       </button>
     </div>
 
@@ -151,13 +150,13 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useManuals } from '@/composables/useManuals'
 
 const router = useRouter()
+const { loading, error, createManual } = useManuals()
 
-// ── 카테고리 ──
 const categories = ['재활', '근력', '다이어트', '스포츠', '코어', '유연성']
 
-// ── 폼 상태 ──
 const form = reactive({
   title: '',
   description: '',
@@ -174,9 +173,9 @@ function toggleCategory(cat) {
   }
 }
 
-// ── 미디어 첨부 ──
 const fileInput = ref(null)
-const mediaFiles = ref([]) // { url, isImage, name }
+const mediaFiles = ref([])
+const rawFiles = ref([])
 
 function openFilePicker() {
   fileInput.value?.click()
@@ -184,7 +183,7 @@ function openFilePicker() {
 
 function handleFileChange(e) {
   const files = Array.from(e.target.files)
-  const remaining = 5 - mediaFiles.value.length
+  const remaining = 10 - mediaFiles.value.length
   const toAdd = files.slice(0, remaining)
 
   toAdd.forEach(file => {
@@ -194,23 +193,33 @@ function handleFileChange(e) {
       isImage: file.type.startsWith('image/'),
       name: file.name,
     })
+    rawFiles.value.push(file)
   })
 
-  // 동일 파일 재선택 가능하도록 초기화
   e.target.value = ''
 }
 
 function removeMedia(idx) {
   URL.revokeObjectURL(mediaFiles.value[idx].url)
   mediaFiles.value.splice(idx, 1)
+  rawFiles.value.splice(idx, 1)
 }
 
-// ── 저장 ──
-function handleSave() {
+async function handleSave() {
   if (!form.title.trim()) return
-  // TODO: 실제 API 연동
-  alert('저장되었습니다')
-  router.back()
+
+  const category = form.categories.join(',')
+  const manualId = await createManual(
+    form.title,
+    category,
+    form.description,
+    form.youtubeUrl || null,
+    rawFiles.value,
+  )
+
+  if (manualId) {
+    router.push({ name: 'trainer-manual' })
+  }
 }
 </script>
 

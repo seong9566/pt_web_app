@@ -28,6 +28,12 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import('@/views/common/NotificationListView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/home',
       name: 'home',
       component: () => import('@/views/home/MemberHomeView.vue'),
@@ -89,6 +95,12 @@ const router = createRouter({
       path: '/trainer/members/:id/memo/write',
       name: 'trainer-memo-write',
       component: () => import('@/views/trainer/MemoWriteView.vue'),
+      meta: { hideNav: true },
+    },
+    {
+      path: '/trainer/members/:id/pt-count',
+      name: 'trainer-pt-count',
+      component: () => import('@/views/trainer/PtCountManageView.vue'),
       meta: { hideNav: true },
     },
     {

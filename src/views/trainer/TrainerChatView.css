@@ -1,0 +1,344 @@
+/* ─────────────────────────────────────────
+   TrainerChatView.css
+   트레이너 채팅 — 대화 목록 + 채팅방 패널
+   ───────────────────────────────────────── */
+
+/* ── 래퍼 ── */
+.trainer-chat {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ══════════════════════════════
+   대화 목록 패널
+══════════════════════════════ */
+.trainer-chat__list-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-white);
+}
+
+/* 헤더 */
+.trainer-chat__header {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+}
+
+.trainer-chat__title {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+}
+
+/* 로딩 */
+.trainer-chat__loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px var(--side-margin);
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+/* 빈 상태 */
+.trainer-chat__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+/* 대화 카드 목록 */
+.trainer-chat__conversations {
+  flex: 1;
+}
+
+/* 개별 대화 카드 */
+.trainer-chat__conv-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+
+.trainer-chat__conv-card:active {
+  background-color: var(--color-gray-100);
+}
+
+/* 아바타 */
+.trainer-chat__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--color-blue-light);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trainer-chat__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trainer-chat__avatar-initial {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+}
+
+/* 대화 정보 영역 */
+.trainer-chat__conv-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.trainer-chat__conv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.trainer-chat__conv-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.trainer-chat__conv-time {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.trainer-chat__conv-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trainer-chat__conv-preview {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 안읽은 메시지 배지 */
+.trainer-chat__unread-badge {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* ══════════════════════════════
+   채팅방 패널
+══════════════════════════════ */
+.trainer-chat__room-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--color-white);
+}
+
+/* 채팅방 헤더 */
+.trainer-chat__room-header {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+}
+
+.trainer-chat__back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-900);
+  margin-right: 8px;
+  padding: 4px;
+}
+
+.trainer-chat__room-title {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-subtitle);
+  color: var(--color-gray-900);
+  flex: 1;
+}
+
+/* 메시지 리스트 */
+.trainer-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px var(--side-margin);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trainer-chat__msg-loading,
+.trainer-chat__msg-empty {
+  text-align: center;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  padding-top: 24px;
+}
+
+/* 메시지 행 */
+.trainer-chat__message {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+}
+
+.trainer-chat__message--mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.trainer-chat__message--theirs {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+/* 말풍선 */
+.trainer-chat__bubble {
+  padding: 10px 14px;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  line-height: var(--lh-body);
+  word-break: break-word;
+}
+
+.trainer-chat__message--mine .trainer-chat__bubble {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+.trainer-chat__message--theirs .trainer-chat__bubble {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+/* 메시지 시간 */
+.trainer-chat__msg-time {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin-top: 3px;
+}
+
+/* 파일 메시지 */
+.trainer-chat__file-img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: var(--radius-small);
+  object-fit: cover;
+  display: block;
+}
+
+.trainer-chat__file-link {
+  color: inherit;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.trainer-chat__message--mine .trainer-chat__file-link {
+  color: var(--color-white);
+}
+
+/* 입력 영역 */
+.trainer-chat__input-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px var(--side-margin);
+  border-top: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  flex-shrink: 0;
+}
+
+.trainer-chat__file-input {
+  display: none;
+}
+
+.trainer-chat__file-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+  transition: background-color 0.12s;
+}
+
+.trainer-chat__file-btn:active {
+  background-color: var(--color-gray-200);
+}
+
+.trainer-chat__text-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  background-color: var(--color-gray-100);
+  border: none;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+}
+
+.trainer-chat__text-input::placeholder {
+  color: var(--color-gray-600);
+}
+
+.trainer-chat__send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-blue-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  flex-shrink: 0;
+  transition: opacity 0.12s;
+}
+
+.trainer-chat__send-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
