@@ -600,4 +600,283 @@ $$;
 grant execute on function public.connect_via_invite(text) to authenticated;
 grant execute on function public.create_reservation(uuid, date, time, time, text) to authenticated;
 
+-- ============================================================
+-- Phase 2: PRD Full Completion Schema
+-- Run in Supabase Dashboard SQL Editor
+-- ============================================================
+
+-- T2: messages table (1:1 채팅)
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  receiver_id uuid not null references public.profiles(id) on delete cascade,
+  content text,
+  file_url text,
+  file_name text,
+  file_type text,
+  file_size bigint,
+  is_read boolean not null default false,
+  created_at timestamptz not null default now(),
+  constraint sender_id_ne_receiver check (sender_id <> receiver_id)
+);
+create index if not exists idx_messages_participants on public.messages (sender_id, receiver_id, created_at desc);
+create index if not exists idx_messages_receiver_unread on public.messages (receiver_id) where is_read = false;
+alter table public.messages enable row level security;
+create policy "Messages are readable by participants" on public.messages for select to authenticated using (auth.uid() = sender_id or auth.uid() = receiver_id);
+create policy "Messages are insertable by sender" on public.messages for insert to authenticated with check (auth.uid() = sender_id);
+create policy "Messages are updatable by receiver" on public.messages for update to authenticated using (auth.uid() = receiver_id);
+
+-- T3: pt_sessions table (PT 횟수 이력)
+create table if not exists public.pt_sessions (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  member_id uuid not null references public.profiles(id) on delete cascade,
+  change_amount int not null,
+  reason text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_pt_sessions_member on public.pt_sessions (member_id, created_at desc);
+alter table public.pt_sessions enable row level security;
+create policy "PT sessions readable by trainer and member" on public.pt_sessions for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
+create policy "PT sessions insertable by trainer" on public.pt_sessions for insert to authenticated with check (auth.uid() = trainer_id);
+
+-- T3: payments table (수납 기록)
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  member_id uuid not null references public.profiles(id) on delete cascade,
+  amount int not null check (amount > 0),
+  memo text,
+  payment_date date not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_payments_member on public.payments (member_id, created_at desc);
+alter table public.payments enable row level security;
+create policy "Payments readable by trainer and member" on public.payments for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
+create policy "Payments insertable by trainer" on public.payments for insert to authenticated with check (auth.uid() = trainer_id);
+create policy "Payments deletable by trainer" on public.payments for delete to authenticated using (auth.uid() = trainer_id);
+
+-- T4: manual_category enum + manuals table
+do $$ begin
+  create type public.manual_category as enum ('재활', '근력', '다이어트', '스포츠퍼포먼스');
+exception when duplicate_object then null;
+end $$;
+
+create table if not exists public.manuals (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  category public.manual_category not null,
+  description text,
+  youtube_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists idx_manuals_category on public.manuals (category);
+alter table public.manuals enable row level security;
+create policy "Manuals readable by all authenticated" on public.manuals for select to authenticated using (true);
+create policy "Manuals insertable by trainer" on public.manuals for insert to authenticated with check (auth.uid() = trainer_id);
+create policy "Manuals updatable by trainer" on public.manuals for update to authenticated using (auth.uid() = trainer_id);
+create policy "Manuals deletable by trainer" on public.manuals for delete to authenticated using (auth.uid() = trainer_id);
+
+-- T4: manual_media table
+create table if not exists public.manual_media (
+  id uuid primary key default gen_random_uuid(),
+  manual_id uuid not null references public.manuals(id) on delete cascade,
+  file_url text not null,
+  file_type text not null,
+  file_size bigint,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.manual_media enable row level security;
+create policy "Manual media readable by all authenticated" on public.manual_media for select to authenticated using (true);
+create policy "Manual media insertable by manual owner" on public.manual_media for insert to authenticated with check (
+  exists (select 1 from public.manuals where id = manual_id and trainer_id = auth.uid())
+);
+create policy "Manual media deletable by manual owner" on public.manual_media for delete to authenticated using (
+  exists (select 1 from public.manuals where id = manual_id and trainer_id = auth.uid())
+);
+
+-- T5: workout_plans table (오늘의 운동)
+create table if not exists public.workout_plans (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  member_id uuid not null references public.profiles(id) on delete cascade,
+  date date not null,
+  content text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (trainer_id, member_id, date)
+);
+create index if not exists idx_workout_plans_member_date on public.workout_plans (member_id, date desc);
+alter table public.workout_plans enable row level security;
+create policy "Workout plans readable by trainer and member" on public.workout_plans for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
+create policy "Workout plans insertable by trainer" on public.workout_plans for insert to authenticated with check (auth.uid() = trainer_id);
+create policy "Workout plans updatable by trainer" on public.workout_plans for update to authenticated using (auth.uid() = trainer_id);
+create policy "Workout plans deletable by trainer" on public.workout_plans for delete to authenticated using (auth.uid() = trainer_id);
+
+-- T6: notification_type enum + notifications table
+do $$ begin
+  create type public.notification_type as enum (
+    'reservation_requested', 'reservation_approved', 'reservation_rejected', 'reservation_cancelled',
+    'new_message', 'workout_assigned',
+    'connection_requested', 'connection_approved',
+    'pt_count_changed', 'payment_recorded'
+  );
+exception when duplicate_object then null;
+end $$;
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  type public.notification_type not null,
+  title text not null,
+  body text not null,
+  target_id uuid,
+  target_type text,
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_notifications_user on public.notifications (user_id, created_at desc);
+create index if not exists idx_notifications_unread on public.notifications (user_id) where is_read = false;
+alter table public.notifications enable row level security;
+create policy "Notifications readable by owner" on public.notifications for select to authenticated using (auth.uid() = user_id);
+create policy "Notifications insertable by authenticated" on public.notifications for insert to authenticated with check (true);
+create policy "Notifications updatable by owner" on public.notifications for update to authenticated using (auth.uid() = user_id);
+create policy "Notifications deletable by owner" on public.notifications for delete to authenticated using (auth.uid() = user_id);
+
+-- T7: trainer_holidays table (휴무일)
+create table if not exists public.trainer_holidays (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  date date not null,
+  created_at timestamptz not null default now(),
+  unique (trainer_id, date)
+);
+alter table public.trainer_holidays enable row level security;
+create policy "Holidays manageable by trainer" on public.trainer_holidays for all to authenticated using (auth.uid() = trainer_id) with check (auth.uid() = trainer_id);
+create policy "Holidays readable by connected members" on public.trainer_holidays for select to authenticated using (
+  exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = trainer_holidays.trainer_id
+      and tm.member_id = auth.uid()
+      and tm.status = 'active'
+  )
+);
+
+-- T8: connection_status enum 'pending' 추가
+alter type public.connection_status add value if not exists 'pending';
+
+-- T8: memos 회원 읽기 RLS 추가
+do $$ begin
+  create policy "Memos are readable by member" on public.memos for select to authenticated using (auth.uid() = member_id);
+exception when duplicate_object then null;
+end $$;
+
+-- T9: Storage buckets
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('chat-files', 'chat-files', false, 52428800)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('manual-media', 'manual-media', true, 524288000)
+on conflict (id) do nothing;
+
+-- T10: create_reservation RPC — PT 횟수 검증 추가
+create or replace function public.create_reservation(
+  p_trainer_id uuid,
+  p_date date,
+  p_start_time time,
+  p_end_time time,
+  p_session_type text
+)
+returns uuid
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_member_id uuid := auth.uid();
+  v_reservation_id uuid;
+  v_remaining int;
+begin
+  if v_member_id is null then
+    raise exception 'Authentication required';
+  end if;
+
+  if p_start_time >= p_end_time then
+    raise exception 'End time must be later than start time';
+  end if;
+
+  if not exists (
+    select 1
+    from public.trainer_members tm
+    where tm.trainer_id = p_trainer_id
+      and tm.member_id = v_member_id
+      and tm.status = 'active'
+  ) then
+    raise exception 'No active trainer-member connection';
+  end if;
+
+  -- PT 잔여 횟수 확인 (0이면 예약 불가)
+  select coalesce(sum(change_amount), 0) into v_remaining
+  from public.pt_sessions
+  where member_id = v_member_id and trainer_id = p_trainer_id;
+
+  if v_remaining <= 0 then
+    raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
+  end if;
+
+  insert into public.reservations (
+    id,
+    trainer_id,
+    member_id,
+    date,
+    start_time,
+    end_time,
+    status,
+    session_type,
+    created_at,
+    updated_at
+  )
+  values (
+    gen_random_uuid(),
+    p_trainer_id,
+    v_member_id,
+    p_date,
+    p_start_time,
+    p_end_time,
+    'pending',
+    p_session_type,
+    now(),
+    now()
+  )
+  returning id into v_reservation_id;
+
+  return v_reservation_id;
+exception
+  when unique_violation then
+    raise exception 'Reservation time slot is already booked';
+end;
+$$;
+
+-- T10: PT 자동 차감 trigger
+create or replace function public.auto_deduct_pt_session()
+returns trigger as $$
+begin
+  if new.status = 'completed' and old.status <> 'completed' then
+    insert into public.pt_sessions (trainer_id, member_id, change_amount, reason)
+    values (new.trainer_id, new.member_id, -1, '수업 완료 자동 차감');
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists trg_auto_deduct_pt on public.reservations;
+create trigger trg_auto_deduct_pt
+after update on public.reservations
+for each row
+execute function public.auto_deduct_pt_session();
+
 commit;
