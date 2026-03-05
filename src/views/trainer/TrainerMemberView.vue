@@ -203,7 +203,7 @@
             </div>
             <div class="pending-item__info">
               <span class="pending-item__name">{{ req.member?.name || '알 수 없음' }}</span>
-              <span class="pending-item__time">{{ formatRelativeTime(req.created_at) }}</span>
+              <span class="pending-item__time">{{ formatRelativeTime(req.connected_at) }}</span>
             </div>
             <div class="pending-item__actions">
               <button
@@ -252,37 +252,33 @@ const searchQuery = ref('')
 // ── Stat cards ──
 const activeStatCard = ref('all')
 
-const statCards = [
-  {
-    id: 'all',
-    label: '전체 회원',
-    count: 24,
-    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="17" cy="15" r="3" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M14 21C14 19.3431 15.3431 18 17 18C18.6569 18 20 19.3431 20 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>`,
-  },
-  {
-    id: 'active',
-    label: '진행 중',
-    count: 18,
-    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M6 4l3 4H4l3-4zM18 20l-3-4h5l-3 4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M7 8h10M7 16h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>`,
-  },
-  {
-    id: 'ended',
-    label: '종료',
-    count: 4,
-    icon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
-  },
-]
+const STAT_ICONS = {
+  all: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="17" cy="15" r="3" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M14 21C14 19.3431 15.3431 18 17 18C18.6569 18 20 19.3431 20 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`,
+  active: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M6 4l3 4H4l3-4zM18 20l-3-4h5l-3 4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M7 8h10M7 16h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`,
+  ended: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+}
+
+const statCards = computed(() => {
+  const all = members.value.length
+  const active = members.value.filter(m => m.dotStatus === 'active').length
+  const ended = members.value.filter(m => m.dotStatus === 'inactive').length
+  return [
+    { id: 'all', label: '전체 회원', count: all, icon: STAT_ICONS.all },
+    { id: 'active', label: '진행 중', count: active, icon: STAT_ICONS.active },
+    { id: 'ended', label: '종료', count: ended, icon: STAT_ICONS.ended },
+  ]
+})
 
 // ── Pending state ──
 const pendingRequests = ref([])

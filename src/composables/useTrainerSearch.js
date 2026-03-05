@@ -120,10 +120,10 @@ export function useTrainerSearch() {
       const { data: { user } } = await supabase.auth.getUser()
       const { data, error: err } = await supabase
         .from('trainer_members')
-        .select('*, member:profiles!member_id(id, name, photo_url)')
+        .select('id, member_id, trainer_id, status, connected_at, member:profiles!trainer_members_member_id_fkey(id, name, photo_url)')
         .eq('trainer_id', user.id)
         .eq('status', 'pending')
-        .order('created_at', { ascending: false })
+        .order('connected_at', { ascending: false })
       if (err) throw err
       return data || []
     } catch (e) {

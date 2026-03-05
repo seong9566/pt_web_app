@@ -3,7 +3,7 @@
   <div class="invite-manage">
     <div class="invite-manage__header">
       <button class="invite-manage__back" @click="router.back()">
-        <img src="@/assets/icons/search.svg" alt="back" width="24" height="24" style="transform: rotate(180deg);" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="invite-manage__title">초대 코드 관리</h2>
       <div style="width: 40px;" />
@@ -45,6 +45,10 @@
           <button class="invite-manage__view-all">전체보기</button>
         </div>
         <div class="invite-manage__member-list">
+          <div v-if="recentMembers.length === 0" class="invite-manage__empty">
+            <p class="invite-manage__empty-text">아직 연결된 회원이 없습니다</p>
+            <p class="invite-manage__empty-sub">초대 코드를 공유하여 회원을 초대해보세요</p>
+          </div>
           <div v-for="member in recentMembers" :key="member.member_id" class="member-item">
             <div class="member-item__avatar">
               <img src="@/assets/icons/person.svg" alt="member" width="24" height="24" />
@@ -89,8 +93,6 @@ function handleCopyCode() {
 }
 
 onMounted(async () => {
-  // 초대 코드 조회 및 없으면 새로 생성
-  await fetchInviteCode()
   await fetchInviteCode()
   if (!inviteCode.value) {
     await generateInviteCode()

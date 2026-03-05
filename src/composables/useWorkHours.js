@@ -22,7 +22,7 @@ const DAY_MAP_TO_UI = {
 
 /** UI 요일 ID(mon, tue, ...)를 요일 번호(0-6)로 변환하는 맵 */
 const DAY_ID_TO_NUM = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 }
-
+ 
 /** 기본 근무시간 배열 생성 (모든 요일 비활성화, 09:00-18:00) */
 function buildDefaultDays() {
   return [

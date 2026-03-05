@@ -266,3 +266,24 @@
   justify-content: center;
   padding: 4px;
 }
+
+.invite-manage__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 24px 0;
+}
+
+.invite-manage__empty-text {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.invite-manage__empty-sub {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
+}

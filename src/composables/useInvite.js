@@ -39,31 +39,44 @@ export function useInvite() {
     }
   }
 
-  /** 새로운 초대 코드 생성 (6자리 랜덤 문자열) */
+  /** 6자리 랜덤 코드 문자열 생성 */
+  function _makeCode() {
+    return Array.from({ length: 6 }, () =>
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
+    ).join('')
+  }
+
+  /** 새로운 초대 코드 생성 (충돌 시 최대 3회 재시도) */
   async function generateInviteCode() {
     if (inviteCode.value) return
 
     loading.value = true
     error.value = null
 
-    try {
-      const code = Array.from({ length: 6 }, () =>
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]
-      ).join('')
+    const MAX_RETRIES = 3
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const code = _makeCode()
+        const { data, error: insertError } = await supabase
+          .from('invite_codes')
+          .insert({ trainer_id: auth.user.id, code, is_active: true })
+          .select()
+          .single()
 
-      const { data, error: insertError } = await supabase
-        .from('invite_codes')
-        .insert({ trainer_id: auth.user.id, code, is_active: true })
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-      inviteCode.value = data
-    } catch (e) {
-      error.value = e?.message ?? '초대 코드 생성에 실패했습니다'
-    } finally {
-      loading.value = false
+        if (insertError) {
+          // 409 = code UNIQUE 제약 위반 → 다른 코드로 재시도
+          if (insertError.code === '23505' && attempt < MAX_RETRIES - 1) continue
+          throw insertError
+        }
+        inviteCode.value = data
+        return
+      } catch (e) {
+        if (attempt === MAX_RETRIES - 1) {
+          error.value = e?.message ?? '초대 코드 생성에 실패했습니다'
+        }
+      }
     }
+    loading.value = false
   }
 
   /** 초대 코드로 트레이너-회원 연결 (RPC 호출) */
