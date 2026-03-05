@@ -77,6 +77,33 @@ export function usePayments() {
     }
   }
 
+  /** 수납 기록 수정 */
+  async function updatePayment(paymentId, amount, paymentDate, memo = null) {
+    if (!amount || amount <= 0) {
+      error.value = '금액은 0보다 커야 합니다'
+      return false
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: updateError } = await supabase
+        .from('payments')
+        .update({ amount, payment_date: paymentDate, memo })
+        .eq('id', paymentId)
+
+      if (updateError) throw updateError
+
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '수납 기록 수정에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 수납 기록 삭제 */
   async function deletePayment(paymentId) {
     loading.value = true
@@ -107,6 +134,7 @@ export function usePayments() {
     totalAmount,
     fetchPayments,
     createPayment,
+    updatePayment,
     deletePayment,
   }
 }

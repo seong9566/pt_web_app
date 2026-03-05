@@ -40,38 +40,36 @@ export function useMembers() {
         return
       }
 
-      // 각 회원의 예약 통계 조회
       const memberIds = (data || []).map(d => d.member_id)
 
-      let reservationStats = {}
+      let ptStats = {}
       if (memberIds.length > 0) {
-        const { data: reservations, error: reservError } = await supabase
-          .from('reservations')
-          .select('member_id, status')
+        const { data: ptData, error: ptError } = await supabase
+          .from('pt_sessions')
+          .select('member_id, change_amount')
           .eq('trainer_id', auth.user.id)
           .in('member_id', memberIds)
 
-        if (reservError) {
-          error.value = reservError.message
-          return
-        }
-
-        // 회원별 집계
-        for (const r of (reservations || [])) {
-          if (!reservationStats[r.member_id]) {
-            reservationStats[r.member_id] = { done: 0, total: 0 }
+        if (!ptError) {
+          for (const pt of (ptData || [])) {
+            if (!ptStats[pt.member_id]) {
+              ptStats[pt.member_id] = { totalAdded: 0, remaining: 0 }
+            }
+            ptStats[pt.member_id].remaining += pt.change_amount
+            if (pt.change_amount > 0) {
+              ptStats[pt.member_id].totalAdded += pt.change_amount
+            }
           }
-          reservationStats[r.member_id].total++
-          if (r.status === 'completed') reservationStats[r.member_id].done++
         }
       }
 
-      // 기존 목 데이터 형태로 변환
       members.value = (data || []).map(d => {
         const profile = d.profiles
-        const stats = reservationStats[d.member_id] || { done: 0, total: 0 }
-        const total = stats.total > 0 ? stats.total : 1 // 0으로 나누기 방지
-        const ratio = stats.total > 0 ? stats.done / stats.total : 0
+        const pt = ptStats[d.member_id] || { totalAdded: 0, remaining: 0 }
+        const totalAdded = pt.totalAdded
+        const remaining = Math.max(0, pt.remaining)
+        const safeTotal = totalAdded > 0 ? totalAdded : 1
+        const ratio = totalAdded > 0 ? remaining / totalAdded : 0
 
         return {
           id: d.member_id,
@@ -80,11 +78,11 @@ export function useMembers() {
           sub: `등록일: ${new Date(d.connected_at).toLocaleDateString('ko-KR')}`,
           isToday: false,
           isNew: (Date.now() - new Date(d.connected_at).getTime()) < 7 * 24 * 60 * 60 * 1000,
-          dotStatus: stats.total > 0 ? 'active' : 'inactive',
-          done: stats.done,
-          total,
-          barColor: ratio >= 0.7 ? 'blue' : ratio >= 0.3 ? 'orange' : 'gray',
-          group: 'active',
+          dotStatus: remaining > 0 ? 'active' : 'inactive',
+          done: remaining,
+          total: safeTotal,
+          barColor: ratio >= 0.5 ? 'blue' : ratio >= 0.2 ? 'orange' : 'gray',
+          group: remaining > 0 ? 'active' : 'ended',
         }
       })
     } catch (e) {

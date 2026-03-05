@@ -105,8 +105,8 @@ export function usePtSessions() {
     }
   }
 
-  /** PT 횟수 추가 (양수) */
-  async function addSessions(memberId, amount, reason = '횟수 추가') {
+  /** PT 횟수 추가 (양수) — sessionDate: YYYY-MM-DD (선택) */
+  async function addSessions(memberId, amount, reason = '횟수 추가', sessionDate = null) {
     if (!amount || amount <= 0) {
       error.value = '추가 횟수는 0보다 커야 합니다'
       return false
@@ -116,14 +116,19 @@ export function usePtSessions() {
     error.value = null
 
     try {
+      const insertData = {
+        trainer_id: auth.user.id,
+        member_id: memberId,
+        change_amount: amount,
+        reason
+      }
+      if (sessionDate) {
+        insertData.created_at = new Date(sessionDate + 'T12:00:00').toISOString()
+      }
+
       const { error: insertError } = await supabase
         .from('pt_sessions')
-        .insert({
-          trainer_id: auth.user.id,
-          member_id: memberId,
-          change_amount: amount,
-          reason
-        })
+        .insert(insertData)
 
       if (insertError) throw insertError
 
@@ -131,6 +136,33 @@ export function usePtSessions() {
       return true
     } catch (e) {
       error.value = e?.message ?? 'PT 횟수 추가에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** PT 이력 수정 — id 기반으로 횟수, 사유, 날짜 변경 */
+  async function updatePtSession(id, changeAmount, reason, sessionDate = null) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const updateData = { change_amount: changeAmount, reason }
+      if (sessionDate) {
+        updateData.created_at = new Date(sessionDate + 'T12:00:00').toISOString()
+      }
+
+      const { error: updateError } = await supabase
+        .from('pt_sessions')
+        .update(updateData)
+        .eq('id', id)
+
+      if (updateError) throw updateError
+
+      return true
+    } catch (e) {
+      error.value = e?.message ?? 'PT 이력 수정에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -187,5 +219,6 @@ export function usePtSessions() {
     fetchRemainingByPair,
     addSessions,
     deductSessions,
+    updatePtSession,
   }
 }

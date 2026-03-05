@@ -9,7 +9,17 @@ import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
-/** 회원 상세 정보 및 메모 관리 */
+const GOAL_LABELS = {
+  'weight-loss': '체중 감량',
+  'muscle-gain': '근력 증가',
+  'endurance': '체력 증진',
+  'body-profile': '바디 프로필',
+  'rehab': '재활',
+  'flexibility': '유연성',
+  'stress-relief': '스트레스 해소',
+  'stamina': '체력 증진',
+}
+
 export function useMemos() {
   const auth = useAuthStore()
 
@@ -78,7 +88,7 @@ export function useMemos() {
       // Fetch member_profiles for goals (summary)
       const { data: memberProfile, error: mpError } = await supabase
         .from('member_profiles')
-        .select('goals')
+        .select('goals, age, height, weight, gender')
         .eq('id', memberId)
         .maybeSingle()
 
@@ -120,11 +130,22 @@ export function useMemos() {
 
       if (nsError) throw nsError
 
+      const goalsArr = memberProfile?.goals || []
+      const goalsText = goalsArr.length > 0
+        ? goalsArr.map(g => GOAL_LABELS[g] || g).join(', ')
+        : null
+
+      const GENDER_LABELS = { male: '남성', female: '여성' }
+
       member.value = {
         id: profileData.id,
         name: profileData.name,
         photo_url: profileData.photo_url,
-        summary: memberProfile?.goals ?? null,
+        summary: goalsText,
+        age: memberProfile?.age ?? null,
+        height: memberProfile?.height ?? null,
+        weight: memberProfile?.weight ?? null,
+        gender: memberProfile?.gender ? (GENDER_LABELS[memberProfile.gender] || memberProfile.gender) : null,
         lastVisit: formatDate(lastVisitData?.date),
         nextSession: formatDateTime(nextSessionData?.date, nextSessionData?.start_time),
       }

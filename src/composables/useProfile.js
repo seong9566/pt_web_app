@@ -121,7 +121,7 @@ export function useProfile() {
   }
 
   /** 트레이너 프로필 수정 (이름, 전문 분야, 소개글) */
-  async function updateTrainerProfile(name, specialties = [], bio = null) {
+  async function updateTrainerProfile(name, specialties = [], bio = null, phone = null) {
     if (!name || !name.trim()) {
       error.value = '이름을 입력해주세요'
       return false
@@ -132,9 +132,12 @@ export function useProfile() {
       const userId = (await supabase.auth.getUser()).data.user?.id
       if (!userId) throw new Error('인증이 필요합니다')
 
+      const profileUpdate = { name: name.trim() }
+      if (phone !== undefined) profileUpdate.phone = phone
+
       const { error: profileErr } = await supabase
         .from('profiles')
-        .update({ name: name.trim() })
+        .update(profileUpdate)
         .eq('id', userId)
       if (profileErr) throw profileErr
 
@@ -156,7 +159,7 @@ export function useProfile() {
   }
 
   /** 회원 프로필 수정 (이름, 나이, 키, 몸무게, 목표, 메모) */
-  async function updateMemberProfile(name, age = null, height = null, weight = null, goals = [], notes = null) {
+  async function updateMemberProfile(name, age = null, height = null, weight = null, goals = [], notes = null, gender = null) {
     if (!name || !name.trim()) {
       error.value = '이름을 입력해주세요'
       return false
@@ -175,7 +178,7 @@ export function useProfile() {
 
       const { error: memberErr } = await supabase
         .from('member_profiles')
-        .upsert({ id: userId, age, height, weight, goals, notes }, { onConflict: 'id' })
+        .upsert({ id: userId, age, height, weight, goals, notes, gender }, { onConflict: 'id' })
       if (memberErr) throw memberErr
 
       const authStore = useAuthStore()
