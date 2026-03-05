@@ -2454,7 +2454,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 ### Wave 6 — E2E 검증 + 최종 빌드 (T40-T41, depends: Wave 5)
 
-- [ ] 40. E2E 통합 검증 — 전체 플로우 Playwright 테스트
+- [x] 40. E2E 통합 검증 — 전체 플로우 Playwright 테스트
 
   **What to do**:
   - 주요 사용자 플로우 E2E 테스트 (Playwright로 실행):
@@ -2615,19 +2615,19 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 > 4개 리뷰 에이전트가 병렬 실행. 모두 APPROVE 필요. 거부 시 수정 → 재실행.
 
-- [ ] F1. **플랜 준수 감사** — `oracle`
+- [x] F1. **플랜 준수 감사** — `oracle`
   플랜 전체를 읽고, 각 "Must Have"에 대해 구현 존재 확인 (파일 읽기, curl, 명령 실행). 각 "Must NOT Have"에 대해 코드베이스에서 금지 패턴 검색 — 발견 시 file:line과 함께 거부. `.sisyphus/evidence/` 파일 존재 확인. 산출물과 플랜 비교.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **코드 품질 리뷰** — `unspecified-high`
+- [x] F2. **코드 품질 리뷰** — `unspecified-high`
   `npm run build` + `npx vitest run` 실행. 변경된 모든 파일에서: 빈 catch, console.log (프로덕션), 주석 처리된 코드, 미사용 import 검사. AI 슬롭 패턴: 과도한 주석, 과도한 추상화, 일반적 변수명.
   Output: `Build [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **실제 QA 검증** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **실제 QA 검증** — `unspecified-high` (+ `playwright` skill)
   클린 상태에서 시작. 모든 태스크의 QA 시나리오를 순서대로 실행. 크로스 태스크 통합 테스트. 엣지 케이스. `.sisyphus/evidence/final-qa/`에 저장.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **스코프 충실도 점검** — `deep`
+- [x] F4. **스코프 충실도 점검** — `deep`
   각 태스크별: "What to do" 읽기, 실제 diff 확인 (git log/diff). 1:1 검증. "Must NOT do" 준수 확인. 크로스 태스크 오염 감지.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 

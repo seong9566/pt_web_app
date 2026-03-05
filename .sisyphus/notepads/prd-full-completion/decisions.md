@@ -27,3 +27,5 @@
 - 단위 테스트는 composable별 파일 분리(`src/composables/__tests__/*.test.js`)로 유지하고, 각 파일에 독립된 Supabase/Auth mock을 둬 테스트 간 상태 오염을 방지함
 - `useReservations`의 PT 0 예약 차단 요구는 `checkPtCount` 반환값 검증으로 커버 (UI/E2E 대신 composable 비즈니스 로직 단위 검증)
 - 날짜 기준 로직(`useNotifications` 7일 필터)은 `vi.setSystemTime`으로 고정해 flaky 없이 임계값 문자열을 직접 검증함
+
+- 2026-03-05 audit decision: T26(payment CRUD 미충족 가능성)와 plan file 수정 이력을 scope contamination으로 분류하여 최종 verdict를 REJECT로 판정.

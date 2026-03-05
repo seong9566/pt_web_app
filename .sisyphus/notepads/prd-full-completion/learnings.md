@@ -407,3 +407,6 @@ Covers: `http(s)://`, `www.` optional, both `youtube.com/watch?v=` and `youtu.be
 
 ### 빌드 결과
 - npm run build → exit code 0 ✅ (188 modules transformed)
+
+- 2026-03-05 scope audit: Wave 3-5 핵심 뷰/컴포저블 연동(useChat/useManuals/useWorkoutPlans/usePtSessions/usePayments/useNotifications/useHolidays)과 라우트 연결은 실제 코드에서 확인됨.
+- 2026-03-05 검증 결과: `npm run build` 통과, `npx vitest run`에서 16 tests pass(4 composable test files + 1 existing example test file).
