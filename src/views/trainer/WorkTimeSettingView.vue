@@ -10,12 +10,10 @@
         </svg>
       </button>
       <h1 class="wt-setting__title">근무 시간 및 예약 설정</h1>
-      <button class="wt-setting__save-btn" @click="handleSave" :disabled="loading">저장</button>
     </div>
 
-    <!-- ── Error/Success Messages ── -->
+    <!-- ── Error Message ── -->
     <div v-if="error" class="wt-setting__error">{{ error }}</div>
-    <div v-if="successMessage" class="wt-setting__success">{{ successMessage }}</div>
 
     <!-- ── Body ── -->
     <div class="wt-setting__body">
@@ -118,6 +116,8 @@
       <button class="wt-setting__time-confirm" @click="confirmTime">확인</button>
     </AppBottomSheet>
 
+    <AppToast v-model="showToast" :message="toastMessage" type="success" />
+
   </div>
 </template>
 
@@ -126,6 +126,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
+import AppToast from '@/components/AppToast.vue'
 import { useWorkHours } from '@/composables/useWorkHours'
 
 const router = useRouter()
@@ -139,8 +140,9 @@ const unitOptions = [
   { value: 120, label: '2시간' },
 ]
 
-// ── 저장 성공 메시지 ──
-const successMessage = ref('')
+// ── Toast ──
+const showToast = ref(false)
+const toastMessage = ref('')
 
 // ── 시간 포맷 (24h → 12h AM/PM) ──
 function formatTime(hhmm) {
@@ -172,10 +174,10 @@ function confirmTime() {
 
 // ── 저장 ──
 async function handleSave() {
-  successMessage.value = ''
   const success = await saveWorkHours(days.value, selectedUnit.value)
   if (success) {
-    successMessage.value = '근무시간이 저장되었습니다.'
+    toastMessage.value = '근무시간이 저장되었습니다.'
+    showToast.value = true
     setTimeout(() => {
       router.back()
     }, 1000)
