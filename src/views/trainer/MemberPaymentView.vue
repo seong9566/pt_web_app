@@ -1,4 +1,4 @@
-<!-- 회원 수납 기록 페이지 — 수납 목록 조회 + 삭제 + 등록 FAB -->
+<!-- 회원 수납 기록 페이지 — 수납 목록 조회 + 수정 + 삭제 + 등록 FAB -->
 <template>
   <div class="payment-view">
 
@@ -17,13 +17,13 @@
     <div class="payment-view__body">
 
       <!-- 로딩 -->
-      <div v-if="loading" class="payment-view__loading">로딩 중...</div>
+      <div v-if="loading && !showEditSheet" class="payment-view__loading">로딩 중...</div>
 
       <template v-else>
 
         <!-- ── 요약 카드 ── -->
         <div class="payment-stats">
-          <div class="payment-stat payment-stat--primary">
+          <div class="payment-stat">
             <div class="payment-stat__icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <rect x="2" y="6" width="20" height="14" rx="3" stroke="currentColor" stroke-width="2"/>
@@ -37,7 +37,7 @@
             </div>
           </div>
 
-          <div class="payment-stat payment-stat--secondary">
+          <div class="payment-stat">
             <div class="payment-stat__icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M9 12L11 14L15 10M12 3C7.03 3 3 7.03 3 12C3 16.97 7.03 21 12 21C16.97 21 21 16.97 21 12C21 7.03 16.97 3 12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,6 +89,17 @@
               <span class="payment-card__amount">{{ formatAmount(payment.amount) }}</span>
 
               <button
+                class="payment-card__edit"
+                title="수정"
+                @click="openEditSheet(payment)"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M16.5 3.5L20.5 7.5L7 21H3V17L16.5 3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14 6L18 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+
+              <button
                 class="payment-card__delete"
                 title="삭제"
                 @click="handleDelete(payment.id)"
@@ -118,42 +129,128 @@
       </svg>
     </button>
 
+    <!-- ── 수정 바텀 시트 ── -->
+    <AppBottomSheet v-model="showEditSheet" title="수납 수정">
+      <div class="payment-edit-form">
+        <div class="payment-edit-form__field">
+          <label class="payment-edit-form__label">
+            금액 <span class="payment-edit-form__required">*</span>
+          </label>
+          <div class="payment-edit-form__input-wrap">
+            <input
+              class="payment-edit-form__input"
+              type="number"
+              v-model.number="editAmount"
+              min="1"
+              placeholder="금액을 입력하세요"
+              @input="editError = ''"
+            />
+            <span class="payment-edit-form__unit">원</span>
+          </div>
+        </div>
+        <div class="payment-edit-form__field">
+          <label class="payment-edit-form__label">
+            날짜 <span class="payment-edit-form__required">*</span>
+          </label>
+          <input
+            class="payment-edit-form__input"
+            type="date"
+            v-model="editDate"
+          />
+        </div>
+        <div class="payment-edit-form__field">
+          <label class="payment-edit-form__label">메모 (선택)</label>
+          <input
+            class="payment-edit-form__input"
+            type="text"
+            v-model="editMemo"
+            placeholder="메모를 입력하세요"
+          />
+        </div>
+        <p v-if="editError" class="payment-edit-form__error">{{ editError }}</p>
+        <button
+          class="payment-edit-form__submit"
+          :disabled="loading"
+          @click="handleEdit"
+        >{{ loading ? '저장 중...' : '저장' }}</button>
+      </div>
+    </AppBottomSheet>
+
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import { usePayments } from '@/composables/usePayments'
 
 const router = useRouter()
 const route = useRoute()
 const memberId = route.params.id
 
-const { payments, totalAmount, loading, fetchPayments, deletePayment } = usePayments()
+const { payments, totalAmount, loading, error, fetchPayments, updatePayment, deletePayment } = usePayments()
+
+// ── 수정 폼 ──
+const showEditSheet = ref(false)
+const editingPayment = ref(null)
+const editAmount = ref('')
+const editDate = ref('')
+const editMemo = ref('')
+const editError = ref('')
 
 onMounted(() => {
   fetchPayments(memberId)
 })
 
-/** 금액 포맷: 1000 → "1,000원" */
 function formatAmount(amount) {
   return amount.toLocaleString('ko-KR') + '원'
 }
 
-/** 날짜 포맷: "2024-01-05" → "2024년 1월 5일" */
 function formatDate(dateStr) {
   const [y, m, d] = dateStr.split('-')
   return `${y}년 ${Number(m)}월 ${Number(d)}일`
 }
 
-/** 삭제 확인 후 처리 */
+function openEditSheet(payment) {
+  editingPayment.value = payment
+  editAmount.value = payment.amount
+  editDate.value = payment.payment_date
+  editMemo.value = payment.memo || ''
+  editError.value = ''
+  showEditSheet.value = true
+}
+
+async function handleEdit() {
+  editError.value = ''
+  const parsedAmount = Number(editAmount.value)
+  if (!editAmount.value || parsedAmount <= 0) {
+    editError.value = '금액을 올바르게 입력해 주세요'
+    return
+  }
+  if (!editDate.value) {
+    editError.value = '날짜를 선택해 주세요'
+    return
+  }
+  const success = await updatePayment(
+    editingPayment.value.id,
+    parsedAmount,
+    editDate.value,
+    editMemo.value.trim() || null
+  )
+  if (success) {
+    await fetchPayments(memberId)
+    showEditSheet.value = false
+  } else {
+    editError.value = error.value || '수정에 실패했습니다'
+  }
+}
+
 async function handleDelete(id) {
   if (!confirm('이 수납 기록을 삭제하시겠습니까?')) return
   await deletePayment(id)
 }
 
-/** 수납 등록 화면으로 이동 */
 function goToWrite() {
   router.push({ name: 'trainer-payment-write', params: { id: memberId } })
 }

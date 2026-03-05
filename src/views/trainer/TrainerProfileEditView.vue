@@ -151,7 +151,7 @@ async function handleSave() {
     nameError.value = '이름을 입력해주세요.'
     return
   }
-  const success = await updateTrainerProfile(form.value.name, form.value.specialties, form.value.bio)
+  const success = await updateTrainerProfile(form.value.name, form.value.specialties, form.value.bio, form.value.phone || null)
   if (success) {
     router.back()
   }

@@ -4,11 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="member-mgmt__header">
-      <button class="member-mgmt__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+     
       <h1 class="member-mgmt__title">회원 관리</h1>
       <button class="member-mgmt__invite" @click="router.push('/invite/manage')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

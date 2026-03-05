@@ -10,13 +10,6 @@
         </svg>
       </button>
       <h1 class="memo-write__title">메모 작성</h1>
-      <button
-        class="memo-write__save"
-        :disabled="!canSave"
-        @click="handleSave"
-      >
-        저장
-      </button>
     </div>
 
     <!-- ── Body (scrollable) ── -->

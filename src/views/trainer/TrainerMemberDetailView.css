@@ -95,6 +95,36 @@
   flex-direction: column;
 }
 
+/* 신체 정보 그리드 */
+.summary-body-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.summary-body-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-medium);
+  padding: 12px 8px;
+}
+
+.summary-body-stat__label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-600);
+}
+
+.summary-body-stat__value {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
 /* Info notice box */
 .summary-notice {
   display: flex;

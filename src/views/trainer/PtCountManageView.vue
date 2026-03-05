@@ -55,16 +55,22 @@
           <li
             v-for="item in ptHistory"
             :key="item.id"
-            class="pt-count-manage__history-item"
+            class="pt-count-manage__history-item pt-count-manage__history-item--editable"
+            @click="openEditSheet(item)"
           >
             <div class="pt-count-manage__history-left">
               <span class="pt-count-manage__history-date">{{ formatDate(item.created_at) }}</span>
               <span v-if="item.reason" class="pt-count-manage__history-reason">{{ item.reason }}</span>
             </div>
-            <span
-              class="pt-count-manage__history-amount"
-              :class="item.change_amount > 0 ? 'pt-count-manage__history-amount--positive' : 'pt-count-manage__history-amount--negative'"
-            >{{ item.change_amount > 0 ? '+' : '' }}{{ item.change_amount }}회</span>
+            <div class="pt-count-manage__history-right">
+              <span
+                class="pt-count-manage__history-amount"
+                :class="item.change_amount > 0 ? 'pt-count-manage__history-amount--positive' : 'pt-count-manage__history-amount--negative'"
+              >{{ item.change_amount > 0 ? '+' : '' }}{{ item.change_amount }}회</span>
+              <svg class="pt-count-manage__history-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
           </li>
         </ul>
       </section>
@@ -86,6 +92,14 @@
           />
         </div>
         <div class="pt-count-manage__sheet-field">
+          <label class="pt-count-manage__sheet-label">날짜</label>
+          <input
+            class="pt-count-manage__sheet-input"
+            type="date"
+            v-model="addDate"
+          />
+        </div>
+        <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">메모 (선택)</label>
           <input
             class="pt-count-manage__sheet-input"
@@ -94,11 +108,65 @@
             placeholder="메모를 입력하세요"
           />
         </div>
+        <div class="pt-count-manage__sheet-field">
+          <label class="pt-count-manage__sheet-label">결제 금액 (선택)</label>
+          <div class="pt-count-manage__sheet-input-wrap">
+            <input
+              class="pt-count-manage__sheet-input pt-count-manage__sheet-input--amount"
+              type="number"
+              v-model.number="addPaymentAmount"
+              min="0"
+              placeholder="금액을 입력하면 수납 기록에 자동 반영"
+            />
+            <span v-if="addPaymentAmount" class="pt-count-manage__sheet-unit">원</span>
+          </div>
+        </div>
         <p v-if="addError" class="pt-count-manage__sheet-error">{{ addError }}</p>
         <button
           class="pt-count-manage__sheet-submit"
-          :disabled="loading"
+          :disabled="loading || paymentLoading"
           @click="handleAdd"
+        >{{ (loading || paymentLoading) ? '저장 중...' : '저장' }}</button>
+      </div>
+    </AppBottomSheet>
+
+    <!-- ── 이력 수정 바텀 시트 ── -->
+    <AppBottomSheet v-model="showEditSheet" title="이력 수정">
+      <div class="pt-count-manage__sheet-form">
+        <div class="pt-count-manage__sheet-field">
+          <label class="pt-count-manage__sheet-label">
+            {{ editIsPositive ? '추가 횟수' : '차감 횟수' }}
+          </label>
+          <input
+            class="pt-count-manage__sheet-input"
+            type="number"
+            v-model.number="editAmount"
+            min="1"
+            @input="editError = ''"
+          />
+        </div>
+        <div class="pt-count-manage__sheet-field">
+          <label class="pt-count-manage__sheet-label">날짜</label>
+          <input
+            class="pt-count-manage__sheet-input"
+            type="date"
+            v-model="editDate"
+          />
+        </div>
+        <div class="pt-count-manage__sheet-field">
+          <label class="pt-count-manage__sheet-label">메모 (선택)</label>
+          <input
+            class="pt-count-manage__sheet-input"
+            type="text"
+            v-model="editMemo"
+            placeholder="메모를 입력하세요"
+          />
+        </div>
+        <p v-if="editError" class="pt-count-manage__sheet-error">{{ editError }}</p>
+        <button
+          class="pt-count-manage__sheet-submit"
+          :disabled="loading"
+          @click="handleEdit"
         >{{ loading ? '저장 중...' : '저장' }}</button>
       </div>
     </AppBottomSheet>
@@ -143,6 +211,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import { usePtSessions } from '@/composables/usePtSessions'
+import { usePayments } from '@/composables/usePayments'
 
 const route = useRoute()
 const router = useRouter()
@@ -157,7 +226,10 @@ const {
   getRemainingCount,
   addSessions,
   deductSessions,
+  updatePtSession,
 } = usePtSessions()
+
+const { createPayment, loading: paymentLoading, error: paymentError } = usePayments()
 
 // ── 바텀 시트 상태 ──
 const showAddSheet = ref(false)
@@ -165,7 +237,9 @@ const showDeductSheet = ref(false)
 
 // ── 추가 폼 ──
 const addAmount = ref(1)
+const addDate = ref(todayStr())
 const addMemo = ref('')
+const addPaymentAmount = ref(null)
 const addError = ref('')
 
 // ── 차감 폼 ──
@@ -173,16 +247,45 @@ const deductAmount = ref(1)
 const deductMemo = ref('')
 const deductError = ref('')
 
+// ── 수정 폼 ──
+const showEditSheet = ref(false)
+const editingItem = ref(null)
+const editAmount = ref(1)
+const editDate = ref('')
+const editMemo = ref('')
+const editError = ref('')
+const editIsPositive = ref(true)
+
 onMounted(async () => {
   await getRemainingCount(memberId)
   await fetchPtHistory(memberId)
 })
 
+function todayStr() {
+  const t = new Date()
+  const y = t.getFullYear()
+  const m = String(t.getMonth() + 1).padStart(2, '0')
+  const d = String(t.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 function openAddSheet() {
   addAmount.value = 1
+  addDate.value = todayStr()
   addMemo.value = ''
+  addPaymentAmount.value = null
   addError.value = ''
   showAddSheet.value = true
+}
+
+function openEditSheet(item) {
+  editingItem.value = item
+  editIsPositive.value = item.change_amount > 0
+  editAmount.value = Math.abs(item.change_amount)
+  editDate.value = new Date(item.created_at).toISOString().slice(0, 10)
+  editMemo.value = item.reason || ''
+  editError.value = ''
+  showEditSheet.value = true
 }
 
 function openDeductSheet() {
@@ -199,12 +302,23 @@ async function handleAdd() {
     return
   }
   const reason = addMemo.value.trim() || '횟수 추가'
-  const success = await addSessions(memberId, addAmount.value, reason)
-  if (success) {
-    showAddSheet.value = false
-  } else {
+  const success = await addSessions(memberId, addAmount.value, reason, addDate.value || null)
+  if (!success) {
     addError.value = error.value || 'PT 횟수 추가에 실패했습니다'
+    return
   }
+
+  if (addPaymentAmount.value && addPaymentAmount.value > 0) {
+    const payDate = addDate.value || todayStr()
+    const paymentMemo = reason === '횟수 추가' ? `PT ${addAmount.value}회 추가` : reason
+    const payOk = await createPayment(memberId, addPaymentAmount.value, payDate, paymentMemo)
+    if (!payOk) {
+      addError.value = paymentError.value || '수납 기록 저장에 실패했습니다'
+      return
+    }
+  }
+
+  showAddSheet.value = false
 }
 
 async function handleDeduct() {
@@ -223,6 +337,24 @@ async function handleDeduct() {
     showDeductSheet.value = false
   } else {
     deductError.value = error.value || '남은 횟수보다 많이 차감할 수 없습니다'
+  }
+}
+
+async function handleEdit() {
+  editError.value = ''
+  if (!editAmount.value || editAmount.value <= 0) {
+    editError.value = '횟수는 1 이상이어야 합니다'
+    return
+  }
+  const finalAmount = editIsPositive.value ? editAmount.value : -editAmount.value
+  const reason = editMemo.value.trim() || (editIsPositive.value ? '횟수 추가' : '횟수 차감')
+  const success = await updatePtSession(editingItem.value.id, finalAmount, reason, editDate.value || null)
+  if (success) {
+    await fetchPtHistory(memberId)
+    await getRemainingCount(memberId)
+    showEditSheet.value = false
+  } else {
+    editError.value = error.value || '수정에 실패했습니다'
   }
 }
 

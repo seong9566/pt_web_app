@@ -124,57 +124,22 @@
   display: flex;
   gap: 12px;
   padding: 0 var(--side-margin) 24px;
-  background-color: var(--color-white);
 }
 
+/* ── Payment Stat Cards ── */
 .payment-stat {
-  flex: 1;
+    flex: 1;
   border-radius: var(--radius-large);
   padding: 18px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-/* Primary (blue gradient) card */
-.payment-stat--primary {
-  background: linear-gradient(135deg, #007AFF 0%, #4DA3FF 100%);
-  color: var(--color-white);
-  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
-}
-
-.payment-stat--primary .payment-stat__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-small);
-  background-color: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-white);
-}
-
-.payment-stat--primary .payment-stat__label {
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-reg);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.payment-stat--primary .payment-stat__value {
-  font-size: var(--fs-title);
-  font-weight: var(--fw-title);
-  color: var(--color-white);
-  line-height: 1.2;
-}
-
-/* Secondary (white) card */
-.payment-stat--secondary {
   background-color: var(--color-white);
   border: 1.5px solid var(--color-gray-200);
   box-shadow: var(--shadow-card);
 }
 
-.payment-stat--secondary .payment-stat__icon {
+.payment-stat .payment-stat__icon {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-small);
@@ -185,13 +150,13 @@
   color: var(--color-blue-primary);
 }
 
-.payment-stat--secondary .payment-stat__label {
+.payment-stat .payment-stat__label {
   font-size: var(--fs-body2);
   font-weight: var(--fw-body1-reg);
   color: var(--color-gray-600);
 }
 
-.payment-stat--secondary .payment-stat__value {
+.payment-stat .payment-stat__value {
   font-size: var(--fs-title);
   font-weight: var(--fw-title);
   color: var(--color-gray-900);
@@ -375,6 +340,27 @@
   margin: 0;
 }
 
+/* ── 수정 버튼 ── */
+.payment-card__edit {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--color-blue-primary);
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: background-color 0.15s;
+}
+
+.payment-card__edit:active {
+  background-color: rgba(0, 122, 255, 0.08);
+}
+
 /* ── 삭제 버튼 ── */
 .payment-card__delete {
   width: 36px;
@@ -388,10 +374,108 @@
   border-radius: 50%;
   color: var(--color-red);
   flex-shrink: 0;
-  margin-left: 4px;
   transition: background-color 0.15s;
 }
 
 .payment-card__delete:active {
   background-color: rgba(255, 59, 48, 0.08);
+}
+
+/* ── 수정 바텀시트 폼 ── */
+.payment-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.payment-edit-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-edit-form__label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.payment-edit-form__required {
+  color: var(--color-red);
+  margin-left: 2px;
+}
+
+.payment-edit-form__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background-color: var(--color-gray-100);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.payment-edit-form__input::placeholder {
+  color: var(--color-gray-600);
+  opacity: 0.6;
+}
+
+.payment-edit-form__input:focus {
+  border-color: var(--color-blue-primary);
+}
+
+.payment-edit-form__input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.payment-edit-form__input-wrap .payment-edit-form__input {
+  padding-right: 40px;
+}
+
+.payment-edit-form__unit {
+  position: absolute;
+  right: 16px;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  pointer-events: none;
+}
+
+.payment-edit-form__error {
+  font-size: var(--fs-caption);
+  color: var(--color-red);
+  margin: 0;
+  text-align: center;
+}
+
+.payment-edit-form__submit {
+  width: 100%;
+  height: var(--btn-height);
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.payment-edit-form__submit:active {
+  transform: scale(0.98);
+}
+
+.payment-edit-form__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

@@ -10,7 +10,6 @@
         </svg>
       </button>
       <h1 class="mem-detail__title">{{ member?.name || '' }}님 운동 메모</h1>
-      <button class="mem-detail__edit">편집</button>
     </div>
 
     <!-- 에러 메시지 -->
@@ -30,7 +29,27 @@
       <section class="summary-section">
         <h2 class="section-title">회원 요약</h2>
 
-        <!-- Info notice box -->
+        <!-- 신체 정보 -->
+        <div v-if="member?.age || member?.height || member?.weight || member?.gender" class="summary-body-stats">
+          <div v-if="member.gender" class="summary-body-stat">
+            <span class="summary-body-stat__label">성별</span>
+            <span class="summary-body-stat__value">{{ member.gender }}</span>
+          </div>
+          <div v-if="member.age" class="summary-body-stat">
+            <span class="summary-body-stat__label">나이</span>
+            <span class="summary-body-stat__value">{{ member.age }}세</span>
+          </div>
+          <div v-if="member.height" class="summary-body-stat">
+            <span class="summary-body-stat__label">키</span>
+            <span class="summary-body-stat__value">{{ member.height }}cm</span>
+          </div>
+          <div v-if="member.weight" class="summary-body-stat">
+            <span class="summary-body-stat__label">몸무게</span>
+            <span class="summary-body-stat__value">{{ member.weight }}kg</span>
+          </div>
+        </div>
+
+        <!-- 운동 목표 -->
         <div class="summary-notice">
           <div class="summary-notice__icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -189,8 +208,12 @@
   </AppBottomSheet>
 </template>
 
+<script>
+export default { name: 'TrainerMemberDetailView' }
+</script>
+
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onActivated, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
@@ -204,12 +227,23 @@ const { disconnectMember } = useProfile()
 const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
 
 const showDisconnectSheet = ref(false)
+const initialLoaded = ref(false)
 
 onMounted(async () => {
   const memberId = route.params.id
   if (memberId) {
     await fetchMemberDetail(memberId)
     await fetchMemos(memberId)
+    await fetchPtHistory(memberId)
+    initialLoaded.value = true
+  }
+})
+
+/** keep-alive 복귀 시: PT 횟수/수납 변경 반영을 위해 경량 재조회 */
+onActivated(async () => {
+  if (!initialLoaded.value) return
+  const memberId = route.params.id
+  if (memberId) {
     await fetchPtHistory(memberId)
   }
 })

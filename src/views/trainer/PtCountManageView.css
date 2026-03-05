@@ -177,8 +177,30 @@
   border-bottom: 1px solid var(--color-gray-200);
 }
 
+.pt-count-manage__history-item--editable {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.pt-count-manage__history-item--editable:active {
+  background-color: var(--color-gray-100);
+}
+
 .pt-count-manage__history-item:last-child {
   border-bottom: none;
+}
+
+.pt-count-manage__history-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pt-count-manage__history-chevron {
+  color: var(--color-gray-600);
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .pt-count-manage__history-left {
@@ -260,6 +282,26 @@
 
 .pt-count-manage__sheet-input:focus {
   border-color: var(--color-blue-primary);
+}
+
+/* ── 금액 입력 래퍼 (원 단위 포함) ── */
+.pt-count-manage__sheet-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pt-count-manage__sheet-input--amount {
+  padding-right: 40px;
+}
+
+.pt-count-manage__sheet-unit {
+  position: absolute;
+  right: 16px;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  pointer-events: none;
 }
 
 .pt-count-manage__sheet-error {

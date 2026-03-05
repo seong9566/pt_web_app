@@ -19,31 +19,13 @@
   background-color: var(--color-white);
 }
 
-.member-mgmt__back {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background-color 0.15s;
-}
-
-.member-mgmt__back:active {
-  background-color: var(--color-gray-100);
-}
 
 .member-mgmt__title {
-  font-size: var(--fs-title);
-  font-weight: var(--fw-title);
-  color: var(--color-gray-900);
-  margin: 0;
-  flex: 1;
-  text-align: center;
+     font-size: var(--fs-body1);
+    font-weight: var(--fw-body1-bold);
+    color: var(--color-gray-900);
+    margin: 0;
+  text-align: start;
 }
 
 .member-mgmt__invite {
