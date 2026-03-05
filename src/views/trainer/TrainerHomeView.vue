@@ -9,7 +9,7 @@
         </div>
         <div class="profile-text">
           <p class="greeting">환영합니다</p>
-          <h1 class="name">{{ auth.profile?.name || '코치' }}님</h1>
+          <h1 class="name">{{ auth.profile?.name }} 트레이너님</h1>
         </div>
       </div>
       <button class="btn-bell">
