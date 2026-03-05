@@ -450,7 +450,7 @@ using (bucket_id = 'avatars' and owner = auth.uid());
 create or replace function public.connect_via_invite(p_code text)
 returns uuid
 language plpgsql
-security invoker
+security definer
 set search_path = public
 as $$
 declare
@@ -539,12 +539,15 @@ create or replace function public.create_reservation(
 )
 returns uuid
 language plpgsql
-security invoker
+security definer
 set search_path = public
 as $$
 declare
   v_member_id uuid := auth.uid();
-  v_reservation_id uuid;
+  v_trainer_id uuid;
+  v_used_code text;
+  v_connection_id uuid;
+  v_existing_reservation uuid;
 begin
   if v_member_id is null then
     raise exception 'Authentication required';
@@ -793,7 +796,7 @@ create or replace function public.create_reservation(
 )
 returns uuid
 language plpgsql
-security invoker
+security definer
 set search_path = public
 as $$
 declare
