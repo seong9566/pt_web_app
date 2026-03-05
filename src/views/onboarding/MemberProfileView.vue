@@ -75,6 +75,20 @@
         </div>
       </section>
       <section class="member-profile__section">
+        <h3 class="member-profile__section-title">성별</h3>
+        <div class="member-profile__chips">
+          <button
+            v-for="g in genderOptions"
+            :key="g.id"
+            class="goal-chip"
+            :class="{ 'goal-chip--selected': form.gender === g.id }"
+            @click="form.gender = form.gender === g.id ? '' : g.id"
+          >
+            {{ g.label }}
+          </button>
+        </div>
+      </section>
+      <section class="member-profile__section">
         <h3 class="member-profile__section-title">운동 목표</h3>
         <div class="member-profile__chips">
           <button
@@ -127,8 +141,13 @@ const form = ref({
   age: "",
   height: "",
   weight: "",
+  gender: "",
   notes: "",
 });
+const genderOptions = [
+  { id: 'male', label: '남성' },
+  { id: 'female', label: '여성' },
+];
 const goals = [
   { id: "weight-loss", label: "체중 감량" },
   { id: "muscle-gain", label: "근력 증가" },
@@ -187,6 +206,7 @@ async function handleComplete() {
       age: parseInt(form.value.age) || null,
       height: parseFloat(form.value.height) || null,
       weight: parseFloat(form.value.weight) || null,
+      gender: form.value.gender || null,
       goals: selectedGoals.value,
       notes: form.value.notes,
     })

@@ -86,6 +86,22 @@
       </section>
 
       <section class="member-profile-edit__section">
+        <h3 class="member-profile-edit__section-title">성별</h3>
+        <div class="member-profile-edit__chips">
+          <button
+            v-for="g in genderOptions"
+            :key="g.id"
+            class="goal-chip"
+            :class="{ 'goal-chip--selected': form.gender === g.id }"
+            @click="form.gender = form.gender === g.id ? '' : g.id"
+            type="button"
+          >
+            {{ g.label }}
+          </button>
+        </div>
+      </section>
+
+      <section class="member-profile-edit__section">
         <h3 class="member-profile-edit__section-title">운동 목표</h3>
         <div class="member-profile-edit__chips">
           <button
@@ -131,6 +147,11 @@ const fileInput = ref(null)
 const avatarPreview = ref(null)
 const nameError = ref('')
 
+const genderOptions = [
+  { id: 'male', label: '남성' },
+  { id: 'female', label: '여성' },
+]
+
 const goalOptions = [
   { id: 'weight-loss', label: '체중감량' },
   { id: 'muscle-gain', label: '근력강화' },
@@ -146,6 +167,7 @@ const form = ref({
   age: '',
   height: '',
   weight: '',
+  gender: '',
   goals: [],
 })
 
@@ -155,6 +177,7 @@ onMounted(() => {
   form.value.age = auth.profile?.member_profiles?.age ?? ''
   form.value.height = auth.profile?.member_profiles?.height ?? ''
   form.value.weight = auth.profile?.member_profiles?.weight ?? ''
+  form.value.gender = auth.profile?.member_profiles?.gender ?? ''
   form.value.goals = [...(auth.profile?.member_profiles?.goals ?? [])]
 })
 
@@ -190,6 +213,8 @@ async function handleSave() {
     parseFloat(form.value.height) || null,
     parseFloat(form.value.weight) || null,
     form.value.goals,
+    null,
+    form.value.gender || null,
   )
   if (success) {
     router.back()
