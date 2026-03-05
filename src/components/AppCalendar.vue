@@ -33,19 +33,23 @@
         :key="cell.key"
         class="app-calendar__cell"
         :class="{ 'app-calendar__cell--empty': !cell.date }"
-        @click="cell.date && handleSelect(cell.date)"
+        @click="cell.date && !isPast(cell.date) && handleSelect(cell.date)"
       >
         <div
           v-if="cell.date"
           class="app-calendar__inner"
-          :class="{ 'app-calendar__inner--selected': isSelected(cell.date) }"
+          :class="{
+            'app-calendar__inner--selected': isSelected(cell.date),
+            'app-calendar__inner--past': isPast(cell.date),
+          }"
         >
           <span
             class="app-calendar__num"
             :class="{
               'app-calendar__num--selected': isSelected(cell.date),
-              'app-calendar__num--sun': cell.isSun,
-              'app-calendar__num--sat': cell.isSat,
+              'app-calendar__num--past': isPast(cell.date),
+              'app-calendar__num--sun': !isPast(cell.date) && cell.isSun,
+              'app-calendar__num--sat': !isPast(cell.date) && cell.isSat,
             }"
           >{{ cell.date }}</span>
           <div v-if="getCellDots(cell.date).length" class="app-calendar__dots">
@@ -121,6 +125,13 @@ function isSelected(day) {
   if (!props.modelValue) return false
   const [y, m, d] = props.modelValue.split('-').map(Number)
   return y === displayYear.value && m === displayMonth.value && d === day
+}
+
+const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+
+function isPast(day) {
+  const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
+  return dateStr < todayStr
 }
 
 function handleSelect(day) {
@@ -260,6 +271,15 @@ function nextMonth() {
 .app-calendar__inner--selected .app-calendar__num--sun,
 .app-calendar__inner--selected .app-calendar__num--sat {
   color: var(--color-white);
+}
+
+.app-calendar__inner--past {
+  cursor: default;
+  pointer-events: none;
+}
+
+.app-calendar__num--past {
+  color: var(--color-gray-200);
 }
 
 /* ── Dots ── */
