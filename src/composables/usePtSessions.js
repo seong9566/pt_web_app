@@ -1,0 +1,145 @@
+/**
+ * PT 횟수 관리 컴포저블
+ *
+ * 트레이너가 회원의 PT 횟수를 조회, 추가, 차감하는 기능 제공.
+ * 차감 시 남은 횟수보다 많이 차감할 수 없음.
+ */
+
+import { ref, computed } from 'vue'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
+
+/** PT 횟수 관리 */
+export function usePtSessions() {
+  const auth = useAuthStore()
+
+  const ptHistory = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  /** 잔여 횟수 계산 */
+  const remainingCount = computed(() =>
+    ptHistory.value.reduce((sum, s) => sum + s.change_amount, 0)
+  )
+
+  /** 특정 회원의 PT 횟수 변동 이력 조회 (최신순) */
+  async function fetchPtHistory(memberId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('pt_sessions')
+        .select('*')
+        .eq('member_id', memberId)
+        .eq('trainer_id', auth.user.id)
+        .order('created_at', { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      ptHistory.value = data || []
+    } catch (e) {
+      error.value = e?.message ?? 'PT 횟수 이력을 불러오지 못했습니다'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 회원의 잔여 횟수 조회 (DB SUM) */
+  async function getRemainingCount(memberId) {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('pt_sessions')
+        .select('change_amount')
+        .eq('member_id', memberId)
+        .eq('trainer_id', auth.user.id)
+
+      if (fetchError) throw fetchError
+
+      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+    } catch (e) {
+      return 0
+    }
+  }
+
+  /** PT 횟수 추가 (양수) */
+  async function addSessions(memberId, amount, reason = '횟수 추가') {
+    if (!amount || amount <= 0) {
+      error.value = '추가 횟수는 0보다 커야 합니다'
+      return false
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: insertError } = await supabase
+        .from('pt_sessions')
+        .insert({
+          trainer_id: auth.user.id,
+          member_id: memberId,
+          change_amount: amount,
+          reason
+        })
+
+      if (insertError) throw insertError
+
+      await fetchPtHistory(memberId)
+      return true
+    } catch (e) {
+      error.value = e?.message ?? 'PT 횟수 추가에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** PT 횟수 차감 (음수로 저장, 잔여 횟수 검증) */
+  async function deductSessions(memberId, amount, reason = '횟수 차감') {
+    if (!amount || amount <= 0) {
+      error.value = '차감 횟수는 0보다 커야 합니다'
+      return false
+    }
+
+    const remaining = await getRemainingCount(memberId)
+    if (remaining < amount) {
+      error.value = '남은 횟수보다 많이 차감할 수 없습니다'
+      return false
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: insertError } = await supabase
+        .from('pt_sessions')
+        .insert({
+          trainer_id: auth.user.id,
+          member_id: memberId,
+          change_amount: -amount,
+          reason
+        })
+
+      if (insertError) throw insertError
+
+      await fetchPtHistory(memberId)
+      return true
+    } catch (e) {
+      error.value = e?.message ?? 'PT 횟수 차감에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    ptHistory,
+    loading,
+    error,
+    remainingCount,
+    fetchPtHistory,
+    getRemainingCount,
+    addSessions,
+    deductSessions,
+  }
+}
