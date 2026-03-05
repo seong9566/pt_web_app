@@ -25,7 +25,7 @@
             <img src="@/assets/icons/code_copy.svg" alt="copy" width="16" height="16" />
             코드 복사
           </button>
-          <button class="invite-manage__btn invite-manage__btn--primary">
+          <button class="invite-manage__btn invite-manage__btn--primary" @click="handleShareLink">
             <img src="@/assets/icons/link_invite.svg" alt="share" width="16" height="16" />
             링크 공유
           </button>
@@ -65,17 +65,29 @@
       </div>
       <div style="height: calc(var(--nav-height) + 16px);" />
     </div>
+
+    <Transition name="toast">
+      <div v-if="toastMsg" class="invite-manage__toast">{{ toastMsg }}</div>
+    </Transition>
   </div>
 </template>
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
 
 const router = useRouter()
 const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
 
-/** 날짜 문자열을 YYYY.MM.DD 형식으로 변환 */
+const toastMsg = ref('')
+let toastTimer = null
+
+function showToast(msg) {
+  toastMsg.value = msg
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toastMsg.value = '' }, 2000)
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
@@ -85,11 +97,18 @@ function formatDate(dateStr) {
   return `${y}.${m}.${day}`
 }
 
-/** 초대 코드 복사 기능 */
 function handleCopyCode() {
   if (inviteCode.value?.code) {
     navigator.clipboard.writeText(inviteCode.value.code)
+    showToast('초대 코드가 복사되었습니다')
   }
+}
+
+function handleShareLink() {
+  if (!inviteCode.value?.code) return
+  const url = `${window.location.origin}/invite/enter?code=${inviteCode.value.code}`
+  navigator.clipboard.writeText(url)
+  showToast('초대 링크가 복사되었습니다')
 }
 
 onMounted(async () => {

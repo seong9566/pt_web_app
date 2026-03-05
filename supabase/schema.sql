@@ -155,6 +155,13 @@ to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
+drop policy if exists "Trainer profiles are searchable by authenticated users" on public.profiles;
+create policy "Trainer profiles are searchable by authenticated users"
+on public.profiles
+for select
+to authenticated
+using (role = 'trainer' and auth.uid() is not null);
+
 drop policy if exists "Profiles are readable by connected users" on public.profiles;
 create policy "Profiles are readable by connected users"
 on public.profiles
