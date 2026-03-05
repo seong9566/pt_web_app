@@ -89,50 +89,6 @@
         </div>
         </section>
 
-      <!-- ── 앱 설정 ── -->
-       <!-- TODO: 추후 연결 시 알림 추가  -->
-      <!-- <section class="settings__group">
-        <h2 class="settings__group-title">앱 설정</h2>
-        <div class="settings__card">
-          <button class="settings__row settings__row--toggle" @click="toggleNotification">
-            <span class="settings__row-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                <path d="M13.73 21A2 2 0 0 1 10.27 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <span class="settings__row-label">알림 설정</span>
-            <span
-              class="settings__toggle"
-              :class="{ 'settings__toggle--on': notificationOn }"
-            >
-              <span class="settings__toggle-knob" />
-            </span>
-          </button>
-        </div>
-      </section> -->
-
-      <!-- ── 지원 ── -->
-      <!-- TODO: 추후 연결 시 고객센터 추가 -->
-      <!-- <section class="settings__group">
-        <h2 class="settings__group-title">지원</h2>
-        <div class="settings__card">
-          <button class="settings__row" @click="handleNav('support')">
-            <span class="settings__row-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M9 9C9 7.34315 10.3431 6 12 6C13.6569 6 15 7.34315 15 9C15 10.3062 14.1652 11.4174 13 11.8293V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                <circle cx="12" cy="16.5" r="0.75" fill="currentColor"/>
-              </svg>
-            </span>
-            <span class="settings__row-label">고객센터</span>
-            <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-      </section> -->
-
       <!-- ── 계정 관리 ── -->
       <section class="settings__group">
         <h2 class="settings__group-title">계정 관리</h2>
@@ -189,13 +145,8 @@ const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
 })
 
-const notificationOn = ref(true)
 const showDeleteSheet = ref(false)
 const deleteConfirmInput = ref('')
-
-function toggleNotification() {
-  notificationOn.value = !notificationOn.value
-}
 
 function handleNav(target) {
   if (target === 'work-hours') {

@@ -172,7 +172,7 @@
               <circle cx="38" cy="38" r="30" fill="none"
                 stroke="rgba(255,255,255,0.12)" stroke-width="6"/>
               <circle cx="38" cy="38" r="30" fill="none"
-                stroke="#34C759" stroke-width="6"
+                stroke="var(--color-green)" stroke-width="6"
                 stroke-linecap="round"
                 :stroke-dasharray="circumference"
                 :stroke-dashoffset="circleOffset"
