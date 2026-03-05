@@ -40,9 +40,9 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
-      path: '/home',
-      name: 'home',
-      component: () => import('@/views/home/MemberHomeView.vue'),
+      path: '/member/home',
+      name: 'member-home',
+      component: () => import('@/views/member/MemberHomeView.vue'),
     },
     {
       path: "/onboarding/role",
@@ -246,7 +246,7 @@ router.beforeEach(async (to) => {
     // Authenticated user accessing login → redirect based on role
     if (isAuthenticated && to.path === "/login") {
       if (auth.role === "trainer") return "/trainer/home";
-      if (auth.role === "member") return "/home";
+      if (auth.role === "member") return "/member/home";
       return "/onboarding/role";
     }
 
@@ -260,7 +260,7 @@ router.beforeEach(async (to) => {
       const isTrainerRoute = to.path.startsWith("/trainer/");
       const isMemberRoute =
         to.path.startsWith("/member/") ||
-        to.path === "/home";
+        to.path === "/member/home";
 
       // Trainer accessing member routes → redirect to trainer home
       if (auth.role === "trainer" && isMemberRoute) {
@@ -269,7 +269,7 @@ router.beforeEach(async (to) => {
 
       // Member accessing trainer routes → redirect to member home
       if (auth.role === "member" && isTrainerRoute) {
-        return "/home";
+        return "/member/home";
       }
     }
   } catch(e) {
