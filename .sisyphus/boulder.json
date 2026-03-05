@@ -1,10 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/mvp-roadmap.md",
-  "started_at": "2026-03-04T07:30:26.232Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/prd-full-completion.md",
+  "started_at": "2026-03-05T00:23:02.054Z",
   "session_ids": [
-    "ses_3483eace7ffeB97DBIXOA8HccL"
+    "ses_344e45c92ffepQ1KWHRIfxxBvH"
   ],
-  "plan_name": "mvp-roadmap",
+  "plan_name": "prd-full-completion",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas"
 }

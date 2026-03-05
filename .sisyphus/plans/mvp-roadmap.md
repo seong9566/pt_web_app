@@ -785,7 +785,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T7-T11)
 
-- [ ] 13. 빈 상태 UI 전체 추가
+- [x] 13. 빈 상태 UI 전체 추가
 
   **What to do**:
   - 모든 wired 뷰에 데이터가 없을 때 빈 상태 메시지 추가:
@@ -830,7 +830,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T14-T16)
 
-- [ ] 14. 미구현 탭/섹션 "준비 중" 처리
+- [x] 14. 미구현 탭/섹션 "준비 중" 처리
 
   **What to do**:
   - 채팅 탭 (TrainerChatView, MemberChatView): "채팅 기능을 준비 중입니다" 메시지 + 아이콘
@@ -871,7 +871,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T13, T15-T16)
 
-- [ ] 15. RoleSelectView composable 분리 (기술 부채)
+- [x] 15. RoleSelectView composable 분리 (기술 부채)
 
   **What to do**:
   - `src/views/onboarding/RoleSelectView.vue`의 직접 Supabase 호출 (line 81-89)을 composable로 이동
@@ -898,7 +898,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T13-T14, T16)
 
-- [ ] 16. 에러 핸들링 인라인 메시지 전체 적용
+- [x] 16. 에러 핸들링 인라인 메시지 전체 적용
 
   **What to do**:
   - 모든 wired 뷰에서 composable의 `error` ref를 바인딩하여 인라인 에러 메시지 표시
@@ -926,7 +926,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: YES (groups with T13-T15)
 
-- [ ] 17. E2E 크리티컬 패스 검증
+- [x] 17. E2E 크리티컬 패스 검증
 
   **What to do**:
   - 전체 플로우 테스트:
@@ -965,7 +965,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
   **Commit**: NO (검증만)
 
-- [ ] 18. AGENTS.md 업데이트
+- [x] 18. AGENTS.md 업데이트
 
   **What to do**:
   - `src/views/trainer/AGENTS.md` 업데이트: 각 뷰의 실제 상태 반영 (Mock → Live)
@@ -993,19 +993,19 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 > 4개 리뷰 에이전트가 병렬 실행. 모두 APPROVE 필요. 거부 시 수정 → 재실행.
 
-- [ ] F1. **플랜 준수 감사** — `oracle`
+- [x] F1. **플랜 준수 감사** — `oracle`
   플랜 전체를 읽고, 각 "Must Have"에 대해 구현 존재 확인 (파일 읽기, curl, 명령 실행). 각 "Must NOT Have"에 대해 코드베이스에서 금지 패턴 검색 — 발견 시 file:line과 함께 거부. `.sisyphus/evidence/` 파일 존재 확인. 산출물과 플랜 비교.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **코드 품질 리뷰** — `unspecified-high`
+- [x] F2. **코드 품질 리뷰** — `unspecified-high`
   `npm run build` 실행. 변경된 모든 파일에서: `as any`/`@ts-ignore`, 빈 catch, console.log (프로덕션), 주석 처리된 코드, 미사용 import 검사. AI 슬롭 패턴: 과도한 주석, 과도한 추상화, 일반적 변수명 (data/result/item/temp).
   Output: `Build [PASS/FAIL] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **실제 QA 검증** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **실제 QA 검증** — `unspecified-high` (+ `playwright` skill)
   클린 상태에서 시작. 모든 태스크의 QA 시나리오를 순서대로 실행 — 정확한 단계 따름, 증거 캡처. 크로스 태스크 통합 테스트 (기능 간 연동). 엣지 케이스: 빈 상태, 잘못된 입력, 빠른 연속 동작. `.sisyphus/evidence/final-qa/`에 저장.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **스코프 충실도 점검** — `deep`
+- [x] F4. **스코프 충실도 점검** — `deep`
   각 태스크별: "What to do" 읽기, 실제 diff 확인 (git log/diff). 1:1 검증 — 스펙에 있는 것 모두 구현됨 (누락 없음), 스펙 밖의 것 구현되지 않음 (스코프 크립 없음). "Must NOT do" 준수 확인. 크로스 태스크 오염 감지: Task N이 Task M의 파일 수정. 미설명 변경 플래그.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
@@ -1032,9 +1032,9 @@ npm run dev       # Expected: dev server starts on :5173
 ```
 
 ### Final Checklist
-- [ ] 모든 "Must Have" 구현 완료
-- [ ] 모든 "Must NOT Have" 미존재 확인
-- [ ] `npm run build` 성공
-- [ ] E2E 크리티컬 패스 완전 동작 (트레이너 온보딩→초대→연결→예약→승인)
-- [ ] 하드코딩 mock 데이터 0개 (채팅/매뉴얼/운동/수납 제외 — 이들은 "준비 중" 처리)
+- [x] 모든 "Must Have" 구현 완료
+- [x] 모든 "Must NOT Have" 미존재 확인
+- [x] `npm run build` 성공
+- [x] E2E 크리티컬 패스 완전 동작 (트레이너 온보딩→초대→연결→예약→승인)
+- [x] 하드코딩 mock 데이터 0개 (채팅/매뉴얼/운동/수납 제외 — 이들은 "준비 중" 처리)
 - [ ] 모든 빈 상태에 적절한 한국어 안내 메시지
