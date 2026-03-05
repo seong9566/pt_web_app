@@ -97,8 +97,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(
-          () => reject(new Error('Supabase fetchProfile Timeout (1.5s)')),
-          1500
+          () => reject(new Error('Supabase fetchProfile Timeout (10s)')),
+          10000
         )
       })
 

@@ -23,15 +23,14 @@ export function useMembers() {
 
     try {
       // trainer_members에서 현재 트레이너에 연결된 활성 회원 조회
-      // JOIN: profiles (name, photo_url), member_profiles (goals)
+      // JOIN: profiles (name, photo_url)
       const { data, error: fetchError } = await supabase
         .from('trainer_members')
         .select(`
           member_id,
           connected_at,
           status,
-          profiles:member_id (id, name, photo_url, role),
-          member_profiles:member_id (goals)
+          profiles!trainer_members_member_id_fkey(id, name, photo_url, role)
         `)
         .eq('trainer_id', auth.user.id)
         .eq('status', 'active')

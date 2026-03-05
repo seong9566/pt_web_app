@@ -94,7 +94,7 @@ export function useInvite() {
     try {
       const { data, error: fetchError } = await supabase
         .from('trainer_members')
-        .select('member_id, connected_at, profiles:member_id(name)')
+        .select('member_id, connected_at, profiles!trainer_members_member_id_fkey(name)')
         .eq('trainer_id', auth.user.id)
         .eq('status', 'active')
         .order('connected_at', { ascending: false })
