@@ -180,7 +180,7 @@ onMounted(async () => {
 // ── Compute dots from real reservations ──
 const dotsData = computed(() => {
   const dots = {}
-  reservations.forEach((res) => {
+  reservations.value.forEach((res) => {
     if (!dots[res.date]) {
       dots[res.date] = []
     }
