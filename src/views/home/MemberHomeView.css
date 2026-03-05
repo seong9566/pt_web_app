@@ -392,3 +392,24 @@
   font-weight: var(--fw-body1-bold);
   color: var(--color-white);
 }
+
+/* ── 오늘의 운동 카드 (계획 있을 때) ── */
+.member-home__workout-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+
+.member-home__workout-content {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  margin: 0;
+  line-height: var(--lh-body);
+  white-space: pre-line;
+  word-break: break-all;
+}
+
+.member-home__workout-stub-text--error {
+  color: var(--color-red);
+}

@@ -303,6 +303,22 @@ Covers: `http(s)://`, `www.` optional, both `youtube.com/watch?v=` and `youtu.be
 - Badge uses `var(--color-red)` for urgency indicator on tab
 - Pending item approve/reject buttons: approve=blue-primary filled, reject=white+red-border
 
+## Task 38 — Vitest composable unit tests (2026-03-05)
+
+### Supabase mocking pattern for composables
+- 각 테스트 파일에서 `vi.hoisted()`로 `authStore`/`supabase` mock 객체를 먼저 만들고, `vi.mock('@/lib/supabase')`, `vi.mock('@/stores/auth')`에 주입하면 ESM hoisting 문제 없이 안정적으로 동작한다.
+- 체이닝 쿼리 테스트는 `createBuilder()` 헬퍼로 `select/eq/order/...`를 기본 self-return으로 두고, 마지막 체인 메서드(`maybeSingle`, `in`, `order`, `single`)만 `mockResolvedValue`로 시나리오별 값을 주는 방식이 가장 단순하다.
+
+### Business-rule coverage added
+- `useReservations`: PT 0 케이스(`checkPtCount`), 예약 슬롯 계산(마감/가능), 휴일 슬롯 초기화
+- `usePtSessions`: 잔여 초과 차감 차단, 0 이하 차감 차단, 0 이하 추가 차단, 정상 추가 후 히스토리 갱신
+- `useChat`: 대화 목록 그룹핑 + 안읽은 수 집계, 메시지 전송 insert payload 검증, 읽음 처리 필터 검증
+- `useNotifications`: 7일 필터(`gte(created_at, sevenDaysAgo)`), 알림 생성 payload, 개별 읽음 처리 후 로컬 unreadCount 동기화
+
+### Verification
+- `npx vitest run` 통과: 5 files, 16 tests
+- `npm run build` 통과: exit 0
+
 ## Profile Edit Views (2026-03-05)
 
 ### TrainerProfileEditView + MemberProfileEditView
@@ -341,3 +357,53 @@ Covers: `http(s)://`, `www.` optional, both `youtube.com/watch?v=` and `youtu.be
 - `SettingsView.css` is imported by both `SettingsView.vue` (trainer) AND `MemberSettingsView.vue`
 - New sheet styles added to SettingsView.css are therefore available in both settings views
 - TrainerMemberDetailView has its own CSS file — detail-specific sheet styles go there
+
+## T35: MemberHomeView 대시보드 통합 (2026-03-05)
+
+### usePtSessions 회원 컨텍스트 주의
+- `getRemainingCount(memberId)`는 `auth.user.id`를 `trainer_id`로 필터 → 회원이 로그인한 경우 잘못된 쿼리
+- 해결: `fetchRemainingByPair(memberId, trainerId)` 추가 — 양쪽 ID를 명시적으로 전달
+- 회원 홈에서는 반드시 `getConnectedTrainerId()`로 트레이너 ID를 먼저 구한 뒤 호출
+
+### useWorkoutPlans 회원 컨텍스트
+- `fetchWorkoutPlan(memberId, date)` — auth 필터 없이 memberId+date로만 조회 → 회원 측에서 그대로 사용 가능
+- 반환: `currentPlan` ref (single plan object or null)
+
+### 데드 코드 정리
+- `ptCount`, `ptCountPct`, `ptBars` computed — reservations 기반의 부정확한 PT 횟수 계산이었음. 제거.
+- `todayWorkouts = []` — 사용하지 않는 빈 배열. 제거.
+- `trainerIcon` import — 템플릿에서 미사용. 제거.
+
+### onMounted 병렬/순차 전략
+- `fetchMyReservations`, `fetchWorkoutPlan`, `getUnreadCount` → fire-and-forget (await 없이 호출)
+- `getConnectedTrainerId` → await 필요 (결과로 fetchRemainingByPair 호출)
+- `fetchRemainingByPair` → await 필요 (결과를 ptRemaining ref에 저장)
+
+## T39: schema.sql 동기화 + AGENTS.md + README.md 업데이트 (2026-03-05)
+
+### schema.sql 상태
+- Phase 2 테이블들이 이미 schema.sql에 완전히 포함되어 있었음 (16개 테이블)
+- messages, pt_sessions, payments, manuals, manual_media, workout_plans, notifications, trainer_holidays 모두 포함
+- notification_type enum, connection_status 'pending', chat-files/manual-media 버킷, PT 자동차감 trigger 모두 포함
+- schema.sql은 이미 최신 상태 → 수정 불필요
+
+### AGENTS.md 변경사항
+- Commands에 `npm test` / `npx vitest run` 추가 (vitest가 package.json에 이미 설치되어 있었음)
+- "no test runner" 문구 → "Vitest is configured" 로 수정
+- 디렉토리 구조에 `common/` 폴더 추가 (NotificationListView)
+- member 뷰 카운트 8개로 업데이트, trainer 뷰 카운트 18개로 업데이트
+- Where to Look 테이블에 useChat, useNotifications, usePayments, usePtSessions, useManuals, useWorkoutPlans, useHolidays 추가
+- Notes의 "준비 중 스텁 views" → "Phase 2 완료" 로 업데이트
+
+### README.md 변경사항
+- composables 목록에 7개 새 composable 추가
+- member/ views: [미구현] 제거, MemberMemoView/MemberProfileEditView 추가
+- trainer/ views: [미구현] 제거, TrainerProfileEditView/PtCountManageView 추가, common/ 섹션 추가
+- DB 스키마 테이블 8개 추가 (Phase 2 테이블)
+- RPC 함수: create_reservation 설명에 PT 잔여 횟수 검증 추가
+- Triggers 섹션 신규 추가 (trg_auto_deduct_pt)
+- Storage 버킷: chat-files, manual-media 추가
+- "미구현 기능 (Phase 2 예정)" → "구현 완료 기능 (Phase 2)" 로 완전 변경
+
+### 빌드 결과
+- npm run build → exit code 0 ✅ (188 modules transformed)

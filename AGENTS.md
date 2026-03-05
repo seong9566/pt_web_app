@@ -27,9 +27,13 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Run unit tests (Vitest)
+npm test
+# or: npx vitest run
 ```
 
-There is **no test runner** configured. No lint/format tooling (ESLint, Prettier) is set up.
+**Vitest** is configured. Tests live in `src/composables/__tests__/`. No lint/format tooling (ESLint, Prettier) is set up.
 
 ---
 
@@ -52,12 +56,13 @@ pt_web_app/
 │   │   └── auth.js           # Auth state: user, profile, role, session, loading
 │   └── views/                # Feature pages, grouped by domain
 │       ├── auth/             # OAuth callback handler
+│       ├── common/           # Shared views (NotificationListView)
 │       ├── home/             # Member home dashboard
 │       ├── invite/           # Invite code management
 │       ├── login/            # Kakao OAuth login
-│       ├── member/           # Member-side views (10 files)
+│       ├── member/           # Member-side views (8 views — chat, manual, memo, profile edit)
 │       ├── onboarding/       # Role selection, profile setup
-│       └── trainer/          # Trainer-side views (31 files — see trainer/AGENTS.md)
+│       └── trainer/          # Trainer-side views (18 views — see trainer/AGENTS.md)
 ├── supabase/
 │   └── schema.sql            # Full DB schema: tables, RLS, RPC functions
 ├── docs/                     # PRD, font/color guide, UI reference screenshots
@@ -81,6 +86,13 @@ pt_web_app/
 | Modify DB schema | `supabase/schema.sql` | Include RLS policies |
 | Check design specs | `docs/` | PRD, font/color guide, `docs/ui/` screenshots |
 | Environment vars | `.env.local` (from `.env.example`) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
+| Chat messages | `src/composables/useChat.js` | Realtime subscription + file upload to `chat-files` bucket |
+| Notifications | `src/composables/useNotifications.js` | Unread count + mark as read |
+| Payment records | `src/composables/usePayments.js` | Trainer-managed payment CRUD |
+| PT session count | `src/composables/usePtSessions.js` | PT count changes + auto-deduct trigger |
+| Exercise manuals | `src/composables/useManuals.js` | Manual CRUD + `manual-media` bucket |
+| Workout plans | `src/composables/useWorkoutPlans.js` | Per-member daily workout plan |
+| Trainer holidays | `src/composables/useHolidays.js` | Holiday date management |
 
 ---
 
@@ -361,6 +373,6 @@ When adding real error handling: show inline error messages near the relevant fi
 ## Notes
 
 - **Korean throughout**: All code comments, error messages, and UI strings are in Korean (한국어).
-- **준비 중 스텁 views**: Chat, manual, workout, payment views now show "준비 중" stubs (Phase 2 예정). MemoWriteView is now live. Look for `준비 중입니다` text in stub views.
-- **No test runner, no linting**: Code quality is convention-based only. No ESLint, Prettier, or Vitest configured.
+- **Phase 2 완료**: Chat, manual, workout, payment, notification, PT count views all implemented. New views: `NotificationListView` (common/), `PtCountManageView`, `TrainerProfileEditView` (trainer/), `MemberProfileEditView`, `MemberMemoView` (member/). No remaining "준비 중" stubs.
+- **Vitest 설정됨**: Unit tests in `src/composables/__tests__/`. Run with `npm test`. No ESLint, Prettier configured.
 - **Dev server on 0.0.0.0**: Vite binds all interfaces for mobile testing on local network.

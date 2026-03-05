@@ -22,6 +22,29 @@ export function usePtSessions() {
     ptHistory.value.reduce((sum, s) => sum + s.change_amount, 0)
   )
 
+  /** 총 부여 횟수 계산 (양수 변동 합산) */
+  const totalCount = computed(() =>
+    ptHistory.value.filter(s => s.change_amount > 0).reduce((sum, s) => sum + s.change_amount, 0)
+  )
+
+  /** 회원 본인의 PT 이력 조회 (트레이너 ID 필터 없이, 회원 설정 화면용) */
+  async function fetchMemberOwnPtCount() {
+    loading.value = true
+    error.value = null
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('pt_sessions')
+        .select('change_amount')
+        .eq('member_id', auth.user.id)
+      if (fetchError) throw fetchError
+      ptHistory.value = data || []
+    } catch (e) {
+      error.value = e?.message ?? 'PT 횟수를 불러오지 못했습니다'
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 특정 회원의 PT 횟수 변동 이력 조회 (최신순) */
   async function fetchPtHistory(memberId) {
     loading.value = true
@@ -59,6 +82,26 @@ export function usePtSessions() {
       return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
     } catch (e) {
       return 0
+    }
+  }
+
+  /** 트레이너-회원 쌍 기준 잔여 PT 횟수 조회 (회원 홈 뷰용, trainerId 명시 전달) */
+  async function fetchRemainingByPair(memberId, trainerId) {
+    loading.value = true
+    error.value = null
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('pt_sessions')
+        .select('change_amount')
+        .eq('member_id', memberId)
+        .eq('trainer_id', trainerId)
+      if (fetchError) throw fetchError
+      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+    } catch (e) {
+      error.value = e?.message ?? 'PT 횟수를 불러오지 못했습니다'
+      return null
+    } finally {
+      loading.value = false
     }
   }
 
@@ -137,8 +180,11 @@ export function usePtSessions() {
     loading,
     error,
     remainingCount,
+    totalCount,
+    fetchMemberOwnPtCount,
     fetchPtHistory,
     getRemainingCount,
+    fetchRemainingByPair,
     addSessions,
     deductSessions,
   }

@@ -1550,7 +1550,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 ### Wave 4 — 프로필/계정/내비게이션 (T29-T33, depends: Wave 2-3)
 
-- [ ] 29. 프로필 수정 — 트레이너/회원 프로필 편집 뷰
+- [x] 29. 프로필 수정 — 트레이너/회원 프로필 편집 뷰
 
   **What to do**:
   - 트레이너 프로필 편집 뷰 생성: `src/views/trainer/TrainerProfileEditView.vue` + `.css`
@@ -1641,7 +1641,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(profile): 트레이너/회원 프로필 편집 기능`
   - Files: `src/views/trainer/TrainerProfileEditView.vue`, `src/views/member/MemberProfileEditView.vue`, `src/composables/useProfile.js`, `src/router/index.js`
 
-- [ ] 30. 계정 관리 — 회원 연결 해제 + 계정 삭제(소프트)
+- [x] 30. 계정 관리 — 회원 연결 해제 + 계정 삭제(소프트)
 
   **What to do**:
   - SettingsView + MemberSettingsView에 "연결 해제" / "계정 삭제" 섹션 추가
@@ -1730,7 +1730,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(account): 연결 해제 + 소프트 계정 삭제`
   - Files: `src/composables/useProfile.js`, `src/views/trainer/SettingsView.vue`, `src/views/member/MemberSettingsView.vue`, `src/views/trainer/TrainerMemberDetailView.vue`
 
-- [ ] 31. 트레이너 검색 승인 플로우 — 연결 요청 + 승인/거절 UI
+- [x] 31. 트레이너 검색 승인 플로우 — 연결 요청 + 승인/거절 UI
 
   **What to do**:
   - connection_status enum에 'pending' 값이 Wave 1(T4)에서 추가됨
@@ -1818,7 +1818,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(search): 트레이너 검색 연결 요청 + 승인/거절 플로우`
   - Files: `src/views/trainer/TrainerSearchView.vue`, `src/views/trainer/TrainerMemberView.vue`, `src/composables/useTrainerSearch.js`, `src/composables/useMembers.js`
 
-- [ ] 32. BottomNav 알림 배지 — 채팅 + 알림 미읽음 카운트
+- [x] 32. BottomNav 알림 배지 — 채팅 + 알림 미읽음 카운트
 
   **What to do**:
   - BottomNav.vue (회원용):
@@ -1901,7 +1901,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(nav): BottomNav 채팅/알림 미읽음 배지`
   - Files: `src/components/BottomNav.vue`, `src/components/TrainerBottomNav.vue`
 
-- [ ] 33. 회원 메모 읽기 — 회원이 트레이너 메모 열람
+- [x] 33. 회원 메모 읽기 — 회원이 트레이너 메모 열람
 
   **What to do**:
   - 회원 측 메모 열람 뷰 생성: `src/views/member/MemberMemoView.vue` + `.css`
@@ -1985,7 +1985,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
 
 ### Wave 5 — 대시보드 통합 + 테스트 + 문서화 (T34-T39, depends: Wave 3-4)
 
-- [ ] 34. TrainerHomeView 대시보드 통합 — 실제 데이터 연결
+- [x] 34. TrainerHomeView 대시보드 통합 — 실제 데이터 연결
 
   **What to do**:
   - TrainerHomeView.vue에서 하드코딩된 목 데이터를 실제 composable 호출로 교체:
@@ -2066,7 +2066,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(dashboard): 트레이너 홈 실제 데이터 통합`
   - Files: `src/views/trainer/TrainerHomeView.vue`
 
-- [ ] 35. MemberHomeView 대시보드 통합 — 실제 데이터 연결
+- [x] 35. MemberHomeView 대시보드 통합 — 실제 데이터 연결
 
   **What to do**:
   - MemberHomeView.vue에서 기존 데이터를 실제 composable 호출로 확장:
@@ -2142,7 +2142,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(dashboard): 회원 홈 실제 데이터 통합`
   - Files: `src/views/home/MemberHomeView.vue`, `src/views/home/MemberHomeView.css`
 
-- [ ] 36. Settings 뷰 통합 — 실제 기능 연결 + 스텁 제거
+- [x] 36. Settings 뷰 통합 — 실제 기능 연결 + 스텁 제거
 
   **What to do**:
   - SettingsView.vue (트레이너):
@@ -2228,7 +2228,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(settings): 설정 뷰 실제 기능 연결 + 스텁 제거`
   - Files: `src/views/trainer/SettingsView.vue`, `src/views/member/MemberSettingsView.vue`
 
-- [ ] 37. TrainerMemberDetailView 통합 — PT 횟수/수납/메모 링크
+- [x] 37. TrainerMemberDetailView 통합 — PT 횟수/수납/메모 링크
 
   **What to do**:
   - TrainerMemberDetailView.vue에서:
@@ -2293,7 +2293,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `feat(member-detail): PT 횟수/수납/메모 통합`
   - Files: `src/views/trainer/TrainerMemberDetailView.vue`
 
-- [ ] 38. Vitest 단위 테스트 — 핵심 composable 테스트
+- [x] 38. Vitest 단위 테스트 — 핵심 composable 테스트
 
   **What to do**:
   - Vitest 설정은 T1에서 완료됨 (vitest.config.js, @vue/test-utils)
@@ -2371,7 +2371,7 @@ Wave FINAL (ALL 완료 후 — 독립 리뷰, 4 병렬):
   - Message: `test(composables): 핵심 composable 단위 테스트 추가`
   - Files: `src/composables/__tests__/*.test.js`
 
-- [ ] 39. schema.sql 동기화 + AGENTS.md 업데이트
+- [x] 39. schema.sql 동기화 + AGENTS.md 업데이트
 
   **What to do**:
   - supabase/schema.sql 파일을 실제 DB 상태와 동기화:

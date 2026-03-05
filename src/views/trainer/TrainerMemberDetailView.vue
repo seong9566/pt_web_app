@@ -60,6 +60,21 @@
             <span class="summary-card__value">{{ member.nextSession }}</span>
           </div>
         </div>
+
+        <!-- PT 잔여 횟수 -->
+        <div class="pt-count-card">
+          <div class="pt-count-card__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M6.5 9.5V14.5M17.5 9.5V14.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M4 10.5V13.5M20 10.5V13.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M6.5 12H17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="pt-count-card__info">
+            <span class="pt-count-card__label">PT 잔여 횟수</span>
+            <span class="pt-count-card__value">{{ ptLoading || ptError ? '-' : remainingCount + '회' }}</span>
+          </div>
+        </div>
       </section>
 
       <!-- ── 바로가기 ── -->
@@ -73,6 +88,20 @@
             </svg>
           </div>
           <span class="quick-action__label">수납 기록</span>
+          <svg class="quick-action__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="quick-action" @click="goPtCount">
+          <div class="quick-action__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M8 6h10M8 12h10M8 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="4" cy="6" r="1.2" fill="currentColor"/>
+              <circle cx="4" cy="12" r="1.2" fill="currentColor"/>
+              <circle cx="4" cy="18" r="1.2" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="quick-action__label">PT 횟수 관리</span>
           <svg class="quick-action__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -157,12 +186,14 @@ import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
+import { usePtSessions } from '@/composables/usePtSessions'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { member, memos, loading, error, fetchMemberDetail, fetchMemos } = useMemos()
 const { disconnectMember } = useProfile()
+const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
 
 const showDisconnectSheet = ref(false)
 
@@ -171,6 +202,7 @@ onMounted(async () => {
   if (memberId) {
     await fetchMemberDetail(memberId)
     await fetchMemos(memberId)
+    await fetchPtHistory(memberId)
   }
 })
 
@@ -180,6 +212,10 @@ function handleAddMemo() {
 
 function goPayment() {
   router.push({ name: 'trainer-member-payment', params: { id: route.params.id } })
+}
+
+function goPtCount() {
+  router.push({ name: 'trainer-pt-count', params: { id: route.params.id } })
 }
 
 async function handleDisconnect() {

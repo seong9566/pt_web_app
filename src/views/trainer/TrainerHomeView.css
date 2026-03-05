@@ -360,6 +360,12 @@
     border-radius: 50%;
 }
 
+.message-avatar__badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+}
+
 .message-content {
     flex: 1;
 }

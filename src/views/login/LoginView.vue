@@ -67,8 +67,7 @@ async function handleKakao() {
     isLoading.value = false
   }
 }
-/** 이메일 로그인 처리 (중비 중) */
-function handleEmail() { alert('준비 중입니다') }
+function handleEmail() { }
 </script>
 
 <style src="./LoginView.css" scoped></style>

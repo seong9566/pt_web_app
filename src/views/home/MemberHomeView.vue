@@ -16,7 +16,7 @@
           <span class="member-home__greeting-sub">환영합니다,</span>
           <div class="member-home__greeting-row">
             <h1 class="member-home__greeting-name">{{ userName }} 님</h1>
-            <span class="member-home__pt-header-badge">PT {{ ptCount.remain }}회</span>
+            <span class="member-home__pt-header-badge">PT {{ ptRemaining !== null ? ptRemaining + '회' : '-' }}</span>
             <span class="member-home__online-dot" />
           </div>
         </div>
@@ -28,7 +28,7 @@
           <path d="M13.73 21A2 2 0 0 1 10.27 21"
             stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
-        <span class="member-home__bell-badge" />
+        <span v-if="unreadCount > 0" class="member-home__bell-badge" />
       </button>
     </div>
 
@@ -118,12 +118,30 @@
       <section class="member-home__section">
         <h2 class="member-home__section-title">오늘의 운동</h2>
 
-        <div class="member-home__workout-stub">
+        <!-- 로딩 중 -->
+        <div v-if="workoutLoading" class="member-home__workout-stub">
+          <p class="member-home__workout-stub-text">로딩 중...</p>
+        </div>
+
+        <!-- 에러 -->
+        <div v-else-if="workoutError" class="member-home__workout-stub">
+          <p class="member-home__workout-stub-text member-home__workout-stub-text--error">{{ workoutError }}</p>
+        </div>
+
+        <!-- 운동 계획 없음 -->
+        <div v-else-if="!currentPlan" class="member-home__workout-stub">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"
-              fill="var(--color-gray-600)"/>
+            <rect x="3" y="4" width="18" height="18" rx="3" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+            <path d="M3 9H21" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+            <path d="M8 2V6M16 2V6" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M8 14H11" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
           </svg>
-          <p class="member-home__workout-stub-text">오늘의 운동 기능을 준비 중입니다</p>
+          <p class="member-home__workout-stub-text">오늘 운동 계획이 없습니다</p>
+        </div>
+
+        <!-- 운동 계획 있음 -->
+        <div v-else class="member-home__workout-card">
+          <p class="member-home__workout-content">{{ currentPlan.content?.slice(0, 100) }}{{ (currentPlan.content?.length ?? 0) > 100 ? '...' : '' }}</p>
         </div>
       </section>
 
@@ -177,27 +195,50 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
-import trainerIcon from '@/assets/icons/trainer.svg'
+import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { usePtSessions } from '@/composables/usePtSessions'
+import { useNotifications } from '@/composables/useNotifications'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { reservations, loading, error, fetchMyReservations, checkTrainerConnection } = useReservations()
+const {
+  reservations,
+  fetchMyReservations,
+  checkTrainerConnection,
+  getConnectedTrainerId,
+} = useReservations()
+const {
+  currentPlan,
+  loading: workoutLoading,
+  error: workoutError,
+  fetchWorkoutPlan,
+} = useWorkoutPlans()
+const { fetchRemainingByPair } = usePtSessions()
+const { unreadCount, getUnreadCount } = useNotifications()
 
 const hasTrainer = ref(null)
+const ptRemaining = ref(null)
 
 onMounted(async () => {
-  // 트레이너 연결 여부 확인
   const connected = await checkTrainerConnection()
   hasTrainer.value = connected
-  if (connected) {
+  if (connected && auth.user?.id) {
     fetchMyReservations('member')
+
+    const today = new Date().toISOString().split('T')[0]
+    fetchWorkoutPlan(auth.user.id, today)
+
+    getUnreadCount()
+
+    const trainerId = await getConnectedTrainerId()
+    if (trainerId) {
+      ptRemaining.value = await fetchRemainingByPair(auth.user.id, trainerId)
+    }
   }
 })
 
-// 로그인 중의 사용자 이름 조회
 const userName = computed(() => auth.profile?.name || '회원')
 
-// 다음 예정 세션 조회 (스타투스 = approved)
 const nextSession = computed(() => {
   const now = new Date()
   const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
@@ -233,23 +274,6 @@ const nextSession = computed(() => {
   }
 })
 
-// PT 예약 남은 회수 계산
-const ptCount = computed(() => {
-  const total = reservations.value.length
-  const completed = reservations.value.filter(r => r.status === 'completed').length
-  const remain = total - completed
-  return { remain: remain > 0 ? remain : 0, total: total || 1 }
-})
-
-const ptCountPct = computed(() =>
-  Math.round((ptCount.value.remain / ptCount.value.total) * 100)
-)
-const ptBars = computed(() => Math.ceil(ptCountPct.value / 25))
-
-// 오늘의 운동 목록 (준비 중 - 모델 데이터 제거)
-const todayWorkouts = []
-
-// 이번 주 목표 달성도 계산
 const weekGoal = computed(() => {
   const now = new Date()
   const weekStart = new Date(now)
@@ -272,16 +296,13 @@ const weekGoal = computed(() => {
   }
 })
 
-// 원형 프로그레스 계산 (r=30)
 const circumference = 2 * Math.PI * 30
 const circleOffset = computed(() =>
   circumference * (1 - weekGoal.value.pct / 100)
 )
 
-// 단추 이벤트 핸들러
-function handleNotification() { alert('준비 중입니다') }
+function handleNotification() { router.push({ name: 'notifications' }) }
 function handleSeeAll()       { router.push({ name: 'member-schedule' }) }
-function handleWorkoutItem()  { alert('준비 중입니다') }
 </script>
 
 <style src="./MemberHomeView.css" scoped></style>

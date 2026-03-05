@@ -31,8 +31,8 @@
           <div class="settings__pt-info">
             <span class="settings__pt-label">남은 PT 횟수</span>
             <div class="settings__pt-count">
-              <span class="settings__pt-count-remain">{{ ptCount.remain }}</span>
-              <span class="settings__pt-count-total"> / {{ ptCount.total }}회</span>
+              <span class="settings__pt-count-remain">{{ remainingCount }}</span>
+              <span class="settings__pt-count-total"> / {{ totalCount }}회</span>
             </div>
           </div>
           <div class="settings__pt-progress-wrap">
@@ -42,7 +42,7 @@
             />
           </div>
           <p class="settings__pt-desc">
-            현재 {{ ptCount.trainer }} 트레이너님과 함께하고 있습니다.
+            현재 {{ trainerName || '트레이너' }}님과 함께하고 있습니다.
           </p>
         </div>
       </section>
@@ -145,25 +145,34 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
+import { usePtSessions } from '@/composables/usePtSessions'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import '@/views/trainer/SettingsView.css'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { disconnectTrainer, softDeleteAccount } = useProfile()
+const { disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName } = useProfile()
+const { remainingCount, totalCount, fetchMemberOwnPtCount } = usePtSessions()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
 })
 
-const ptCount = { remain: 8, total: 20, trainer: '이선생' }
+const trainerName = ref('')
+
+onMounted(async () => {
+  await fetchMemberOwnPtCount()
+  const name = await fetchConnectedTrainerName()
+  trainerName.value = name || ''
+})
+
 const ptCountPct = computed(() => {
-  if (!ptCount.total) return 0
-  return Math.round((ptCount.remain / ptCount.total) * 100)
+  if (!totalCount.value) return 0
+  return Math.round((remainingCount.value / totalCount.value) * 100)
 })
 
 const showDisconnectSheet = ref(false)
@@ -172,9 +181,9 @@ const deleteConfirmInput = ref('')
 
 function handleNav(target) {
   if (target === 'profile-edit') {
-    router.push({ name: 'member-profile' })
-  } else {
-    alert('준비 중입니다')
+    router.push({ name: 'member-profile-edit' })
+  } else if (target === 'account') {
+    router.push({ name: 'member-profile-edit' })
   }
 }
 

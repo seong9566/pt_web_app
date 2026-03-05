@@ -202,8 +202,10 @@ function handleNav(target) {
     router.push({ name: 'trainer-work-time' })
   } else if (target === 'manual') {
     router.push({ name: 'trainer-manual' })
-  } else {
-    alert('준비 중입니다')
+  } else if (target === 'profile-edit') {
+    router.push({ name: 'trainer-profile-edit' })
+  } else if (target === 'account') {
+    router.push({ name: 'trainer-profile-edit' })
   }
 }
 

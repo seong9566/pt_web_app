@@ -162,6 +162,50 @@
   line-height: 1;
 }
 
+/* ── PT 잔여 횟수 카드 ── */
+.pt-count-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-large);
+  padding: 16px;
+  margin-top: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.pt-count-card__icon {
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-blue-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-blue-primary);
+  flex-shrink: 0;
+}
+
+.pt-count-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pt-count-card__label {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  font-weight: var(--fw-body2);
+}
+
+.pt-count-card__value {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-subtitle);
+  color: var(--color-gray-900);
+}
+
 /* ── Quick Actions ── */
 .quick-actions {
   display: flex;

@@ -247,7 +247,6 @@ const completedList = computed(() => {
 
 // ── Actions ──
 function handleFilter() {
-  alert('준비 중입니다')
 }
 
 async function handleReject(item) {
@@ -274,7 +273,6 @@ async function handleComplete(item) {
 }
 
 function handleDetail(item) {
-  alert('준비 중입니다')
 }
 </script>
 

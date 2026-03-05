@@ -223,6 +223,28 @@ export function useProfile() {
     }
   }
 
+  async function fetchConnectedTrainerName() {
+    try {
+      const { data: linkData, error: linkError } = await supabase
+        .from('trainer_members')
+        .select('trainer_id')
+        .eq('member_id', auth.user.id)
+        .eq('status', 'active')
+        .limit(1)
+      if (linkError || !linkData?.length) return null
+      const trainerId = linkData[0].trainer_id
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', trainerId)
+        .single()
+      if (profileError || !profileData) return null
+      return profileData.name || null
+    } catch (e) {
+      return null
+    }
+  }
+
   async function softDeleteAccount() {
     error.value = null
     try {
@@ -240,5 +262,5 @@ export function useProfile() {
     }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount }
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName }
 }
