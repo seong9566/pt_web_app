@@ -84,13 +84,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     error.value = null
+    const existingProfile = profile.value
 
     let timeoutId
     try {
-      // thenable → Promise 변환 (.then 생략 시 Promise.race 동작 불가)
       const profilePromise = supabase
         .from('profiles')
-        .select('*')
+        .select('*, member_profiles(*), trainer_profiles(*)')
         .eq('id', userId)
         .maybeSingle()
         .then(res => res)
@@ -111,8 +111,8 @@ export const useAuthStore = defineStore('auth', () => {
           error.value = fetchError.message
         }
 
-        setProfile(null)
-        return null
+        if (!existingProfile) setProfile(null)
+        return existingProfile || null
       }
 
       setProfile(data)
@@ -121,8 +121,9 @@ export const useAuthStore = defineStore('auth', () => {
       clearTimeout(timeoutId)
       console.error('[AuthStore] fetchProfile 과정 중 예외 발생:', e)
       error.value = e.message
-      setProfile(null)
-      return null
+
+      if (!existingProfile) setProfile(null)
+      return existingProfile || null
     }
   }
 
@@ -162,11 +163,13 @@ export const useAuthStore = defineStore('auth', () => {
           return
         }
 
-        if (
-          event === 'SIGNED_IN' ||
-          event === 'TOKEN_REFRESHED' ||
-          event === 'USER_UPDATED'
-        ) {
+        if (event === 'TOKEN_REFRESHED') {
+          session.value = nextSession ?? null
+          user.value = nextSession?.user ?? null
+          return
+        }
+
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           await hydrateFromSession(nextSession)
         }
       } catch (e) {
