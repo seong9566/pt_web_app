@@ -23,7 +23,20 @@
       {{ reservError || membersError }}
     </div>
 
-    <div class="action-card-dark floating-card" v-if="pendingReservationCount > 0">
+    <div class="action-card-dark floating-card" v-if="pendingConnectionCount > 0" @click="router.push({ name: 'trainer-members' })">
+      <div class="action-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 11V17M14 14H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="action-text">
+        <h3 class="action-title">새로운 연결 요청</h3>
+        <p class="action-desc">대기 중 {{ pendingConnectionCount }}건</p>
+      </div>
+      <div class="action-arrow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
+    <div class="action-card-dark floating-card" v-if="pendingReservationCount > 0" @click="router.push({ name: 'trainer-reservations' })">
       <div class="action-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 16H18M17 15V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
@@ -180,12 +193,16 @@ import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
 import { useMembers } from '@/composables/useMembers'
 import { useChat } from '@/composables/useChat'
+import { useTrainerSearch } from '@/composables/useTrainerSearch'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { reservations, loading: reservLoading, error: reservError, fetchMyReservations } = useReservations()
 const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()
 const { conversations, loading: chatLoading, error: chatError, fetchConversations } = useChat()
+const { fetchPendingRequests } = useTrainerSearch()
+
+const pendingConnectionCount = ref(0)
 
 const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -253,11 +270,13 @@ function formatMessageTime(dateStr) {
 }
 
 onMounted(async () => {
-  await Promise.all([
+  const [, , , pending] = await Promise.all([
     fetchMyReservations('trainer'),
     fetchMembers(),
     fetchConversations(),
+    fetchPendingRequests(),
   ])
+  pendingConnectionCount.value = (pending || []).length
 })
 </script>
 

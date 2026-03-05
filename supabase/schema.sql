@@ -171,7 +171,7 @@ using (
   exists (
     select 1
     from public.trainer_members tm
-    where tm.status = 'active'
+    where tm.status in ('active', 'pending')
       and (
         (tm.trainer_id = auth.uid() and tm.member_id = profiles.id)
         or (tm.member_id = auth.uid() and tm.trainer_id = profiles.id)

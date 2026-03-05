@@ -9,14 +9,22 @@
           <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h1 class="mem-detail__title">{{ member.name }}님 운동 메모</h1>
+      <h1 class="mem-detail__title">{{ member?.name || '' }}님 운동 메모</h1>
       <button class="mem-detail__edit">편집</button>
     </div>
 
     <!-- 에러 메시지 -->
     <div v-if="error" class="mem-detail__error">{{ error }}</div>
 
-    <div class="mem-detail__body">
+    <div v-if="loading" class="mem-detail__body" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">로딩 중...</p>
+    </div>
+
+    <div v-else-if="!member" class="mem-detail__body" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">회원 정보를 불러올 수 없습니다.</p>
+    </div>
+
+    <div v-else class="mem-detail__body">
 
       <!-- ── 회원 요약 ── -->
       <section class="summary-section">
@@ -30,7 +38,7 @@
               <path d="M12 8v1M12 12v4" stroke="#007AFF" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
-          <p class="summary-notice__text">{{ member.summary }}</p>
+          <p class="summary-notice__text">{{ member?.summary || '목표가 아직 설정되지 않았습니다' }}</p>
         </div>
 
         <!-- Stat mini cards -->
@@ -45,7 +53,7 @@
               </svg>
             </div>
             <span class="summary-card__label">최근 방문</span>
-            <span class="summary-card__value">{{ member.lastVisit }}</span>
+            <span class="summary-card__value">{{ member?.lastVisit || '-' }}</span>
           </div>
           <div class="summary-card">
             <div class="summary-card__icon">
@@ -57,7 +65,7 @@
               </svg>
             </div>
             <span class="summary-card__label">다음 예약</span>
-            <span class="summary-card__value">{{ member.nextSession }}</span>
+            <span class="summary-card__value">{{ member?.nextSession || '-' }}</span>
           </div>
         </div>
 
