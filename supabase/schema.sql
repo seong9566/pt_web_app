@@ -714,7 +714,7 @@ create table if not exists public.workout_plans (
   trainer_id uuid not null references public.profiles(id) on delete cascade,
   member_id uuid not null references public.profiles(id) on delete cascade,
   date date not null,
-  content text not null,
+  exercises jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (trainer_id, member_id, date)
