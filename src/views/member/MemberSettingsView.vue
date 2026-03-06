@@ -1,6 +1,7 @@
 <!-- 회원 설정 페이지. 프로필 정보 표시, 트레이너 연결 상태, 로그아웃 -->
 <template>
   <div class="settings">
+    <AppPullToRefresh @refresh="handleRefresh">
 
     <!-- ── Header ── -->
     <div class="settings__header">
@@ -135,6 +136,7 @@
       <div style="height: calc(var(--nav-height) + 16px);" />
 
     </div>
+    </AppPullToRefresh>
 
   </div>
 
@@ -165,13 +167,16 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'
+import { usePtSessionsStore } from '@/stores/ptSessions'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import '@/views/trainer/SettingsView.css'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName } = useProfile()
 const { remainingCount, totalCount, fetchMemberOwnPtCount } = usePtSessions()
+const ptSessionsStore = usePtSessionsStore()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
@@ -187,8 +192,12 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await ptSessionsStore.loadMemberOwnPtCount(true)
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => { if (loaded.value && ptSessionsStore._dirty) loadData() })
 
 const ptCountPct = computed(() => {
   if (!totalCount.value) return 0

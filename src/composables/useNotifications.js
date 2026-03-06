@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationBadgeStore } from '@/stores/notificationBadge'
 
 /** 알림 관리 */
 export function useNotifications() {
@@ -42,19 +43,9 @@ export function useNotifications() {
 
   /** 미읽은 알림 수 조회 (배지용) */
   async function getUnreadCount() {
-    try {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const { count, error: err } = await supabase
-        .from('notifications')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', auth.user.id)
-        .eq('is_read', false)
-        .gte('created_at', sevenDaysAgo)
-      if (err) throw err
-      unreadCount.value = count ?? 0
-    } catch (e) {
-      error.value = e?.message ?? '알림 수를 불러오지 못했습니다'
-    }
+    const notificationBadgeStore = useNotificationBadgeStore()
+    await notificationBadgeStore.loadUnreadCount()
+    unreadCount.value = notificationBadgeStore.unreadCount
   }
 
   /** 개별 알림 읽음 처리 */

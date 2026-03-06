@@ -5,9 +5,11 @@
  * 예약 목록 조회, 상태 변경, 트레이너 연결 확인 기능 제공.
  */
 
+import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useReservationsStore } from '@/stores/reservations'
 
 /** 숫자를 2자리 문자열로 패딩 (예: 5 → '05') */
 function pad2(value) {
@@ -212,51 +214,14 @@ export function useReservations() {
         return reservations.value
       }
 
-      const filterColumn = role === 'trainer' ? 'trainer_id' : 'member_id'
-      const { data, error: fetchError } = await supabase
-        .from('reservations')
-        .select(`
-          id,
-          trainer_id,
-          member_id,
-          date,
-          start_time,
-          end_time,
-          status,
-          session_type,
-          created_at,
-          trainer_profile:trainer_id(name, photo_url),
-          member_profile:member_id(name, photo_url)
-        `)
-        .eq(filterColumn, auth.user.id)
-        .order('date', { ascending: false })
-        .order('start_time', { ascending: true })
-
-      if (fetchError) throw fetchError
-
-      reservations.value = (data ?? []).map((item) => {
-        const isTrainer = role === 'trainer'
-        const partnerProfile = isTrainer ? item.member_profile : item.trainer_profile
-
-        return {
-          id: item.id,
-          trainer_id: item.trainer_id,
-          member_id: item.member_id,
-          date: item.date,
-          start_time: trimSeconds(item.start_time),
-          end_time: trimSeconds(item.end_time),
-          status: item.status,
-          session_type: item.session_type,
-          created_at: item.created_at,
-          partner_name: partnerProfile?.name ?? '이름 없음',
-          partner_photo: partnerProfile?.photo_url ?? null,
-        }
-      })
+      const reservationsStore = useReservationsStore()
+      const { reservations: storeReservations } = storeToRefs(reservationsStore)
+      await reservationsStore.loadReservations(role, false)
+      reservations.value = storeReservations.value
 
       return reservations.value
     } catch (e) {
       error.value = e?.message ?? '예약 목록을 불러오지 못했습니다'
-      reservations.value = []
       return reservations.value
     } finally {
       loading.value = false

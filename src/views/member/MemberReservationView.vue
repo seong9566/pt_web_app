@@ -175,11 +175,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
+import { useReservationsStore } from '@/stores/reservations'
 import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId } = useReservations()
+const reservationsStore = useReservationsStore()
 
 // Date Selection
 const today = new Date()
@@ -251,6 +253,7 @@ async function submitReservation() {
   isSubmitting.value = false
   
   if (result) {
+    reservationsStore.invalidate()
     // Success: navigate back
     router.back()
   }

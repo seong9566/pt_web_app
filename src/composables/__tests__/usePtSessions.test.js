@@ -7,8 +7,15 @@ const mockEnv = vi.hoisted(() => {
     profile: { name: '트레이너' },
   }
 
+  const ptSessionsStore = {
+    loadPtHistory: vi.fn(),
+    loadMemberOwnPtCount: vi.fn(),
+    loadRemainingByPair: vi.fn(),
+  }
+
   return {
     authStore,
+    ptSessionsStore,
     supabase: {
       from: vi.fn(),
     },
@@ -21,6 +28,10 @@ vi.mock('@/stores/auth', () => ({
 
 vi.mock('@/lib/supabase', () => ({
   supabase: mockEnv.supabase,
+}))
+
+vi.mock('@/stores/ptSessions', () => ({
+  usePtSessionsStore: () => mockEnv.ptSessionsStore,
 }))
 
 function createBuilder() {
@@ -74,14 +85,11 @@ describe('usePtSessions', () => {
 
   it('유효한 횟수 추가 시 insert 후 히스토리를 다시 조회한다', async () => {
     const insertQuery = createBuilder()
-    const historyQuery = createBuilder()
 
     insertQuery.insert.mockResolvedValue({ error: null })
-    historyQuery.order.mockResolvedValue({ data: [{ change_amount: 5 }], error: null })
+    mockEnv.ptSessionsStore.loadPtHistory.mockResolvedValue([{ change_amount: 5 }])
 
-    mockEnv.supabase.from
-      .mockReturnValueOnce(insertQuery)
-      .mockReturnValueOnce(historyQuery)
+    mockEnv.supabase.from.mockReturnValueOnce(insertQuery)
 
     const { addSessions, ptHistory } = usePtSessions()
     const result = await addSessions('member-1', 5, '초기 등록')

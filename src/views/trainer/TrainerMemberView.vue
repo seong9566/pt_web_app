@@ -1,6 +1,7 @@
 <!-- 트레이너 회원 목록 페이지. 연결된 회원 리스트 + 예약 통계 표시 -->
 <template>
   <div class="member-mgmt">
+    <AppPullToRefresh @refresh="handleRefresh">
 
     <!-- ── Header ── -->
     <div class="member-mgmt__header">
@@ -225,6 +226,7 @@
     </template>
 
     <div style="height: calc(var(--nav-height) + 32px);" />
+    </AppPullToRefresh>
 
   </div>
 </template>
@@ -236,9 +238,12 @@ defineOptions({ name: 'TrainerMemberView' })
 import { useRouter } from 'vue-router'
 import { useMembers } from '@/composables/useMembers'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import { useMembersStore } from '@/stores/members'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
 const { members, loading, error, fetchMembers } = useMembers()
+const membersStore = useMembersStore()
 const { fetchPendingRequests, approveConnection, rejectConnection } = useTrainerSearch()
 
 // ── Tabs ──
@@ -304,6 +309,7 @@ async function handleApprove(connectionId) {
   try {
     const success = await approveConnection(connectionId)
     if (success) {
+      membersStore.invalidate()
       pendingRequests.value = pendingRequests.value.filter(r => r.id !== connectionId)
       await fetchMembers()
     }
@@ -343,8 +349,16 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await membersStore.loadMembers(true)
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => {
+  if (loaded.value && membersStore.isStale()) {
+    loadData()
+  }
+})
 
 const filteredMembers = computed(() => {
   let list = members.value

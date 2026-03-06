@@ -201,9 +201,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
+import { useReservationsStore } from '@/stores/reservations'
+import { usePtSessionsStore } from '@/stores/ptSessions'
 
 const router = useRouter()
 const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
+const reservationsStore = useReservationsStore()
+const ptSessionsStore = usePtSessionsStore()
 
 // ── Filter ──
 const filterChips = [
@@ -253,6 +257,7 @@ async function handleReject(item) {
   if (confirm(`${item.partner_name}님의 예약을 거절하시겠습니까?`)) {
     const success = await updateReservationStatus(item.id, 'rejected')
     if (success) {
+      reservationsStore.invalidate()
       await fetchMyReservations('trainer')
     }
   }
@@ -261,6 +266,7 @@ async function handleReject(item) {
 async function handleApprove(item) {
   const success = await updateReservationStatus(item.id, 'approved')
   if (success) {
+    reservationsStore.invalidate()
     await fetchMyReservations('trainer')
   }
 }
@@ -268,6 +274,8 @@ async function handleApprove(item) {
 async function handleComplete(item) {
   const success = await updateReservationStatus(item.id, 'completed')
   if (success) {
+    reservationsStore.invalidate()
+    ptSessionsStore.invalidate()
     await fetchMyReservations('trainer')
   }
 }

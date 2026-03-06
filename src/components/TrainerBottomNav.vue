@@ -17,9 +17,10 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useChat } from '@/composables/useChat'
+import { storeToRefs } from 'pinia'
+import { useChatBadgeStore } from '@/stores/chatBadge'
 
 import IconHome from '@/assets/icons/home.svg'
 import IconMembers from '@/assets/icons/people.svg'
@@ -29,24 +30,23 @@ import IconSettings from '@/assets/icons/setting.svg'
 
 const router = useRouter()
 const route = useRoute()
-const { getUnreadCount } = useChat()
-const chatUnreadCount = ref(0)
-let pollInterval = null
+const chatBadgeStore = useChatBadgeStore()
+const { unreadCount: chatUnreadCount } = storeToRefs(chatBadgeStore)
+
+async function handleVisibilityChange() {
+  if (!document.hidden) {
+    await chatBadgeStore.loadUnreadCount(true)
+  }
+}
+
+document.addEventListener('visibilitychange', handleVisibilityChange)
 
 onMounted(async () => {
-  // 초기 로드
-  chatUnreadCount.value = (await getUnreadCount()) ?? 0
-  
-  // 30초마다 폴링
-  pollInterval = setInterval(async () => {
-    chatUnreadCount.value = (await getUnreadCount()) ?? 0
-  }, 30000)
+  await chatBadgeStore.loadUnreadCount()
 })
 
 onUnmounted(() => {
-  if (pollInterval) {
-    clearInterval(pollInterval)
-  }
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 const navItems = [

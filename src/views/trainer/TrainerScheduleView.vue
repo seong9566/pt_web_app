@@ -1,6 +1,7 @@
 <!-- 트레이너 스케줄 페이지. 캘린더 예약 관리, 날짜별 예약 목록 표시/상태 변경 -->
 <template>
   <div class="trainer-schedule">
+    <AppPullToRefresh @refresh="handleRefresh">
 
     <!-- ── Top App Bar ── -->
     <div class="schedule-appbar">
@@ -240,6 +241,7 @@
     </div>
 
     <div style="height: calc(var(--nav-height) + 32px);" />
+    </AppPullToRefresh>
 
   </div>
 </template>
@@ -252,9 +254,12 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useHolidays } from '@/composables/useHolidays'
 import { useAuthStore } from '@/stores/auth'
+import { useReservationsStore } from '@/stores/reservations'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
+const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
 
@@ -266,8 +271,16 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await reservationsStore.loadReservations('trainer', true)
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => {
+  if (loaded.value && reservationsStore.isStale()) {
+    loadData()
+  }
+})
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)
 const pendingCount = computed(() => {

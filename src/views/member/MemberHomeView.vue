@@ -1,6 +1,7 @@
 <!-- 회원 홈 대시보드. 다음 예약, 오늘의 운동, 이번 주 목표 등 표시 -->
 <template>
   <div class="member-home">
+    <AppPullToRefresh @refresh="handleRefresh">
 
     <!-- ── Header ── -->
     <div class="member-home__header">
@@ -187,6 +188,7 @@
 
       </template>
     </div>
+    </AppPullToRefresh>
   </div>
 </template>
 
@@ -200,9 +202,12 @@ import { useReservations } from '@/composables/useReservations'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { useNotifications } from '@/composables/useNotifications'
+import { useReservationsStore } from '@/stores/reservations'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
+const reservationsStore = useReservationsStore()
 const {
   reservations,
   fetchMyReservations,
@@ -242,8 +247,12 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await reservationsStore.loadReservations('member', true)
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
 
 const userName = computed(() => auth.profile?.name || '회원')
 

@@ -8,10 +8,12 @@
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { usePtSessionsStore } from '@/stores/ptSessions'
 
 /** PT 횟수 관리 */
 export function usePtSessions() {
   const auth = useAuthStore()
+  const ptSessionsStore = usePtSessionsStore()
 
   const ptHistory = ref([])
   const loading = ref(false)
@@ -30,42 +32,17 @@ export function usePtSessions() {
   /** 회원 본인의 PT 이력 조회 (트레이너 ID 필터 없이, 회원 설정 화면용) */
   async function fetchMemberOwnPtCount() {
     loading.value = true
-    error.value = null
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pt_sessions')
-        .select('change_amount')
-        .eq('member_id', auth.user.id)
-      if (fetchError) throw fetchError
-      ptHistory.value = data || []
-    } catch (e) {
-      error.value = e?.message ?? 'PT 횟수를 불러오지 못했습니다'
-    } finally {
-      loading.value = false
-    }
+    const data = await ptSessionsStore.loadMemberOwnPtCount(false)
+    ptHistory.value = data || []
+    loading.value = false
   }
 
   /** 특정 회원의 PT 횟수 변동 이력 조회 (최신순) */
   async function fetchPtHistory(memberId) {
     loading.value = true
-    error.value = null
-
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pt_sessions')
-        .select('*')
-        .eq('member_id', memberId)
-        .eq('trainer_id', auth.user.id)
-        .order('created_at', { ascending: false })
-
-      if (fetchError) throw fetchError
-
-      ptHistory.value = data || []
-    } catch (e) {
-      error.value = e?.message ?? 'PT 횟수 이력을 불러오지 못했습니다'
-    } finally {
-      loading.value = false
-    }
+    const data = await ptSessionsStore.loadPtHistory(memberId, false)
+    ptHistory.value = data || []
+    loading.value = false
   }
 
   /** 회원의 잔여 횟수 조회 (DB SUM) */
@@ -88,21 +65,9 @@ export function usePtSessions() {
   /** 트레이너-회원 쌍 기준 잔여 PT 횟수 조회 (회원 홈 뷰용, trainerId 명시 전달) */
   async function fetchRemainingByPair(memberId, trainerId) {
     loading.value = true
-    error.value = null
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('pt_sessions')
-        .select('change_amount')
-        .eq('member_id', memberId)
-        .eq('trainer_id', trainerId)
-      if (fetchError) throw fetchError
-      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
-    } catch (e) {
-      error.value = e?.message ?? 'PT 횟수를 불러오지 못했습니다'
-      return null
-    } finally {
-      loading.value = false
-    }
+    const result = await ptSessionsStore.loadRemainingByPair(memberId, trainerId, false)
+    loading.value = false
+    return result
   }
 
   /** PT 횟수 추가 (양수) — sessionDate: YYYY-MM-DD (선택) */

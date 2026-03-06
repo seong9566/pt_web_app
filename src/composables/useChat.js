@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useChatBadgeStore } from '@/stores/chatBadge'
 
 /** 실시간 채팅 관리 */
 export function useChat() {
@@ -288,27 +289,10 @@ export function useChat() {
    * 전체 미읽은 메시지 수 조회 (배지용)
    */
   async function getUnreadCount() {
-    try {
-      const me = auth.user?.id
-      if (!me) {
-        unreadCount.value = 0
-        return 0
-      }
-
-      const { count, error: countError } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('receiver_id', me)
-        .eq('is_read', false)
-
-      if (countError) throw countError
-
-      unreadCount.value = count ?? 0
-      return unreadCount.value
-    } catch (e) {
-      error.value = e?.message ?? '알림 수를 불러오지 못했습니다'
-      return 0
-    }
+    const chatBadgeStore = useChatBadgeStore()
+    await chatBadgeStore.loadUnreadCount()
+    unreadCount.value = chatBadgeStore.unreadCount
+    return unreadCount.value
   }
 
   return {

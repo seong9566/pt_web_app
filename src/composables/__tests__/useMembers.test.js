@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { useMembers } from '@/composables/useMembers'
 
 const mockEnv = vi.hoisted(() => {
@@ -56,6 +57,7 @@ function setupMocks(ptData) {
 
 describe('useMembers', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
   })
 

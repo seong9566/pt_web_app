@@ -1,6 +1,7 @@
 <!-- 트레이너 홈 대시보드. 오늘 예약 현황, 회원 수, 최근 메시지 표시 -->
 <template>
   <div class="trainer-home">
+    <AppPullToRefresh @refresh="handleRefresh">
     <header class="home-header">
       <div class="home-header__profile">
         <div class="profile-avatar">
@@ -191,6 +192,7 @@
     </section>
 
     <div style="height: calc(var(--nav-height) + 24px);" />
+    </AppPullToRefresh>
 
   </div>
 </template>
@@ -201,13 +203,18 @@ import { ref, computed, onMounted, onActivated } from 'vue'
 defineOptions({ name: 'TrainerHomeView' })
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useReservationsStore } from '@/stores/reservations'
+import { useMembersStore } from '@/stores/members'
 import { useReservations } from '@/composables/useReservations'
 import { useMembers } from '@/composables/useMembers'
 import { useChat } from '@/composables/useChat'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
+const reservationsStore = useReservationsStore()
+const membersStore = useMembersStore()
 const { reservations, loading: reservLoading, error: reservError, fetchMyReservations } = useReservations()
 const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()
 const { conversations, loading: chatLoading, error: chatError, fetchConversations } = useChat()
@@ -293,8 +300,19 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await Promise.all([
+    reservationsStore.loadReservations('trainer', true),
+    membersStore.loadMembers(true),
+  ])
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => {
+  if (loaded.value && (reservationsStore.isStale() || membersStore.isStale())) {
+    loadData()
+  }
+})
 </script>
 
 <style src="./TrainerHomeView.css" scoped></style>

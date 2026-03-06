@@ -1,6 +1,7 @@
 <!-- 회원 스케줄 페이지. 캘린더에 예약 현황(dot) 표시, 날짜별 예약 목록 조회 -->
 <template>
   <div class="member-schedule">
+    <AppPullToRefresh @refresh="handleRefresh">
 
     <!-- ── App Bar ── -->
     <div class="schedule-appbar">
@@ -138,6 +139,7 @@
       </svg>
       예약하기
     </button>
+    </AppPullToRefresh>
   </div>
 </template>
 
@@ -147,8 +149,11 @@ import { ref, computed, onMounted, onActivated } from 'vue'
 defineOptions({ name: 'MemberScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
+import { useReservationsStore } from '@/stores/reservations'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
+const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
 
 // ── Calendar state ──
@@ -181,8 +186,12 @@ async function loadData() {
   loaded.value = true
 }
 
+async function handleRefresh() {
+  await reservationsStore.loadReservations('member', true)
+}
+
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value) loadData() })
+onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
 
 // ── Compute dots from real reservations ──
 const dotsData = computed(() => {

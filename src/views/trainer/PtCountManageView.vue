@@ -212,10 +212,14 @@ import { useRoute, useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { usePayments } from '@/composables/usePayments'
+import { usePtSessionsStore } from '@/stores/ptSessions'
+import { useMembersStore } from '@/stores/members'
 
 const route = useRoute()
 const router = useRouter()
 const memberId = route.params.id
+const ptSessionsStore = usePtSessionsStore()
+const membersStore = useMembersStore()
 
 const {
   ptHistory,
@@ -308,6 +312,9 @@ async function handleAdd() {
     return
   }
 
+  ptSessionsStore.invalidate()
+  membersStore.invalidate()
+
   if (addPaymentAmount.value && addPaymentAmount.value > 0) {
     const payDate = addDate.value || todayStr()
     const paymentMemo = reason === '횟수 추가' ? `PT ${addAmount.value}회 추가` : reason
@@ -334,6 +341,8 @@ async function handleDeduct() {
   const reason = deductMemo.value.trim() || '횟수 차감'
   const success = await deductSessions(memberId, deductAmount.value, reason)
   if (success) {
+    ptSessionsStore.invalidate()
+    membersStore.invalidate()
     showDeductSheet.value = false
   } else {
     deductError.value = error.value || '남은 횟수보다 많이 차감할 수 없습니다'
