@@ -1,4 +1,4 @@
-<!-- 매뉴얼 등록 — 카테고리/제목/설명/사진/YouTube URL -->
+<!-- 매뉴얼 등록/수정 — 카테고리/제목/설명/사진/YouTube URL -->
 <template>
   <div class="manual-reg">
 
@@ -9,7 +9,7 @@
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h1 class="manual-reg__header-title">매뉴얼 등록</h1>
+      <h1 class="manual-reg__header-title">{{ isEditMode ? '매뉴얼 수정' : '매뉴얼 등록' }}</h1>
       <div style="width:44px;" />
     </div>
 
@@ -24,8 +24,8 @@
             v-for="cat in categories"
             :key="cat"
             class="manual-reg__chip"
-            :class="{ 'manual-reg__chip--active': form.categories.includes(cat) }"
-            @click="toggleCategory(cat)"
+            :class="{ 'manual-reg__chip--active': form.category === cat }"
+            @click="selectCategory(cat)"
           >
             {{ cat }}
           </button>
@@ -65,7 +65,7 @@
         <div class="manual-reg__media-row">
           <!-- 추가하기 버튼 -->
           <button
-            v-if="mediaFiles.length < 10"
+            v-if="totalMediaCount < 10"
             class="manual-reg__media-add"
             @click="openFilePicker"
           >
@@ -77,10 +77,31 @@
             <span class="manual-reg__media-add-plus">+</span>
           </button>
 
-          <!-- 미디어 썸네일 -->
+          <!-- 기존 미디어 (edit 모드) -->
+          <div
+            v-for="(item, idx) in existingMedia"
+            :key="'existing-' + item.id"
+            class="manual-reg__media-thumb"
+          >
+            <img v-if="item.file_type?.startsWith('image/')" :src="item.file_url" :alt="'media-' + idx" />
+            <video v-else :src="item.file_url" />
+            <div v-if="!item.file_type?.startsWith('image/')" class="manual-reg__media-video-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)"/>
+                <path d="M10 8L16 12L10 16V8Z" fill="white"/>
+              </svg>
+            </div>
+            <button class="manual-reg__media-remove" @click="removeExistingMedia(idx)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 새 미디어 썸네일 -->
           <div
             v-for="(file, idx) in mediaFiles"
-            :key="idx"
+            :key="'new-' + idx"
             class="manual-reg__media-thumb"
           >
             <img v-if="file.isImage" :src="file.url" :alt="file.name" />
@@ -140,7 +161,7 @@
         :disabled="!form.title.trim() || loading"
         @click="handleSave"
       >
-        {{ loading ? '저장 중...' : '저장하기' }}
+        {{ loading ? '저장 중...' : (isEditMode ? '수정하기' : '저장하기') }}
       </button>
     </div>
 
@@ -148,34 +169,37 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
 
 const router = useRouter()
-const { loading, error, createManual } = useManuals()
+const route = useRoute()
+const { loading, error, createManual, fetchManual, updateManual, deleteManualMedia, addManualMedia, currentManual } = useManuals()
+
+const isEditMode = computed(() => !!route.params.id)
 
 const categories = ['재활', '근력', '다이어트', '스포츠', '코어', '유연성']
 
 const form = reactive({
   title: '',
   description: '',
-  categories: [],
+  category: '',
   youtubeUrl: '',
 })
 
-function toggleCategory(cat) {
-  const idx = form.categories.indexOf(cat)
-  if (idx === -1) {
-    form.categories.push(cat)
-  } else {
-    form.categories.splice(idx, 1)
-  }
+const existingMedia = ref([])
+const removedMediaIds = ref([])
+
+function selectCategory(cat) {
+  form.category = cat
 }
 
 const fileInput = ref(null)
 const mediaFiles = ref([])
 const rawFiles = ref([])
+
+const totalMediaCount = computed(() => existingMedia.value.length + mediaFiles.value.length)
 
 function openFilePicker() {
   fileInput.value?.click()
@@ -183,7 +207,7 @@ function openFilePicker() {
 
 function handleFileChange(e) {
   const files = Array.from(e.target.files)
-  const remaining = 10 - mediaFiles.value.length
+  const remaining = 10 - totalMediaCount.value
   const toAdd = files.slice(0, remaining)
 
   toAdd.forEach(file => {
@@ -205,22 +229,55 @@ function removeMedia(idx) {
   rawFiles.value.splice(idx, 1)
 }
 
+function removeExistingMedia(idx) {
+  const item = existingMedia.value[idx]
+  removedMediaIds.value.push({ id: item.id, url: item.file_url })
+  existingMedia.value.splice(idx, 1)
+}
+
 async function handleSave() {
   if (!form.title.trim()) return
 
-  const category = form.categories.join(',')
-  const manualId = await createManual(
-    form.title,
-    category,
-    form.description,
-    form.youtubeUrl || null,
-    rawFiles.value,
-  )
-
-  if (manualId) {
-    router.push({ name: 'trainer-manual' })
+  if (isEditMode.value) {
+    for (const removed of removedMediaIds.value) {
+      await deleteManualMedia(removed.id, removed.url)
+    }
+    if (rawFiles.value.length > 0) {
+      await addManualMedia(route.params.id, rawFiles.value)
+    }
+    const ok = await updateManual(route.params.id, {
+      title: form.title,
+      category: form.category || null,
+      description: form.description,
+      youtube_url: form.youtubeUrl || null,
+    })
+    if (ok) router.back()
+  } else {
+    const manualId = await createManual(
+      form.title,
+      form.category || null,
+      form.description,
+      form.youtubeUrl || null,
+      rawFiles.value,
+    )
+    if (manualId) {
+      router.push({ name: 'trainer-manual' })
+    }
   }
 }
+
+onMounted(async () => {
+  if (isEditMode.value) {
+    await fetchManual(route.params.id)
+    if (currentManual.value) {
+      form.title = currentManual.value.title || ''
+      form.description = currentManual.value.description || ''
+      form.category = currentManual.value.category || ''
+      form.youtubeUrl = currentManual.value.youtube_url || ''
+      existingMedia.value = currentManual.value.media ? [...currentManual.value.media] : []
+    }
+  }
+})
 </script>
 
 <style src="./ManualRegisterView.css" scoped></style>
