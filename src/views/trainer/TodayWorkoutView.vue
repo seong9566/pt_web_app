@@ -73,11 +73,74 @@
             <span>이미 배정된 운동이 있습니다. 덮어쓰시겠습니까?</span>
           </div>
 
-          <textarea
-            class="today-workout__textarea"
-            v-model="workoutContent"
-            placeholder="오늘의 운동 내용을 입력하세요 (예: 스쿼트 3세트 10회, 벤치프레스 3세트 8회)"
-          />
+          <!-- 운동 항목 리스트 -->
+          <div class="today-workout__exercise-list">
+            <div
+              v-for="(exercise, index) in exercises"
+              :key="index"
+              class="today-workout__exercise-item"
+            >
+              <div class="today-workout__exercise-header">
+                <span class="today-workout__exercise-num">운동 {{ index + 1 }}</span>
+                <button
+                  v-if="exercises.length > 1"
+                  class="today-workout__exercise-remove"
+                  @click="removeExercise(index)"
+                  type="button"
+                >✕</button>
+              </div>
+              <div class="today-workout__exercise-row">
+                <label class="today-workout__exercise-label">운동명</label>
+                <input
+                  class="today-workout__exercise-input"
+                  v-model="exercise.name"
+                  placeholder="예: 스쿼트"
+                  type="text"
+                />
+              </div>
+              <div class="today-workout__exercise-row today-workout__exercise-row--inline">
+                <div class="today-workout__exercise-field">
+                  <label class="today-workout__exercise-label">세트</label>
+                  <input
+                    class="today-workout__exercise-input today-workout__exercise-input--num"
+                    v-model.number="exercise.sets"
+                    type="number"
+                    min="1"
+                    max="99"
+                  />
+                </div>
+                <div class="today-workout__exercise-field">
+                  <label class="today-workout__exercise-label">횟수</label>
+                  <input
+                    class="today-workout__exercise-input today-workout__exercise-input--num"
+                    v-model.number="exercise.reps"
+                    type="number"
+                    min="1"
+                    max="999"
+                  />
+                </div>
+              </div>
+              <div class="today-workout__exercise-row">
+                <label class="today-workout__exercise-label">메모 <span class="today-workout__exercise-optional">(선택)</span></label>
+                <input
+                  class="today-workout__exercise-input"
+                  v-model="exercise.memo"
+                  placeholder="예: 깊게 앉기"
+                  type="text"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- 운동 추가 버튼 -->
+          <button
+            class="today-workout__exercise-add"
+            @click="addExercise"
+            type="button"
+            :disabled="exercises.length >= 20"
+          >
+            <span>+</span> 운동 추가
+          </button>
 
           <p v-if="error" class="today-workout__error-inline">{{ error }}</p>
           <p v-if="saveSuccess" class="today-workout__success-inline">저장되었습니다</p>
@@ -95,9 +158,7 @@
               class="today-workout__history-item"
             >
               <span class="today-workout__history-date">{{ formatDate(plan.date) }}</span>
-              <span class="today-workout__history-content">
-                {{ (plan.content ?? '').slice(0, 50) }}{{ (plan.content?.length ?? 0) > 50 ? '...' : '' }}
-              </span>
+              <span class="today-workout__history-content">{{ formatHistoryPreview(plan.exercises) }}</span>
             </div>
           </div>
         </section>
@@ -106,7 +167,7 @@
         <div class="today-workout__save-wrap">
           <button
             class="today-workout__save-btn"
-            :disabled="isSaving || !workoutContent.trim()"
+            :disabled="isSaving || exercises.every(e => !e.name.trim())"
             @click="handleSave"
           >
             {{ isSaving ? '저장 중...' : '저장' }}
@@ -124,11 +185,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useMembers } from '@/composables/useMembers'
 
 const router = useRouter()
+const route = useRoute()
 
 // ── 컴포저블 ──
 const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()
@@ -145,14 +207,18 @@ const {
 // ── 상태 ──
 const selectedMemberId = ref(null)
 const selectedDate = ref(new Date().toISOString().split('T')[0])
-const workoutContent = ref('')
+const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const saveSuccess = ref(false)
 const isSaving = ref(false)
 const historyLoading = ref(false)
 
 // ── 초기화 ──
-onMounted(() => {
-  fetchMembers()
+onMounted(async () => {
+  await fetchMembers()
+  if (route.query.memberId) {
+    if (route.query.date) selectedDate.value = route.query.date
+    await selectMember(route.query.memberId)
+  }
 })
 
 // ── 회원 선택 ──
@@ -160,7 +226,7 @@ async function selectMember(memberId) {
   if (selectedMemberId.value === memberId) return
   selectedMemberId.value = memberId
   saveSuccess.value = false
-  workoutContent.value = ''
+  exercises.value = [{ name: '', sets: 3, reps: 10, memo: '' }]
   await loadPlanAndHistory()
 }
 
@@ -169,7 +235,9 @@ async function onDateChange() {
   if (!selectedMemberId.value) return
   saveSuccess.value = false
   await fetchWorkoutPlan(selectedMemberId.value, selectedDate.value)
-  workoutContent.value = currentPlan.value?.content ?? ''
+  exercises.value = currentPlan.value?.exercises?.length
+    ? currentPlan.value.exercises.map(e => ({ ...e }))
+    : [{ name: '', sets: 3, reps: 10, memo: '' }]
 }
 
 // ── 날짜별 계획 + 전체 이력 로드 ──
@@ -177,26 +245,49 @@ async function loadPlanAndHistory() {
   if (!selectedMemberId.value) return
   historyLoading.value = true
   await fetchWorkoutPlan(selectedMemberId.value, selectedDate.value)
-  workoutContent.value = currentPlan.value?.content ?? ''
+  exercises.value = currentPlan.value?.exercises?.length
+    ? currentPlan.value.exercises.map(e => ({ ...e }))
+    : [{ name: '', sets: 3, reps: 10, memo: '' }]
   await fetchWorkoutPlans(selectedMemberId.value)
   historyLoading.value = false
 }
 
 // ── 저장 ──
 async function handleSave() {
-  if (!selectedMemberId.value || !workoutContent.value.trim() || isSaving.value) return
+  const validExercises = exercises.value.filter(e => e.name.trim())
+  if (!selectedMemberId.value || validExercises.length === 0 || isSaving.value) return
   isSaving.value = true
   saveSuccess.value = false
   const success = await saveWorkoutPlan(
     selectedMemberId.value,
     selectedDate.value,
-    workoutContent.value.trim()
+    validExercises
   )
   isSaving.value = false
   if (success) {
     saveSuccess.value = true
     await fetchWorkoutPlans(selectedMemberId.value)
   }
+}
+
+// ── 운동 항목 추가 ──
+function addExercise() {
+  if (exercises.value.length >= 20) return
+  exercises.value.push({ name: '', sets: 3, reps: 10, memo: '' })
+}
+
+// ── 운동 항목 제거 ──
+function removeExercise(index) {
+  if (exercises.value.length <= 1) return
+  exercises.value.splice(index, 1)
+}
+
+// ── 이력 미리보기 포맷 ──
+function formatHistoryPreview(exArr) {
+  if (!exArr || exArr.length === 0) return '운동 없음'
+  const names = exArr.slice(0, 2).map(e => e.name).filter(Boolean).join(', ')
+  if (!names) return '운동 없음'
+  return exArr.length > 2 ? `${names} 외 ${exArr.length - 2}개` : names
 }
 
 // ── 날짜 포맷 (YYYY-MM-DD → YYYY년 M월 D일) ──
