@@ -2,6 +2,26 @@
 <template>
   <div class="reservation">
 
+    <!-- ── 거절 확인 Dialog ── -->
+    <AppBottomSheet v-model="showRejectDialog" title="예약 거절">
+      <div class="reject-dialog">
+        <p class="reject-dialog__text">
+          <strong>{{ rejectTarget?.partner_name }}</strong> 님의 예약을 거절하시겠습니까?
+        </p>
+        <textarea
+          v-model="rejectReason"
+          class="reject-dialog__textarea"
+          placeholder="거절 사유를 입력해주세요 (선택)"
+          rows="3"
+          maxlength="200"
+        />
+        <div class="reject-dialog__actions">
+          <button class="reject-dialog__btn reject-dialog__btn--cancel" @click="showRejectDialog = false">취소</button>
+          <button class="reject-dialog__btn reject-dialog__btn--confirm" @click="confirmReject">거절</button>
+        </div>
+      </div>
+    </AppBottomSheet>
+
     <!-- ── Header ── -->
     <div class="reservation__header">
       <button class="reservation__back" @click="router.back()">
@@ -73,12 +93,10 @@
             <div class="res-card__top">
               <div class="res-card__profile">
                 <div class="res-card__avatar">
-                  <img src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
+                  <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
+                  <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
                 </div>
-                <div class="res-card__info">
-                  <span class="res-card__name">{{ item.partner_name }}</span>
-                  <span class="res-card__session">{{ item.session_type }}</span>
-                </div>
+                <span class="res-card__name">{{ item.partner_name }}</span>
               </div>
               <span class="res-card__status res-card__status--pending">대기중</span>
             </div>
@@ -97,7 +115,7 @@
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                   <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                {{ item.start_time }}
+                {{ item.start_time }} ~ {{ item.end_time }}
               </span>
             </div>
 
@@ -134,12 +152,10 @@
             <div class="res-card__top">
               <div class="res-card__profile">
                 <div class="res-card__avatar">
-                  <img src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
+                  <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
+                  <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
                 </div>
-                <div class="res-card__info">
-                  <span class="res-card__name">{{ item.partner_name }}</span>
-                  <span class="res-card__session">{{ item.session_type }}</span>
-                </div>
+                <span class="res-card__name">{{ item.partner_name }}</span>
               </div>
               <span class="res-card__status res-card__status--approved">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
@@ -163,20 +179,11 @@
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                   <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                {{ item.start_time }}
+                {{ item.start_time }} ~ {{ item.end_time }}
               </span>
             </div>
 
-            <div class="res-card__divider" />
 
-            <div class="res-card__footer">
-              <button class="res-card__detail" @click="handleComplete(item)">
-                완료
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
           </div>
         </div>
       </section>
@@ -203,9 +210,10 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
-const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
+const { reservations, loading, error, fetchMyReservations, updateReservationStatus, rejectReservation } = useReservations()
 const reservationsStore = useReservationsStore()
 const ptSessionsStore = usePtSessionsStore()
 
@@ -216,7 +224,7 @@ const filterChips = [
   { id: 'approved', label: '승인됨', icon: 'check' },
   { id: 'completed', label: '완료', icon: 'history' },
 ]
-const activeFilter = ref('pending')
+const activeFilter = ref('all')
 
 // ── Initialize ──
 onMounted(async () => {
@@ -253,13 +261,25 @@ const completedList = computed(() => {
 function handleFilter() {
 }
 
-async function handleReject(item) {
-  if (confirm(`${item.partner_name}님의 예약을 거절하시겠습니까?`)) {
-    const success = await updateReservationStatus(item.id, 'rejected')
-    if (success) {
-      reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
-    }
+const showRejectDialog = ref(false)
+const rejectTarget = ref(null)
+const rejectReason = ref('')
+
+function handleReject(item) {
+  rejectTarget.value = item
+  rejectReason.value = ''
+  showRejectDialog.value = true
+}
+
+async function confirmReject() {
+  if (!rejectTarget.value) return
+  const success = await rejectReservation(rejectTarget.value.id, rejectReason.value.trim())
+  showRejectDialog.value = false
+  rejectTarget.value = null
+  rejectReason.value = ''
+  if (success) {
+    reservationsStore.invalidate()
+    await fetchMyReservations('trainer')
   }
 }
 

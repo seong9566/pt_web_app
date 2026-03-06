@@ -217,6 +217,13 @@
   opacity: 0.5;
 }
 
+.res-card__avatar-img {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50%;
+  opacity: 1 !important;
+}
+
 .res-card__info {
   display: flex;
   flex-direction: column;
@@ -381,4 +388,78 @@
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
   margin: 8px 0 0;
+}
+
+/* ── Reject Dialog ── */
+.reject-dialog {
+  padding: 8px 0 0;
+}
+
+.reject-dialog__text {
+  font-size: var(--fs-body1);
+  color: var(--color-gray-900);
+  text-align: center;
+  margin: 0 0 24px;
+  line-height: var(--lh-body);
+}
+
+.reject-dialog__textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-family: inherit;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-100);
+  resize: none;
+  outline: none;
+  margin-bottom: 20px;
+  line-height: var(--lh-body);
+  box-sizing: border-box;
+}
+
+.reject-dialog__textarea:focus {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-white);
+}
+
+.reject-dialog__textarea::placeholder {
+  color: var(--color-gray-600);
+}
+
+.reject-dialog__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.reject-dialog__btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.reject-dialog__btn--cancel {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.reject-dialog__btn--cancel:active {
+  background-color: var(--color-gray-200);
+}
+
+.reject-dialog__btn--confirm {
+  background-color: var(--color-red);
+  color: var(--color-white);
+}
+
+.reject-dialog__btn--confirm:active {
+  opacity: 0.85;
 }

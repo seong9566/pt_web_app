@@ -127,7 +127,12 @@
           </template>
         </div>
         <!-- 예약 목록 -->
-        <div v-for="reservation in filteredReservations" :key="reservation.id" class="schedule-card">
+        <div
+          v-for="reservation in filteredReservations"
+          :key="reservation.id"
+          class="schedule-card"
+          :class="{ 'schedule-card--active': workoutMap[reservation.member_id] }"
+        >
           <div class="schedule-card__main">
             <div class="schedule-avatar">
               <img v-if="reservation.partner_photo" :src="reservation.partner_photo" alt="" class="schedule-avatar__img" />
@@ -138,11 +143,11 @@
               <p class="schedule-time">{{ reservation.start_time }} 수업 시작</p>
             </div>
           </div>
-          <div class="schedule-card__divider"></div>
-          <div class="schedule-card__desc">
-            <p class="desc-label">예약 상태</p>
-            <p class="desc-text">{{ reservation.status === 'pending' ? '승인 대기 중' : reservation.status === 'approved' ? '승인됨' : '완료됨' }}</p>
-          </div>
+          <template v-if="formatWorkoutSummary(workoutMap[reservation.member_id])">
+            <div class="schedule-card__divider" />
+            <p class="schedule-card__workout-label">오늘의 운동 요약</p>
+            <p class="schedule-card__workout-text">{{ formatWorkoutSummary(workoutMap[reservation.member_id]) }}</p>
+          </template>
         </div>
       </div>
     </section>
@@ -198,7 +203,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed, watch, onMounted, onActivated } from 'vue'
 
 defineOptions({ name: 'TrainerHomeView' })
 import { useRouter } from 'vue-router'
@@ -209,6 +214,7 @@ import { useReservations } from '@/composables/useReservations'
 import { useMembers } from '@/composables/useMembers'
 import { useChat } from '@/composables/useChat'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
@@ -219,6 +225,7 @@ const { reservations, loading: reservLoading, error: reservError, fetchMyReserva
 const { members, loading: membersLoading, error: membersError, fetchMembers } = useMembers()
 const { conversations, loading: chatLoading, error: chatError, fetchConversations } = useChat()
 const { fetchPendingRequests } = useTrainerSearch()
+const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 
 const pendingConnectionCount = ref(0)
 
@@ -252,13 +259,29 @@ const dateTabs = computed(() => {
 
 // 선택된 날짜의 예약
 const filteredReservations = computed(() => {
-  return reservations.value.filter(r => r.date === selectedDate.value)
+  return reservations.value.filter(r => r.date === selectedDate.value && r.status !== 'cancelled' && r.status !== 'rejected')
 })
+
+const workoutMap = computed(() => {
+  const map = {}
+  for (const plan of dayWorkoutPlans.value) {
+    map[plan.member_id] = plan.exercises
+  }
+  return map
+})
+
+function formatWorkoutSummary(exercises) {
+  if (!exercises || exercises.length === 0) return null
+  return exercises
+    .filter(e => e.name)
+    .map(e => `${e.name} ${e.sets}x${e.reps}`)
+    .join(', ')
+}
 
 // 오늘 예약 (통계용)
 const todaySessionCount = computed(() => {
   const today = getTodayDate()
-  return reservations.value.filter(r => r.date === today).length
+  return reservations.value.filter(r => r.date === today && r.status !== 'cancelled' && r.status !== 'rejected').length
 })
 
 // 승인 대기 중인 예약 수
@@ -297,6 +320,7 @@ async function loadData() {
     fetchPendingRequests(),
   ])
   pendingConnectionCount.value = (pending || []).length
+  await fetchDayWorkoutPlans(selectedDate.value)
   loaded.value = true
 }
 
@@ -306,6 +330,8 @@ async function handleRefresh() {
     membersStore.loadMembers(true),
   ])
 }
+
+watch(selectedDate, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
 
 onMounted(() => { if (!loaded.value) loadData() })
 onActivated(() => {

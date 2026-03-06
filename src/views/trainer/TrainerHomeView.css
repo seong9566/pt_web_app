@@ -261,6 +261,9 @@
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.schedule-card--active .schedule-card__main {
     margin-bottom: 16px;
 }
 
@@ -295,7 +298,21 @@
 .schedule-card__divider {
     height: 1px;
     background-color: var(--color-gray-100);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+}
+
+.schedule-card__workout-label {
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-body1-bold);
+    color: var(--color-gray-600);
+    margin: 0 0 4px;
+}
+
+.schedule-card__workout-text {
+    font-size: var(--fs-body2);
+    color: var(--color-gray-900);
+    line-height: var(--lh-body);
+    margin: 0;
 }
 
 .desc-label {
