@@ -89,6 +89,7 @@ create table if not exists public.reservations (
   end_time time not null,
   status public.reservation_status not null default 'pending',
   session_type text not null,
+  rejection_reason text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (trainer_id <> member_id),
