@@ -66,6 +66,7 @@ const router = createRouter({
       path: "/search",
       name: "trainer-search",
       component: () => import("@/views/trainer/TrainerSearchView.vue"),
+      meta: { hideNav: true },
     },
     {
       path: "/trainer/home",
@@ -81,11 +82,13 @@ const router = createRouter({
       path: '/trainer/reservations',
       name: 'trainer-reservations',
       component: () => import('@/views/trainer/ReservationManageView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/trainer/schedule/workout',
       name: 'trainer-today-workout',
       component: () => import('@/views/trainer/TodayWorkoutView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/trainer/members',
@@ -96,6 +99,7 @@ const router = createRouter({
       path: '/trainer/members/:id',
       name: 'trainer-member-detail',
       component: () => import('@/views/trainer/TrainerMemberDetailView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/trainer/members/:id/memo/write',
@@ -113,6 +117,7 @@ const router = createRouter({
       path: '/trainer/members/:id/payment',
       name: 'trainer-member-payment',
       component: () => import('@/views/trainer/MemberPaymentView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/trainer/members/:id/payment/write',
@@ -158,6 +163,12 @@ const router = createRouter({
       path: '/member/schedule',
       name: 'member-schedule',
       component: () => import('@/views/member/MemberScheduleView.vue'),
+    },
+    {
+      path: '/member/workout',
+      name: 'member-workout-detail',
+      component: () => import('@/views/member/MemberWorkoutDetailView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/member/memos',
@@ -208,11 +219,13 @@ const router = createRouter({
       path: "/invite/manage",
       name: "invite-manage",
       component: () => import("@/views/invite/InviteManageView.vue"),
+      meta: { hideNav: true },
     },
     {
       path: "/invite/enter",
       name: "invite-enter",
       component: () => import("@/views/invite/InviteEnterView.vue"),
+      meta: { hideNav: true },
     },
   ],
 });
