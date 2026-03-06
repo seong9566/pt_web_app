@@ -1,0 +1,30 @@
+DATA INTEGRITY VERIFICATION REPORT
+===================================
+Task: Expand manual_category enum from 4 to 6 values
+Date: 2026-03-06
+Project: ajafzzmojhtpczjvovmm
+
+SCENARIO 2: Data Integrity Check
+=================================
+Query: SELECT id, category FROM public.manuals WHERE category::text NOT IN ('재활', '근력', '다이어트', '스포츠', '코어', '유연성');
+
+Result:
+-------
+(0 rows)
+
+Status: ✅ PASS
+- No orphaned or invalid category values found
+- All existing manual records have valid enum values
+- Data migration successful: '스포츠퍼포먼스' → '스포츠' conversion completed
+- Database integrity maintained
+
+Migration Details:
+------------------
+1. Created new enum type: manual_category_new with 6 values
+2. Converted manuals.category column: enum → text (safe intermediate)
+3. Updated data: '스포츠퍼포먼스' → '스포츠' (0 rows affected, as expected)
+4. Converted column back: text → manual_category_new enum
+5. Dropped old enum type
+6. Renamed manual_category_new → manual_category
+
+Result: All steps completed successfully without data loss.

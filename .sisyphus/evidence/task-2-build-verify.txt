@@ -1,0 +1,15 @@
+11:import { useNotifications } from '@/composables/useNotifications'
+68:   * @param {Array} exercises - 운동 배열
+71:  function formatExerciseSummary(exercises) {
+72:    if (!exercises || exercises.length === 0) return '운동이 배정되었습니다'
+73:    const first = exercises[0].name
+74:    if (exercises.length === 1) return first
+75:    return `${first} 외 ${exercises.length - 1}개`
+82:   * @param {Array} exercises - 운동 배열
+84:  async function saveWorkoutPlan(memberId, date, exercises) {
+95:            exercises,
+103:      const { createNotification } = useNotifications()
+104:      await createNotification(
+108:        formatExerciseSummary(exercises),
+BUILD: SUCCESS (exit 0)
+content field: REMOVED

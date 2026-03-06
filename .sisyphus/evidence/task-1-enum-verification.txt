@@ -1,0 +1,24 @@
+ENUM VERIFICATION REPORT
+========================
+Task: Expand manual_category enum from 4 to 6 values
+Date: 2026-03-06
+Project: ajafzzmojhtpczjvovmm
+
+SCENARIO 1: Enum Values Verification
+=====================================
+Query: SELECT unnest(enum_range(NULL::manual_category)) as category_value;
+
+Result:
+-------
+재활
+근력
+다이어트
+스포츠
+코어
+유연성
+
+Status: ✅ PASS
+- Total values: 6 (expected: 6)
+- Old value '스포츠퍼포먼스' successfully removed
+- New values '스포츠', '코어', '유연성' successfully added
+- All values in correct order

@@ -1,0 +1,34 @@
+Task 12 — Member 탭 뷰 3개 onActivated stale-check 전환
+Date: 2026-03-06
+
+## Changes Made
+
+### src/stores/ptSessions.js
+- Added `_dirty` to return statement so MemberSettingsView can access ptSessionsStore._dirty
+
+### src/views/member/MemberHomeView.vue
+- Added: import { useReservationsStore } from '@/stores/reservations'
+- Added: const reservationsStore = useReservationsStore()
+- Changed: onActivated(() => { if (loaded.value) loadData() })
+- To:      onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
+
+### src/views/member/MemberScheduleView.vue
+- Added: import { useReservationsStore } from '@/stores/reservations'
+- Added: const reservationsStore = useReservationsStore()
+- Changed: onActivated(() => { if (loaded.value) loadData() })
+- To:      onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
+
+### src/views/member/MemberSettingsView.vue
+- Added: import { usePtSessionsStore } from '@/stores/ptSessions'
+- Added: const ptSessionsStore = usePtSessionsStore()
+- Changed: onActivated(() => { if (loaded.value) loadData() })
+- To:      onActivated(() => { if (loaded.value && ptSessionsStore._dirty) loadData() })
+
+## Test Results
+npm test: 66/66 passed (14 test files)
+npm run build: exit code 0, 197 modules transformed
+
+## Pattern Summary
+- MemberHomeView + MemberScheduleView: use reservationsStore.isStale() (public API)
+- MemberSettingsView: use ptSessionsStore._dirty (no public isStale on ptSessions store)
+- ptSessions store: _dirty exposed in return so views can read dirty flag

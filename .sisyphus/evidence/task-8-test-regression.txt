@@ -1,0 +1,79 @@
+
+> pt-web-app@1.0.0 test
+> vitest run --reporter=verbose
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app[39m
+
+ [32m✓[39m src/composables/__tests__/useInvite.test.js[2m > [22museInvite[2m > [22mfetchInviteCode는 inviteCode.value에 데이터를 저장한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useInvite.test.js[2m > [22museInvite[2m > [22mgenerateInviteCode는 inviteCode.value가 이미 있으면 insert를 호출하지 않는다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useInvite.test.js[2m > [22museInvite[2m > [22mgenerateInviteCode는 UNIQUE 위반(23505) 시 재시도하여 두 번째 시도에서 성공한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useInvite.test.js[2m > [22museInvite[2m > [22mredeemInviteCode는 connect_via_invite RPC를 호출한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useInvite.test.js[2m > [22museInvite[2m > [22mredeemInviteCode RPC 오류 시 null을 반환하고 error를 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22mfetchHolidays는 holidays.value에 날짜 문자열 배열을 저장한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22mfetchHolidays에 month를 전달하면 gte와 lte 필터를 적용한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22msetHoliday 성공 시 holidays.value에 날짜를 추가하고 정렬한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22msetHoliday는 이미 존재하는 날짜를 중복 추가하지 않는다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22mremoveHoliday 성공 시 holidays.value에서 해당 날짜를 제거한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js[2m > [22museHolidays[2m > [22misHoliday는 holidays.value에 포함된 날짜에 true를 반환한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkHours.test.js[2m > [22museWorkHours[2m > [22mfetchWorkHours DB 데이터 없으면 기본값(7요일 모두 disabled, 09:00-18:00)을 설정한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkHours.test.js[2m > [22museWorkHours[2m > [22mfetchWorkHours DB 데이터 있으면 selectedUnit을 slot_duration_minutes로 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkHours.test.js[2m > [22museWorkHours[2m > [22msaveWorkHours는 DAY_ID_TO_NUM 변환 후 upsert를 호출하고 true를 반환한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js[2m > [22museTrainerSearch[2m > [22msearchTrainers는 active 연결 트레이너에 connected=true를 설정한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js[2m > [22museTrainerSearch[2m > [22msearchTrainers는 pending 연결 트레이너에 pending=true를 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js[2m > [22museTrainerSearch[2m > [22mrequestConnection은 trainer_members에 status=pending으로 insert한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js[2m > [22museTrainerSearch[2m > [22mapproveConnection은 status를 active로 update하고 pending 조건을 포함한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js[2m > [22museTrainerSearch[2m > [22mrejectConnection은 pending 조건으로 delete한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js[2m > [22museWorkoutPlans[2m > [22mfetchWorkoutPlan은 member_id와 date로 필터링하여 currentPlan을 설정한다[32m 3[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js[2m > [22museWorkoutPlans[2m > [22mfetchWorkoutPlan 결과가 없으면 currentPlan이 null이다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js[2m > [22museWorkoutPlans[2m > [22msaveWorkoutPlan은 upsert를 호출하고 성공 시 true를 반환한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js[2m > [22museWorkoutPlans[2m > [22msaveWorkoutPlan DB 오류 시 false를 반환하고 error를 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js[2m > [22museWorkoutPlans[2m > [22mdeleteWorkoutPlan 성공 시 로컬 workoutPlans 배열에서 해당 id를 제거한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js[2m > [22museMemos[2m > [22mfetchMemos는 trainer_id와 member_id로 필터링하여 메모 목록을 조회한다[32m 3[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js[2m > [22museMemos[2m > [22mcreateMemo는 insert를 호출하고 성공 시 true를 반환한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js[2m > [22museMemos[2m > [22mcreateMemo DB 오류 시 false를 반환하고 error를 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js[2m > [22museMemos[2m > [22mdeleteMemo 성공 시 로컬 memos 배열에서 해당 id를 제거한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js[2m > [22museMemos[2m > [22mgetMemberMemos는 member_id만으로 필터링하여 조회한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22m금액이 0이면 createPayment가 실패하고 에러를 설정한다[32m 3[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22m금액이 음수이면 createPayment가 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22m금액이 0이면 updatePayment도 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22m유효한 금액으로 createPayment 시 insert 후 목록을 다시 조회한다[32m 3[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22mdeletePayment 성공 시 로컬 목록에서 해당 항목을 제거한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22mdeletePayment DB 오류 시 false를 반환하고 에러를 설정한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22mtotalAmount는 payments 배열의 amount 합계를 반환한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js[2m > [22musePayments[2m > [22mpayments가 비어있으면 totalAmount는 0이다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22mmediaFiles가 11개이면 createManual이 실패하고 에러를 설정한다[32m 3[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22m잘못된 YouTube URL이면 createManual이 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22m올바른 youtube.com URL은 검증을 통과한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22m올바른 youtu.be URL도 검증을 통과한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22mupdateManual에 잘못된 youtube_url이 있으면 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22mdeleteManual 성공 시 로컬 manuals 배열에서 해당 id를 제거한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22muploadManualMedia는 영상 500MB 초과 시 에러를 throw한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js[2m > [22museManuals[2m > [22muploadManualMedia는 사진 10MB 초과 시 에러를 throw한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js[2m > [22museMembers[2m > [22mPT 잔여 횟수가 있으면 dotStatus가 active이고 group이 active이다[32m 20[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js[2m > [22museMembers[2m > [22mPT 잔여 횟수가 0이면 dotStatus가 inactive이고 group이 ended이다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js[2m > [22museMembers[2m > [22mremaining/totalAdded >= 0.5이면 barColor가 blue이다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js[2m > [22museMembers[2m > [22m0.2 <= remaining/totalAdded < 0.5이면 barColor가 orange이다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js[2m > [22museMembers[2m > [22mPT 데이터가 없는 회원은 barColor가 gray이고 group이 ended이다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useNotifications.test.js[2m > [22museNotifications[2m > [22m알림 조회 시 7일 이내 필터를 적용하고 미읽은 수를 계산한다[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useNotifications.test.js[2m > [22museNotifications[2m > [22m알림 생성 시 전달된 payload로 insert한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useNotifications.test.js[2m > [22museNotifications[2m > [22m개별 읽음 처리 후 로컬 unreadCount를 갱신한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useChat.test.js[2m > [22museChat[2m > [22m메시지를 상대방별로 그룹핑하고 안읽은 개수를 계산한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useChat.test.js[2m > [22museChat[2m > [22m메시지 전송 시 messages 테이블에 insert하고 결과를 반환한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useChat.test.js[2m > [22museChat[2m > [22m읽음 처리 시 상대방이 보낸 미읽은 메시지만 update한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/__tests__/example.test.js[2m > [22mSupabase Mock[2m > [22mshould mock supabase.from() method[32m 1[2mms[22m[39m
+ [32m✓[39m src/__tests__/example.test.js[2m > [22mSupabase Mock[2m > [22mshould mock supabase.auth.getSession()[32m 0[2mms[22m[39m
+ [32m✓[39m src/__tests__/example.test.js[2m > [22mSupabase Mock[2m > [22mshould verify mock was called[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js[2m > [22musePtSessions[2m > [22m잔여 횟수보다 많이 차감하려고 하면 실패한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js[2m > [22musePtSessions[2m > [22m차감 횟수가 0 이하이면 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js[2m > [22musePtSessions[2m > [22m추가 횟수가 0 이하이면 실패한다[32m 0[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js[2m > [22musePtSessions[2m > [22m유효한 횟수 추가 시 insert 후 히스토리를 다시 조회한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js[2m > [22museReservations[2m > [22mPT 잔여 횟수가 0이면 checkPtCount가 0을 반환한다[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js[2m > [22museReservations[2m > [22m근무시간과 기존 예약을 기반으로 슬롯 상태를 계산한다[32m 1[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js[2m > [22museReservations[2m > [22m휴일이면 예약 가능한 슬롯을 비운다[32m 0[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m66 passed[39m[22m[90m (66)[39m
+[2m   Start at [22m 09:52:53
+[2m   Duration [22m 1.42s[2m (transform 895ms, setup 271ms, import 2.01s, tests 97ms, environment 7.88s)[22m
+

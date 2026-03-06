@@ -1,0 +1,15 @@
+Task 14 regression evidence (2026-03-06)
+
+LSP diagnostics (changed files):
+- src/views/trainer/ReservationManageView.vue: clean
+- src/views/member/MemberReservationView.vue: clean
+- src/views/trainer/PtCountManageView.vue: clean
+- src/views/trainer/TrainerMemberView.vue: clean
+
+Test result:
+- Test Files: 14 passed
+- Tests: 66 passed
+
+Build result:
+- npm run build exit code: 0
+- vite: built in 1.10s

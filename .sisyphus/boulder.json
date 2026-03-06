@@ -1,10 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/prd-full-completion.md",
-  "started_at": "2026-03-05T00:23:02.054Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/manual-feature-gaps.md",
+  "started_at": "2026-03-06T06:30:44.518Z",
   "session_ids": [
-    "ses_344e45c92ffepQ1KWHRIfxxBvH"
+    "ses_33f92e282ffeDZpWgKk9CRKamW"
   ],
-  "plan_name": "prd-full-completion",
+  "plan_name": "manual-feature-gaps",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas"
 }

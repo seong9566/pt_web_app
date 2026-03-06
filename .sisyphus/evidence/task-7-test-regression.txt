@@ -1,0 +1,10 @@
+npm test
+- Result: FAILED
+- Totals: 66 tests executed, 62 passed, 4 failed
+- Failed file: src/composables/__tests__/usePtSessions.test.js
+- Failure reason (all 4): [🍍] getActivePinia() called without active Pinia at src/composables/usePtSessions.js:16
+
+npm run build
+- Result: PASSED
+- Exit code: 0
+- Build completed successfully with Vite (dist output generated)

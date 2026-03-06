@@ -1,0 +1,23 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app[39m
+
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useManuals.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useChat.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkHours.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useNotifications.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/example.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useInvite.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m66 passed[39m[22m[90m (66)[39m
+[2m   Start at [22m 09:51:24
+[2m   Duration [22m 1.49s[2m (transform 823ms, setup 260ms, import 1.90s, tests 93ms, environment 8.65s)[22m
+

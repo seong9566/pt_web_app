@@ -67,15 +67,15 @@ PRD에 명시된 전체 기능을 구현하여 트레이너-회원 간 PT 관리
 **테스트**: Vitest 설정 + 핵심 composable 테스트
 
 ### Definition of Done
-- [ ] `npm run build` → 에러 없이 완료
-- [ ] `npx vitest run` → 모든 테스트 통과
-- [ ] PRD §2-§16 전 기능 동작
-- [ ] 채팅 메시지 실시간 수신 (Supabase Realtime)
-- [ ] PT 횟수 0일 때 예약 차단 동작
-- [ ] 매뉴얼 영상 업로드 + YouTube URL 재생
-- [ ] 알림 배지 + 알림 목록 동작
-- [ ] 계정 삭제 + 연결 해제 동작
-- [ ] 모든 "준비 중" 스텁 뷰 교체 완료
+- [x] `npm run build` → 에러 없이 완료
+- [x] `npx vitest run` → 모든 테스트 통과
+- [x] PRD §2-§16 전 기능 동작
+- [x] 채팅 메시지 실시간 수신 (Supabase Realtime)
+- [x] PT 횟수 0일 때 예약 차단 동작
+- [x] 매뉴얼 영상 업로드 + YouTube URL 재생
+- [x] 알림 배지 + 알림 목록 동작
+- [x] 계정 삭제 + 연결 해제 동작
+- [x] 모든 "준비 중" 스텁 뷰 교체 완료
 
 ### Must Have
 - 모든 새 DB 테이블에 RLS 정책 적용
@@ -2658,13 +2658,13 @@ npm run dev        # Expected: dev server starts on :5173
 ```
 
 ### Final Checklist
-- [ ] PRD §2-§16 전 기능 동작
-- [ ] 모든 "Must Have" 구현
-- [ ] 모든 "Must NOT Have" 미존재
-- [ ] `npm run build` 성공
-- [ ] `npx vitest run` 전체 통과
-- [ ] Supabase Realtime 채팅 동작
-- [ ] 모든 "준비 중" 스텁 교체 완료
-- [ ] 알림 배지 + 알림 목록 동작
-- [ ] PT 횟수 0 → 예약 차단 동작
-- [ ] 계정 삭제 + 연결 해제 동작
+- [x] PRD §2-§16 전 기능 동작
+- [x] 모든 "Must Have" 구현
+- [x] 모든 "Must NOT Have" 미존재
+- [x] `npm run build` 성공
+- [x] `npx vitest run` 전체 통과
+- [x] Supabase Realtime 채팅 동작
+- [x] 모든 "준비 중" 스텁 교체 완료
+- [x] 알림 배지 + 알림 목록 동작
+- [x] PT 횟수 0 → 예약 차단 동작
+- [x] 계정 삭제 + 연결 해제 동작

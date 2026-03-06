@@ -1,0 +1,10 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app[39m
+
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 13:55:13
+[2m   Duration [22m 372ms[2m (transform 38ms, setup 18ms, import 63ms, tests 6ms, environment 189ms)[22m
+

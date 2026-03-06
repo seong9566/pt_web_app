@@ -1,0 +1,14 @@
+dist/assets/TrainerMemberDetailView-B1oAtio9.js    10.93 kB │ gzip:  3.29 kB
+dist/assets/SettingsView-Dhdbc6TS.js               11.70 kB │ gzip:  3.74 kB
+dist/assets/TrainerScheduleView-B1mjqQbc.js        12.34 kB │ gzip:  4.25 kB
+dist/assets/index-B3MU7bdf.js                     309.96 kB │ gzip: 97.53 kB
+✓ built in 1.09s
+
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m66 passed[39m[22m[90m (66)[39m
+[2m   Start at [22m 10:05:09
+[2m   Duration [22m 1.51s[2m (transform 820ms, setup 248ms, import 2.09s, tests 95ms, environment 8.22s)[22m
+

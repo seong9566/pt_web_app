@@ -1,0 +1,83 @@
+================================================================================
+DB SCHEMA MIGRATION: workout_plans.content TEXT → exercises JSONB
+Project: ajafzzmojhtpczjvovmm (FitLink)
+Date: 2026-03-06
+================================================================================
+
+MIGRATION APPLIED
+================================================================================
+Migration Name: migrate_workout_plans_to_exercises
+SQL:
+  ALTER TABLE public.workout_plans
+    DROP COLUMN content,
+    ADD COLUMN exercises jsonb NOT NULL DEFAULT '[]'::jsonb;
+Status: ✅ SUCCESS
+
+================================================================================
+QA VALIDATION RESULTS
+================================================================================
+
+SCENARIO 1: exercises 컬럼 존재 확인
+─────────────────────────────────────────────────────────────────────────────
+Query: SELECT column_name, data_type FROM information_schema.columns 
+       WHERE table_name = 'workout_plans' AND column_name = 'exercises';
+Result: [{"column_name":"exercises","data_type":"jsonb"}]
+Assert: ✅ PASS - exercises 컬럼 존재, data_type = 'jsonb'
+
+Query: SELECT column_name FROM information_schema.columns 
+       WHERE table_name = 'workout_plans' AND column_name = 'content';
+Result: []
+Assert: ✅ PASS - content 컬럼 삭제됨 (0행)
+
+─────────────────────────────────────────────────────────────────────────────
+
+SCENARIO 2: 제약조건 보존 확인
+─────────────────────────────────────────────────────────────────────────────
+Query: SELECT constraint_name FROM information_schema.table_constraints 
+       WHERE table_name = 'workout_plans' AND constraint_type = 'UNIQUE';
+Result: [{"constraint_name":"workout_plans_trainer_id_member_id_date_key"}]
+Assert: ✅ PASS - UNIQUE 제약조건 보존됨
+
+Query: SELECT indexname FROM pg_indexes WHERE tablename = 'workout_plans';
+Result: [
+  {"indexname":"workout_plans_pkey"},
+  {"indexname":"workout_plans_trainer_id_member_id_date_key"},
+  {"indexname":"idx_workout_plans_member_date"}
+]
+Assert: ✅ PASS - idx_workout_plans_member_date 인덱스 존재
+
+─────────────────────────────────────────────────────────────────────────────
+
+SCENARIO 3: JSONB INSERT 테스트
+─────────────────────────────────────────────────────────────────────────────
+Query: DO $$ ... INSERT INTO workout_plans ... VALUES (..., '[{"name":"test",...}]'::jsonb);
+Status: ✅ PASS - JSONB INSERT/DELETE 성공
+
+─────────────────────────────────────────────────────────────────────────────
+
+SCHEMA.SQL UPDATE
+================================================================================
+File: supabase/schema.sql (lines 711-721)
+Change: content text not null → exercises jsonb not null default '[]'::jsonb
+Status: ✅ UPDATED
+
+Before:
+  content text not null,
+
+After:
+  exercises jsonb not null default '[]'::jsonb,
+
+================================================================================
+SUMMARY
+================================================================================
+✅ Migration applied successfully
+✅ exercises JSONB column created with correct default
+✅ content TEXT column removed
+✅ UNIQUE constraint (trainer_id, member_id, date) preserved
+✅ idx_workout_plans_member_date index preserved
+✅ RLS policies preserved (no changes made)
+✅ JSONB INSERT/DELETE operations working
+✅ schema.sql file updated
+
+All requirements met. Task complete.
+================================================================================
