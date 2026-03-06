@@ -66,9 +66,10 @@
                 'cal-cell__num--selected': isSelected(cell.date),
                 'cal-cell__num--sun': cell.isSun,
                 'cal-cell__num--sat': cell.isSat,
+                'cal-cell__num--off': isNonWorkingDay(cell.date),
               }"
             >{{ cell.date }}</span>
-            <div v-if="getDots(cell.date).length" class="cal-cell__dots">
+            <div class="cal-cell__dots">
               <span
                 v-for="(dot, i) in getDots(cell.date)"
                 :key="i"
@@ -128,7 +129,7 @@
           >{{ day.date }}</span>
           <span v-if="day.dots.length" class="weekly-days__dot-row">
             <span
-              v-for="(d, i) in day.dots.slice(0, 2)"
+              v-for="(d, i) in day.dots.slice(0, 3)"
               :key="i"
               class="weekly-days__dot"
               :class="`weekly-days__dot--${d}`"
@@ -214,13 +215,21 @@
         :key="session.id"
         class="scard"
         :class="`scard--${session.status}`"
+        @click="session.status === 'approved' && goWorkout(session)"
+        :style="session.status === 'approved' ? 'cursor: pointer;' : ''"
       >
         <div class="scard__border" />
         <div class="scard__body">
           <div class="scard__top">
-            <h3 class="scard__title">{{ session.title }}</h3>
+            <div class="scard__profile">
+              <div class="scard__avatar">
+                <img v-if="session.photo" :src="session.photo" :alt="session.name" width="32" height="32" />
+                <img v-else src="@/assets/icons/person.svg" :alt="session.name" width="20" height="20" />
+              </div>
+              <h3 class="scard__title">{{ session.title }}</h3>
+            </div>
             <span class="scard__badge" :class="`scard__badge--${session.status === 'completed' ? 'done' : session.status}`">
-              {{ session.status === 'pending' ? '대기중' : session.status === 'approved' ? '승인됨' : '완료' }}
+              {{ session.status === 'approved' ? '승인됨' : '완료' }}
             </span>
           </div>
           <div class="scard__time" :class="{ 'scard__time--approved': session.status === 'approved' }">
@@ -229,12 +238,6 @@
               <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             {{ session.time }}
-          </div>
-          <div class="scard__user">
-            <div class="scard__avatar">
-              <img src="@/assets/icons/person.svg" :alt="session.name" width="20" height="20" />
-            </div>
-            <span class="scard__name">{{ session.name }}</span>
           </div>
         </div>
       </div>
@@ -253,6 +256,7 @@ defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useHolidays } from '@/composables/useHolidays'
+import { useWorkHours } from '@/composables/useWorkHours'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
@@ -262,12 +266,15 @@ const auth = useAuthStore()
 const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
+const { fetchWorkingDays } = useWorkHours()
 
 const loaded = ref(false)
+const workingDays = ref(new Set())
 
 async function loadData() {
   await fetchMyReservations('trainer')
   await fetchHolidays(auth.user?.id)
+  workingDays.value = await fetchWorkingDays(auth.user?.id)
   loaded.value = true
 }
 
@@ -320,19 +327,28 @@ const legend = [
 ]
 
 // ── Compute dots from real reservations ──
+// dotsData 키: "YYYY-MM-DD", 값: dot CSS 클래스 배열 (completed → done 변환)
+const STATUS_TO_DOT = { pending: 'pending', approved: 'approved', completed: 'done', cancelled: 'cancelled' }
+
 const dotsData = computed(() => {
   const dots = {}
   reservations.value.forEach((res) => {
     if (!dots[res.date]) {
       dots[res.date] = []
     }
-    dots[res.date].push(res.status)
+    dots[res.date].push(STATUS_TO_DOT[res.status] || res.status)
   })
-  return dots
+  const result = {}
+  for (const [date, statusArray] of Object.entries(dots)) {
+    result[date] = statusArray.slice(0, 3)
+  }
+  return result
 })
 
+// date: day number (1-31) → full date string으로 변환하여 dotsData 조회
 function getDots(date) {
-  return dotsData.value[date] || []
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+  return dotsData.value[dateStr] || []
 }
 
 function isSelected(date) {
@@ -343,10 +359,16 @@ function selectDate(date) {
   selectedDate.value = date
 }
 
-// ── Holiday helpers ──
+// ── Holiday / 비근무일 helpers ──
 function isHolidayCell(date) {
   const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
   return isHoliday(dateStr)
+}
+
+function isNonWorkingDay(date) {
+  if (workingDays.value.size === 0) return false
+  const dow = new Date(currentYear.value, currentMonth.value - 1, date).getDay()
+  return !workingDays.value.has(dow)
 }
 
 const selectedDateStr = computed(() => {
@@ -410,14 +432,17 @@ const selectedDateLabel = computed(() => {
 
 // ── Filter reservations by selected date ──
 const sessions = computed(() => {
-  const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
-  return reservations.value.filter((res) => res.date === selectedDateStr).map((res) => ({
-    id: res.id,
-    title: res.session_type || '운동 세션',
-    time: `${res.start_time} - ${res.end_time}`,
-    name: res.partner_name,
-    status: res.status,
-  }))
+  return reservations.value
+    .filter((res) => res.date === selectedDateStr.value && (res.status === 'approved' || res.status === 'completed'))
+    .map((res) => ({
+      id: res.id,
+      title: res.partner_name,
+      time: `${res.start_time} - ${res.end_time}`,
+      name: res.partner_name,
+      photo: res.partner_photo,
+      status: res.status,
+      member_id: res.member_id,
+    }))
 })
 
 // ── Weekly state ──
@@ -436,7 +461,7 @@ const weekDays = computed(() => {
     const dateNum = d.getDate()
     const m = d.getMonth() + 1
     const y = d.getFullYear()
-    const fullDate = `${y}-${m}-${dateNum}`
+    const fullDate = `${y}-${String(m).padStart(2, '0')}-${String(dateNum).padStart(2, '0')}`
     return {
       key: fullDate,
       fullDate,
@@ -518,8 +543,11 @@ function handleAdd() {
   router.push({ name: 'trainer-reservations' })
 }
 
-function goWorkout(memberName) {
-  router.push({ name: 'trainer-today-workout', query: { member: memberName } })
+function goWorkout(session) {
+  router.push({
+    name: 'trainer-today-workout',
+    query: { memberId: session.member_id, date: selectedDateStr.value }
+  })
 }
 </script>
 

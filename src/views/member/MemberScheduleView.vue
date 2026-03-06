@@ -46,9 +46,10 @@
                 'cal-cell__num--selected': isSelected(cell.date),
                 'cal-cell__num--sun': cell.isSun,
                 'cal-cell__num--sat': cell.isSat,
+                'cal-cell__num--off': isNonWorkingDay(cell.date),
               }"
             >{{ cell.date }}</span>
-            <div v-if="getDots(cell.date).length" class="cal-cell__dots">
+            <div class="cal-cell__dots">
               <span
                 v-for="(dot, i) in getDots(cell.date)"
                 :key="i"
@@ -82,6 +83,8 @@
         :key="session.id"
         class="scard"
         :class="`scard--${session.status}`"
+        @click="(session.status === 'approved' || session.status === 'completed') && goWorkoutDetail(session)"
+        :style="(session.status === 'approved' || session.status === 'completed') ? 'cursor: pointer;' : ''"
       >
         <div class="scard__border" />
         <div class="scard__body">
@@ -149,12 +152,14 @@ import { ref, computed, onMounted, onActivated } from 'vue'
 defineOptions({ name: 'MemberScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
+import { useWorkHours } from '@/composables/useWorkHours'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
 const router = useRouter()
 const reservationsStore = useReservationsStore()
-const { reservations, loading, error, fetchMyReservations, updateReservationStatus } = useReservations()
+const { reservations, loading, error, fetchMyReservations, updateReservationStatus, getConnectedTrainerId } = useReservations()
+const { fetchWorkingDays } = useWorkHours()
 
 // ── Calendar state ──
 const now = new Date()
@@ -180,9 +185,14 @@ const legend = [
 ]
 
 const loaded = ref(false)
+const workingDays = ref(new Set())
 
 async function loadData() {
   await fetchMyReservations('member')
+  const trainerId = await getConnectedTrainerId()
+  if (trainerId) {
+    workingDays.value = await fetchWorkingDays(trainerId)
+  }
   loaded.value = true
 }
 
@@ -194,19 +204,34 @@ onMounted(() => { if (!loaded.value) loadData() })
 onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
 
 // ── Compute dots from real reservations ──
+// dotsData 키: "YYYY-MM-DD", 값: dot CSS 클래스 배열 (completed → done 변환)
+const STATUS_TO_DOT = { pending: 'pending', approved: 'approved', completed: 'done', cancelled: 'cancelled' }
+
 const dotsData = computed(() => {
   const dots = {}
   reservations.value.forEach((res) => {
     if (!dots[res.date]) {
-      dots[res.date] = []
+      dots[res.date] = new Set()
     }
-    dots[res.date].push(res.status)
+    dots[res.date].add(STATUS_TO_DOT[res.status] || res.status)
   })
-  return dots
+  const result = {}
+  for (const [date, statusSet] of Object.entries(dots)) {
+    result[date] = [...statusSet].slice(0, 4)
+  }
+  return result
 })
 
+// date: day number (1-31) → full date string으로 변환하여 dotsData 조회
 function getDots(date) {
-  return dotsData.value[date] || []
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+  return dotsData.value[dateStr] || []
+}
+
+function isNonWorkingDay(date) {
+  if (workingDays.value.size === 0) return false
+  const dow = new Date(currentYear.value, currentMonth.value - 1, date).getDay()
+  return !workingDays.value.has(dow)
 }
 
 function isSelected(date) {
@@ -275,7 +300,7 @@ const selectedDaySessions = computed(() => {
 })
 
 function statusLabel(status) {
-  const map = { pending: '대기중', approved: '승인됨', done: '완료', cancelled: '취소됨' }
+  const map = { pending: '대기중', approved: '승인됨', completed: '완료', done: '완료', cancelled: '취소됨' }
   return map[status] || status
 }
 
@@ -284,6 +309,11 @@ function statusLabel(status) {
 // ── 핸들러 ──
 function handleReserve() {
   router.push('/member/reservation')
+}
+
+function goWorkoutDetail(session) {
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
+  router.push({ name: 'member-workout-detail', query: { date: dateStr } })
 }
 
 async function handleCancel(session) {

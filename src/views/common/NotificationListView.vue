@@ -97,7 +97,7 @@ function navigateByTarget(targetType) {
   const navMap = {
     reservation: isTrainer ? '/trainer/reservations' : '/member/schedule',
     message: isTrainer ? '/trainer/chat' : '/member/chat',
-    workout: isTrainer ? '/trainer/schedule/workout' : '/home',
+    workout: isTrainer ? '/trainer/schedule/workout' : '/member/workout',
     connection: isTrainer ? '/trainer/members' : '/search',
   }
   const path = navMap[targetType]

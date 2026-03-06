@@ -141,8 +141,8 @@
         </div>
 
         <!-- 운동 계획 있음 -->
-        <div v-else class="member-home__workout-card">
-          <p class="member-home__workout-content">{{ currentPlan.content?.slice(0, 100) }}{{ (currentPlan.content?.length ?? 0) > 100 ? '...' : '' }}</p>
+        <div v-else class="member-home__workout-card" @click="goWorkoutDetail" style="cursor: pointer;">
+          <p class="member-home__workout-content">{{ workoutPreview }}</p>
         </div>
       </section>
 
@@ -318,8 +318,19 @@ const circleOffset = computed(() =>
   circumference * (1 - weekGoal.value.pct / 100)
 )
 
+const workoutPreview = computed(() => {
+  const ex = currentPlan.value?.exercises
+  if (!ex || ex.length === 0) return ''
+  const names = ex.slice(0, 2).map(e => e.name).join(', ')
+  return ex.length > 2 ? `${names} 외 ${ex.length - 2}개` : names
+})
+
 function handleNotification() { router.push({ name: 'notifications' }) }
 function handleSeeAll()       { router.push({ name: 'member-schedule' }) }
+function goWorkoutDetail() {
+  const today = new Date().toISOString().split('T')[0]
+  router.push({ name: 'member-workout-detail', query: { date: today } })
+}
 </script>
 
 <style src="./MemberHomeView.css" scoped></style>
