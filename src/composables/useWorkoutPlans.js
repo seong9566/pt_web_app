@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useNotifications } from '@/composables/useNotifications'
 
 export function useWorkoutPlans() {
   const auth = useAuthStore()
@@ -63,28 +64,51 @@ export function useWorkoutPlans() {
   }
 
   /**
+   * 운동 목록 요약 문자열 생성 (알림 body용)
+   * @param {Array} exercises - 운동 배열
+   * @returns {string}
+   */
+  function formatExerciseSummary(exercises) {
+    if (!exercises || exercises.length === 0) return '운동이 배정되었습니다'
+    const first = exercises[0].name
+    if (exercises.length === 1) return first
+    return `${first} 외 ${exercises.length - 1}개`
+  }
+
+  /**
    * 운동 계획 생성/수정 (UPSERT)
    * @param {string} memberId - 회원 ID
    * @param {string} date - 날짜 (YYYY-MM-DD)
-   * @param {string} content - 운동 내용
+   * @param {Array} exercises - 운동 배열
    */
-  async function saveWorkoutPlan(memberId, date, content) {
+  async function saveWorkoutPlan(memberId, date, exercises) {
     loading.value = true
     error.value = null
     try {
-      const { error: err } = await supabase
+      const { data, error: err } = await supabase
         .from('workout_plans')
         .upsert(
           {
             trainer_id: auth.user.id,
             member_id: memberId,
             date,
-            content,
+            exercises,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'trainer_id,member_id,date' }
         )
+        .select('id')
+        .single()
       if (err) throw err
+      const { createNotification } = useNotifications()
+      await createNotification(
+        memberId,
+        'workout_assigned',
+        '오늘의 운동이 배정되었습니다',
+        formatExerciseSummary(exercises),
+        data.id,
+        'workout'
+      )
       await fetchWorkoutPlan(memberId, date)
       return true
     } catch (e) {
