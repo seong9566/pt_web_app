@@ -2,7 +2,7 @@
   <div id="container">
     <router-view v-slot="{ Component, route: currentRoute }">
       <keep-alive :include="keepAliveViews">
-        <component :is="Component" :key="currentRoute.fullPath" />
+        <component :is="Component" :key="keepAliveKey(currentRoute)" />
       </keep-alive>
     </router-view>
     <template v-if="!route.meta.hideNav && auth.role">
@@ -21,6 +21,26 @@ import { useAuthStore } from '@/stores/auth'
 const route = useRoute()
 const auth = useAuthStore()
 
-/** keep-alive 대상 뷰 이름 목록 (뒤로가기 시 재로딩 방지) */
-const keepAliveViews = ['TrainerMemberDetailView']
+const keepAliveViews = [
+  'TrainerHomeView',
+  'TrainerScheduleView',
+  'TrainerMemberView',
+  'TrainerMemberDetailView',
+  'MemberHomeView',
+  'MemberScheduleView',
+  'MemberSettingsView',
+]
+
+const tabPaths = new Set([
+  '/trainer/home',
+  '/trainer/schedule',
+  '/trainer/members',
+  '/member/home',
+  '/member/schedule',
+  '/member/settings',
+])
+
+function keepAliveKey(r) {
+  return tabPaths.has(r.path) ? r.path : r.fullPath
+}
 </script>

@@ -230,7 +230,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'TrainerMemberView' })
 import { useRouter } from 'vue-router'
 import { useMembers } from '@/composables/useMembers'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
@@ -333,11 +335,16 @@ function formatRelativeTime(dateString) {
   return `${Math.floor(diffHours / 24)}일 전`
 }
 
-// ── Fetch members on mount ──
-onMounted(async () => {
+const loaded = ref(false)
+
+async function loadData() {
   await fetchMembers()
   loadPendingRequests()
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 
 const filteredMembers = computed(() => {
   let list = members.value

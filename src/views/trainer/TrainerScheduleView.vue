@@ -245,7 +245,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useHolidays } from '@/composables/useHolidays'
@@ -256,11 +258,16 @@ const auth = useAuthStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
 
-// ── Fetch reservations and holidays on mount ──
-onMounted(async () => {
+const loaded = ref(false)
+
+async function loadData() {
   await fetchMyReservations('trainer')
   await fetchHolidays(auth.user?.id)
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)
 const pendingCount = computed(() => {

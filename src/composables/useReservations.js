@@ -225,8 +225,8 @@ export function useReservations() {
           status,
           session_type,
           created_at,
-          trainer_profile:trainer_id(name),
-          member_profile:member_id(name)
+          trainer_profile:trainer_id(name, photo_url),
+          member_profile:member_id(name, photo_url)
         `)
         .eq(filterColumn, auth.user.id)
         .order('date', { ascending: false })
@@ -235,9 +235,8 @@ export function useReservations() {
       if (fetchError) throw fetchError
 
       reservations.value = (data ?? []).map((item) => {
-        const partnerName = role === 'trainer'
-          ? item.member_profile?.name
-          : item.trainer_profile?.name
+        const isTrainer = role === 'trainer'
+        const partnerProfile = isTrainer ? item.member_profile : item.trainer_profile
 
         return {
           id: item.id,
@@ -249,7 +248,8 @@ export function useReservations() {
           status: item.status,
           session_type: item.session_type,
           created_at: item.created_at,
-          partner_name: partnerName ?? '이름 없음',
+          partner_name: partnerProfile?.name ?? '이름 없음',
+          partner_photo: partnerProfile?.photo_url ?? null,
         }
       })
 

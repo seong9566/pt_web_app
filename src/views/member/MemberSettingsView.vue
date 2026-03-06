@@ -158,7 +158,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'MemberSettingsView' })
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
@@ -176,12 +178,17 @@ const roleBadge = computed(() => {
 })
 
 const trainerName = ref('')
+const loaded = ref(false)
 
-onMounted(async () => {
+async function loadData() {
   await fetchMemberOwnPtCount()
   const name = await fetchConnectedTrainerName()
   trainerName.value = name || ''
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 
 const ptCountPct = computed(() => {
   if (!totalCount.value) return 0

@@ -86,24 +86,12 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     const existingProfile = profile.value
 
-    let timeoutId
     try {
-      const profilePromise = supabase
+      const { data, error: fetchError } = await supabase
         .from('profiles')
         .select('*, member_profiles(*), trainer_profiles(*)')
         .eq('id', userId)
         .maybeSingle()
-        .then(res => res)
-
-      const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error('Supabase fetchProfile Timeout (10s)')),
-          10000
-        )
-      })
-
-      const { data, error: fetchError } = await Promise.race([profilePromise, timeoutPromise])
-      clearTimeout(timeoutId)
 
       if (fetchError || !data) {
         if (fetchError && fetchError.code !== 'PGRST116') {
@@ -118,7 +106,6 @@ export const useAuthStore = defineStore('auth', () => {
       setProfile(data)
       return data
     } catch (e) {
-      clearTimeout(timeoutId)
       console.error('[AuthStore] fetchProfile 과정 중 예외 발생:', e)
       error.value = e.message
 
@@ -136,6 +123,11 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = nextSession?.user ?? null
 
     if (user.value) {
+      // 이미 같은 유저의 프로필 데이터가 있다면, 불필요한 네트워크 통신(중복 조회) 방지
+      if (profile.value?.id === user.value.id) {
+        return
+      }
+      
       await fetchProfile(user.value.id)
       return
     }

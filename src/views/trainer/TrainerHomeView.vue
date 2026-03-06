@@ -196,7 +196,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'TrainerHomeView' })
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
@@ -278,7 +280,9 @@ function formatMessageTime(dateStr) {
   return `${diffDays}일 전`
 }
 
-onMounted(async () => {
+const loaded = ref(false)
+
+async function loadData() {
   const [, , , pending] = await Promise.all([
     fetchMyReservations('trainer'),
     fetchMembers(),
@@ -286,7 +290,11 @@ onMounted(async () => {
     fetchPendingRequests(),
   ])
   pendingConnectionCount.value = (pending || []).length
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 </script>
 
 <style src="./TrainerHomeView.css" scoped></style>

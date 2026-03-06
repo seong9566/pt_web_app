@@ -191,7 +191,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'MemberHomeView' })
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
@@ -219,7 +221,9 @@ const { unreadCount, getUnreadCount } = useNotifications()
 const hasTrainer = ref(null)
 const ptRemaining = ref(null)
 
-onMounted(async () => {
+const loaded = ref(false)
+
+async function loadData() {
   const connected = await checkTrainerConnection()
   hasTrainer.value = connected
   if (connected && auth.user?.id) {
@@ -235,7 +239,11 @@ onMounted(async () => {
       ptRemaining.value = await fetchRemainingByPair(auth.user.id, trainerId)
     }
   }
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 
 const userName = computed(() => auth.profile?.name || '회원')
 

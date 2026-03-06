@@ -142,7 +142,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
+
+defineOptions({ name: 'MemberScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 
@@ -172,10 +174,15 @@ const legend = [
   { status: 'cancelled', label: '취소됨' },
 ]
 
-// ── Fetch reservations on mount ──
-onMounted(async () => {
+const loaded = ref(false)
+
+async function loadData() {
   await fetchMyReservations('member')
-})
+  loaded.value = true
+}
+
+onMounted(() => { if (!loaded.value) loadData() })
+onActivated(() => { if (loaded.value) loadData() })
 
 // ── Compute dots from real reservations ──
 const dotsData = computed(() => {
