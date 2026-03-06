@@ -3,9 +3,18 @@ import { useManuals } from '@/composables/useManuals'
 
 const mockEnv = vi.hoisted(() => {
   const authStore = { user: { id: 'trainer-1' } }
+  const storageBucket = {
+    remove: vi.fn().mockResolvedValue({ error: null }),
+    upload: vi.fn().mockResolvedValue({ error: null }),
+    getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/manual-media/trainer-1/file.jpg' } }),
+  }
   return {
     authStore,
-    supabase: { from: vi.fn() },
+    supabase: {
+      from: vi.fn(),
+      storage: { from: vi.fn().mockReturnValue(storageBucket) },
+    },
+    storageBucket,
   }
 })
 
@@ -120,5 +129,117 @@ describe('useManuals', () => {
     const file = { name: 'photo.jpg', type: 'image/jpeg', size: 11 * 1024 * 1024 }
 
     await expect(uploadManualMedia(file)).rejects.toThrow('사진은 10MB 이하만 업로드 가능합니다')
+  })
+
+  it('fetchManuals select 쿼리에 media:manual_media JOIN이 포함된다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({ data: [], error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchManuals } = useManuals()
+    await fetchManuals()
+
+    expect(builder.select).toHaveBeenCalledWith(
+      expect.stringContaining('media:manual_media')
+    )
+  })
+
+  it('searchManuals select 쿼리에 media:manual_media JOIN이 포함된다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({ data: [], error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { searchManuals } = useManuals()
+    await searchManuals('스쿼트')
+
+    expect(builder.select).toHaveBeenCalledWith(
+      expect.stringContaining('media:manual_media')
+    )
+  })
+
+  it('deleteManual은 Storage remove()를 호출한다', async () => {
+    const mediaBuilder = createBuilder()
+    mediaBuilder.eq.mockResolvedValue({
+      data: [{ file_url: 'https://example.supabase.co/storage/v1/object/public/manual-media/trainer-1/file.jpg' }],
+      error: null,
+    })
+
+    const deleteBuilder = createBuilder()
+    deleteBuilder.eq
+      .mockReturnValueOnce(deleteBuilder)
+      .mockResolvedValueOnce({ error: null })
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(mediaBuilder)
+      .mockReturnValueOnce(deleteBuilder)
+
+    const { deleteManual } = useManuals()
+    await deleteManual('m1')
+
+    expect(mockEnv.storageBucket.remove).toHaveBeenCalledWith(['trainer-1/file.jpg'])
+  })
+
+  it('deleteManual은 Storage 삭제 실패 시에도 DB 삭제를 진행한다', async () => {
+    const mediaBuilder = createBuilder()
+    mediaBuilder.eq.mockResolvedValue({
+      data: [{ file_url: 'https://example.supabase.co/storage/v1/object/public/manual-media/trainer-1/file.jpg' }],
+      error: null,
+    })
+
+    mockEnv.storageBucket.remove.mockRejectedValueOnce(new Error('Storage error'))
+
+    const deleteBuilder = createBuilder()
+    deleteBuilder.eq
+      .mockReturnValueOnce(deleteBuilder)
+      .mockResolvedValueOnce({ error: null })
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(mediaBuilder)
+      .mockReturnValueOnce(deleteBuilder)
+
+    const { manuals, deleteManual } = useManuals()
+    manuals.value = [{ id: 'm1' }]
+    const result = await deleteManual('m1')
+
+    expect(result).toBe(true)
+    expect(manuals.value).toHaveLength(0)
+  })
+
+  it('deleteManualMedia는 DB와 Storage 모두 삭제한다', async () => {
+    const dbBuilder = createBuilder()
+    dbBuilder.eq.mockResolvedValue({ error: null })
+    mockEnv.supabase.from.mockReturnValue(dbBuilder)
+
+    const { deleteManualMedia } = useManuals()
+    const result = await deleteManualMedia('media-1', 'https://example.supabase.co/storage/v1/object/public/manual-media/trainer-1/file.jpg')
+
+    expect(result).toBe(true)
+    expect(mockEnv.storageBucket.remove).toHaveBeenCalledWith(['trainer-1/file.jpg'])
+    expect(dbBuilder.delete).toHaveBeenCalled()
+  })
+
+  it('addManualMedia는 파일 업로드 후 DB INSERT한다', async () => {
+    const sortBuilder = createBuilder()
+    sortBuilder.limit.mockResolvedValue({ data: [], error: null })
+    const insertBuilder = createBuilder()
+    insertBuilder.insert.mockResolvedValue({ error: null })
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(sortBuilder)
+      .mockReturnValueOnce(insertBuilder)
+
+    const { addManualMedia } = useManuals()
+    const file = { name: 'photo.jpg', type: 'image/jpeg', size: 1000 }
+    const result = await addManualMedia('manual-1', [file])
+
+    expect(result).toBe(true)
+    expect(mockEnv.storageBucket.upload).toHaveBeenCalled()
+  })
+
+  it('extractStoragePath는 공개 URL에서 버킷 이후 경로를 추출한다', () => {
+    const { extractStoragePath } = useManuals()
+
+    const url = 'https://xxx.supabase.co/storage/v1/object/public/manual-media/uid/1234567890.jpg'
+    expect(extractStoragePath(url)).toBe('uid/1234567890.jpg')
   })
 })
