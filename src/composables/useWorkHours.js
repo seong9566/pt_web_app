@@ -145,5 +145,28 @@ export function useWorkHours() {
     }
   }
 
-  return { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours }
+  /**
+   * 특정 트레이너의 근무 요일 Set 조회 (day_of_week: 0-6)
+   * 캘린더에서 비근무일 표시용
+   */
+  async function fetchWorkingDays(trainerId) {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('work_schedules')
+        .select('day_of_week, is_enabled')
+        .eq('trainer_id', trainerId)
+
+      if (fetchError || !data) return new Set()
+
+      const enabledDays = new Set()
+      for (const row of data) {
+        if (row.is_enabled) enabledDays.add(row.day_of_week)
+      }
+      return enabledDays
+    } catch {
+      return new Set()
+    }
+  }
+
+  return { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours, fetchWorkingDays }
 }

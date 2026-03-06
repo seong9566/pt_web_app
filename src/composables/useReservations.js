@@ -240,9 +240,34 @@ export function useReservations() {
         .eq('id', reservationId)
 
       if (updateError) throw updateError
+      const store = useReservationsStore()
+      store.invalidate()
       return true
     } catch (e) {
       error.value = e?.message ?? '예약 상태 변경에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 예약 거절 (rejected 상태 + 사유 저장) */
+  async function rejectReservation(reservationId, reason) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({ status: 'rejected', rejection_reason: reason || null })
+        .eq('id', reservationId)
+
+      if (updateError) throw updateError
+      const store = useReservationsStore()
+      store.invalidate()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '예약 거절에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -309,6 +334,7 @@ export function useReservations() {
     createReservation,
     fetchMyReservations,
     updateReservationStatus,
+    rejectReservation,
     checkTrainerConnection,
     getConnectedTrainerId,
     checkPtCount,

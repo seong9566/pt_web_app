@@ -56,6 +56,7 @@ export const useReservationsStore = defineStore('reservations', () => {
         end_time,
         status,
         session_type,
+        rejection_reason,
         created_at,
         trainer_profile:trainer_id(name, photo_url),
         member_profile:member_id(name, photo_url)
@@ -79,6 +80,7 @@ export const useReservationsStore = defineStore('reservations', () => {
           status: item.status,
           session_type: item.session_type,
           created_at: item.created_at,
+          rejection_reason: item.rejection_reason ?? null,
           partner_name: partnerProfile?.name ?? '이름 없음',
           partner_photo: partnerProfile?.photo_url ?? null,
         }
