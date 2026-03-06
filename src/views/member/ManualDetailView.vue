@@ -2,6 +2,19 @@
 <template>
   <div class="manual-detail">
 
+    <!-- ── 삭제 확인 Dialog ── -->
+    <AppBottomSheet v-model="showDeleteDialog" title="매뉴얼 삭제">
+      <div class="detail-delete-dialog">
+        <p class="detail-delete-dialog__text">
+          <strong>{{ manual?.title }}</strong> 매뉴얼을 삭제하시겠습니까?
+        </p>
+        <div class="detail-delete-dialog__actions">
+          <button class="detail-delete-dialog__btn detail-delete-dialog__btn--cancel" @click="showDeleteDialog = false">취소</button>
+          <button class="detail-delete-dialog__btn detail-delete-dialog__btn--confirm" @click="confirmDelete">삭제</button>
+        </div>
+      </div>
+    </AppBottomSheet>
+
     <!-- Loading -->
     <div v-if="loading" class="manual-detail__loading">
       <p class="manual-detail__loading-text">로딩 중...</p>
@@ -110,6 +123,23 @@
           </div>
         </section>
 
+        <!-- Trainer actions -->
+        <div
+          v-if="auth.user?.id === manual.trainer_id"
+          class="manual-detail__actions"
+        >
+          <button
+            class="manual-detail__action-btn manual-detail__action-btn--outline"
+            @click="router.push({ name: 'trainer-manual-edit', params: { id: manual.id } })"
+          >수정</button>
+          <button
+            class="manual-detail__action-btn manual-detail__action-btn--danger"
+            @click="showDeleteDialog = true"
+          >삭제</button>
+        </div>
+
+        <div style="height: 32px;" />
+
       </div>
     </template>
 
@@ -117,14 +147,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
+import { useAuthStore } from '@/stores/auth'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 
-const { currentManual: manual, loading, error, fetchManual } = useManuals()
+const { currentManual: manual, loading, error, fetchManual, deleteManual } = useManuals()
+
+const showDeleteDialog = ref(false)
 
 const heroPhotoUrl = computed(() => {
   if (!manual.value?.media) return null
@@ -142,6 +177,12 @@ const youtubeVideoId = computed(() => {
   if (shortMatch) return shortMatch[1]
   return null
 })
+
+async function confirmDelete() {
+  showDeleteDialog.value = false
+  const ok = await deleteManual(manual.value.id)
+  if (ok) router.back()
+}
 
 onMounted(() => {
   fetchManual(route.params.id)

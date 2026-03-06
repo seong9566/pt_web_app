@@ -305,3 +305,76 @@
 .manual-detail__youtube-link:active {
   opacity: 0.8;
 }
+
+.manual-detail__actions {
+  display: flex;
+  gap: 8px;
+  padding: 20px var(--side-margin) 0;
+}
+
+.manual-detail__action-btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.manual-detail__action-btn:active {
+  opacity: 0.8;
+}
+
+.manual-detail__action-btn--outline {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  color: var(--color-gray-900);
+}
+
+.manual-detail__action-btn--danger {
+  background-color: var(--color-red);
+  color: var(--color-white);
+}
+
+.detail-delete-dialog {
+  padding: 0 0 8px;
+}
+
+.detail-delete-dialog__text {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  margin-bottom: 20px;
+}
+
+.detail-delete-dialog__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.detail-delete-dialog__btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.detail-delete-dialog__btn:active {
+  opacity: 0.8;
+}
+
+.detail-delete-dialog__btn--cancel {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.detail-delete-dialog__btn--confirm {
+  background-color: var(--color-red);
+  color: var(--color-white);
+}
