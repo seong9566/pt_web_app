@@ -83,7 +83,7 @@
         :key="session.id"
         class="scard"
         :class="`scard--${session.status}`"
-        @click="(session.status === 'approved' || session.status === 'completed') && goWorkoutDetail(session)"
+        @click="(session.status === 'approved' || session.status === 'completed') && goWorkoutDetail()"
         :style="(session.status === 'approved' || session.status === 'completed') ? 'cursor: pointer;' : ''"
       >
         <div class="scard__border" />
@@ -311,7 +311,7 @@ function handleReserve() {
   router.push('/member/reservation')
 }
 
-function goWorkoutDetail(session) {
+function goWorkoutDetail() {
   const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
   router.push({ name: 'member-workout-detail', query: { date: dateStr } })
 }
