@@ -2,6 +2,19 @@
 <template>
   <div class="manual-list">
 
+    <!-- ── 삭제 확인 Dialog ── -->
+    <AppBottomSheet v-model="showDeleteDialog" title="매뉴얼 삭제">
+      <div class="delete-dialog">
+        <p class="delete-dialog__text">
+          <strong>{{ deleteTarget?.title }}</strong> 매뉴얼을 삭제하시겠습니까?
+        </p>
+        <div class="delete-dialog__actions">
+          <button class="delete-dialog__btn delete-dialog__btn--cancel" @click="showDeleteDialog = false">취소</button>
+          <button class="delete-dialog__btn delete-dialog__btn--confirm" @click="confirmDelete">삭제</button>
+        </div>
+      </div>
+    </AppBottomSheet>
+
     <!-- ── Header ── -->
     <div class="manual-list__header">
       <h1 class="manual-list__header-title">운동 매뉴얼</h1>
@@ -63,9 +76,15 @@
         class="manual-list__card"
         @click="goToDetail(manual.id)"
       >
-        <!-- Thumbnail — fetchManuals has no media JOIN, always show placeholder -->
+        <!-- Thumbnail -->
         <div class="manual-list__card-thumb">
-          <div class="manual-list__card-placeholder">
+          <img
+            v-if="getThumbUrl(manual)"
+            :src="getThumbUrl(manual)"
+            :alt="manual.title"
+            class="manual-list__card-thumb-img"
+          />
+          <div v-else class="manual-list__card-placeholder">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               <path d="M6.5 2H20V22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -91,7 +110,7 @@
           >
             <button
               class="manual-list__card-action-btn"
-              @click="goToDetail(manual.id)"
+              @click="router.push({ name: 'trainer-manual-edit', params: { id: manual.id } })"
             >수정</button>
             <button
               class="manual-list__card-action-btn manual-list__card-action-btn--danger"
@@ -125,6 +144,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useManuals } from '@/composables/useManuals'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -134,17 +154,20 @@ const CATEGORIES = ['전체', '재활', '근력', '다이어트', '스포츠', '
 
 const searchQuery = ref('')
 const selectedCategory = ref('전체')
+const showDeleteDialog = ref(false)
+const deleteTarget = ref(null)
 
-/** 카테고리 + 검색어 클라이언트 필터 */
+function getThumbUrl(manual) {
+  if (!manual.media || manual.media.length === 0) return null
+  const img = manual.media.find(m => m.file_type?.startsWith('image/'))
+  return img?.file_url || null
+}
+
 const filteredManuals = computed(() => {
   let list = manuals.value
 
   if (selectedCategory.value !== '전체') {
-    const sel = selectedCategory.value
-    list = list.filter(m => {
-      const cat = String(m.category ?? '')
-      return cat === sel || cat.includes(sel)
-    })
+    list = list.filter(m => m.category === selectedCategory.value)
   }
 
   if (searchQuery.value.trim()) {
@@ -165,9 +188,16 @@ function goToDetail(id) {
   router.push({ name: 'trainer-manual-detail', params: { id } })
 }
 
-async function handleDelete(manual) {
-  if (!confirm(`'${manual.title}' 매뉴얼을 삭제하시겠습니까?`)) return
-  await deleteManual(manual.id)
+function handleDelete(manual) {
+  deleteTarget.value = manual
+  showDeleteDialog.value = true
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  showDeleteDialog.value = false
+  await deleteManual(deleteTarget.value.id)
+  deleteTarget.value = null
 }
 
 onMounted(() => {
