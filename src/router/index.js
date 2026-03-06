@@ -154,6 +154,12 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: '/trainer/settings/manual/:id/edit',
+      name: 'trainer-manual-edit',
+      component: () => import('@/views/trainer/ManualRegisterView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/trainer/settings/manual/:id',
       name: 'trainer-manual-detail',
       component: () => import('@/views/member/ManualDetailView.vue'),
