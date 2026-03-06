@@ -216,7 +216,7 @@
 }
 
 .manual-reg__media-add:active {
-  background-color: #d0e8ff;
+  background-color: color-mix(in srgb, var(--color-blue-primary) 15%, var(--color-white));
 }
 
 .manual-reg__media-add span {
@@ -325,7 +325,7 @@
   margin-top: 16px;
   padding: 12px 16px;
   border-radius: var(--radius-small);
-  background-color: #fff0ef;
+  background-color: color-mix(in srgb, var(--color-red) 10%, var(--color-white));
   color: var(--color-red);
   font-size: var(--fs-body2);
   line-height: var(--lh-body);

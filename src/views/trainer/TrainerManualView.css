@@ -324,7 +324,7 @@
 }
 
 .manual-list__card-action-btn--danger:active {
-  background-color: #fff0ef;
+  background-color: color-mix(in srgb, var(--color-red) 10%, var(--color-white));
 }
 
 .manual-list__card-thumb-img {

@@ -243,7 +243,7 @@
 .manual-detail__hero-placeholder {
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, #3a4a5c 0%, #2c3a4a 50%, #1e2d3d 100%);
+  background-color: var(--color-gray-200);
 }
 
 /* ── Media Video ── */
