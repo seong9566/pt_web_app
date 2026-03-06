@@ -151,10 +151,13 @@
 
 .cal-cell__num--sun { color: #FF3B30; }
 .cal-cell__num--sat { color: var(--color-blue-primary); }
+.cal-cell__num--off { color: var(--color-gray-600); opacity: 0.5; }
 
 .cal-cell__inner--selected .cal-cell__num--sun,
-.cal-cell__inner--selected .cal-cell__num--sat {
+.cal-cell__inner--selected .cal-cell__num--sat,
+.cal-cell__inner--selected .cal-cell__num--off {
   color: var(--color-white);
+  opacity: 1;
 }
 
 /* Dots */
@@ -162,6 +165,7 @@
   display: flex;
   gap: 2px;
   justify-content: center;
+  height: 5px;
 }
 
 .cal-cell__dot {
@@ -254,6 +258,7 @@
 .scard--approved  .scard__border { background-color: var(--color-green); }
 .scard--pending   .scard__border { background-color: #FFB340; }
 .scard--cancelled .scard__border { background-color: var(--color-red); }
+.scard--rejected  .scard__border { background-color: var(--color-red); }
 
 .scard__body {
   padding: 16px 14px 16px 12px;
@@ -289,6 +294,7 @@
 .scard__badge--approved  { background-color: #E6F8EB; color: #248A3D; }
 .scard__badge--pending   { background-color: #FFF8E6; color: #E89A00; }
 .scard__badge--cancelled { background-color: #FFEBEA; color: var(--color-red); }
+.scard__badge--rejected  { background-color: #FFEBEA; color: var(--color-red); }
 
 /* Time */
 .scard__time {
@@ -352,6 +358,24 @@
 
 .scard__cancel-btn:active {
   background-color: #FFEBEA;
+}
+
+/* Rejection reason */
+.scard__reject-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: #FFF5F5;
+  border-radius: var(--radius-small);
+  font-size: var(--fs-caption);
+  color: var(--color-red);
+  line-height: var(--lh-body);
+}
+
+.scard__reject-reason svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* Empty state */

@@ -120,6 +120,13 @@
               취소
             </button>
           </div>
+          <div v-if="session.status === 'rejected' && session.rejection_reason" class="scard__reject-reason">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 8V12M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>{{ session.rejection_reason }}</span>
+          </div>
         </div>
       </div>
 
@@ -290,17 +297,20 @@ const selectedDateLabel = computed(() => {
 // ── Filter reservations by selected date ──
 const selectedDaySessions = computed(() => {
   const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
-  return reservations.value.filter((res) => res.date === selectedDateStr).map((res) => ({
-    id: res.id,
-    title: res.session_type || '운동 세션',
-    time: `${res.start_time} - ${res.end_time}`,
-    trainer: res.partner_name,
-    status: res.status,
-  }))
+  return reservations.value
+    .filter((res) => res.date === selectedDateStr && res.status !== 'cancelled')
+    .map((res) => ({
+      id: res.id,
+      title: res.session_type || '운동 세션',
+      time: `${res.start_time} - ${res.end_time}`,
+      trainer: res.partner_name,
+      status: res.status,
+      rejection_reason: res.rejection_reason,
+    }))
 })
 
 function statusLabel(status) {
-  const map = { pending: '대기중', approved: '승인됨', completed: '완료', done: '완료', cancelled: '취소됨' }
+  const map = { pending: '대기중', approved: '승인됨', completed: '완료', done: '완료', cancelled: '취소됨', rejected: '거절됨' }
   return map[status] || status
 }
 
