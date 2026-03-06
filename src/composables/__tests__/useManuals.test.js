@@ -88,11 +88,17 @@ describe('useManuals', () => {
   })
 
   it('deleteManual 성공 시 로컬 manuals 배열에서 해당 id를 제거한다', async () => {
-    const builder = createBuilder()
-    builder.eq
-      .mockReturnValueOnce(builder)
+    const mediaBuilder = createBuilder()
+    mediaBuilder.eq.mockResolvedValue({ data: [], error: null })
+
+    const deleteBuilder = createBuilder()
+    deleteBuilder.eq
+      .mockReturnValueOnce(deleteBuilder)
       .mockResolvedValueOnce({ error: null })
-    mockEnv.supabase.from.mockReturnValue(builder)
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(mediaBuilder)
+      .mockReturnValueOnce(deleteBuilder)
 
     const { manuals, deleteManual } = useManuals()
     manuals.value = [{ id: 'm1' }, { id: 'm2' }]

@@ -3,7 +3,7 @@
  *
  * 매뉴얼 CRUD, 미디어 파일(사진/영상) 업로드,
  * YouTube URL 연동 기능 제공.
- * 카테고리: '재활' | '근력' | '다이어트' | '스포츠퍼포먼스'
+ * 카테고리: '재활' | '근력' | '다이어트' | '스포츠' | '코어' | '유연성'
  */
 
 import { ref } from 'vue'
@@ -21,6 +21,19 @@ export function useManuals() {
   const loading = ref(false)
   const error = ref(null)
 
+  /**
+   * Storage 공개 URL에서 버킷 내 경로 추출
+   * 예: 'https://xxx.supabase.co/storage/v1/object/public/manual-media/uid/file.jpg'
+   *  → 'uid/file.jpg'
+   */
+  function extractStoragePath(publicUrl) {
+    if (!publicUrl) return null
+    const marker = '/manual-media/'
+    const idx = publicUrl.indexOf(marker)
+    if (idx === -1) return null
+    return publicUrl.slice(idx + marker.length)
+  }
+
   /** 매뉴얼 목록 조회 (카테고리 필터 선택) */
   async function fetchManuals(category = null) {
     loading.value = true
@@ -28,7 +41,7 @@ export function useManuals() {
     try {
       let query = supabase
         .from('manuals')
-        .select('*, trainer:profiles!trainer_id(name, photo_url)')
+        .select('*, trainer:profiles!trainer_id(name, photo_url), media:manual_media(file_url, file_type, sort_order)')
         .order('created_at', { ascending: false })
       if (category) query = query.eq('category', category)
       const { data, error: err } = await query
@@ -67,7 +80,7 @@ export function useManuals() {
     try {
       const { data, error: err } = await supabase
         .from('manuals')
-        .select('*, trainer:profiles!trainer_id(name, photo_url)')
+        .select('*, trainer:profiles!trainer_id(name, photo_url), media:manual_media(file_url, file_type, sort_order)')
         .ilike('title', `%${query}%`)
         .order('created_at', { ascending: false })
       if (err) throw err
@@ -162,11 +175,33 @@ export function useManuals() {
     }
   }
 
-  /** 매뉴얼 삭제 (manual_media는 CASCADE로 자동 삭제) */
+  /** 매뉴얼 삭제 (Storage 파일 정리 후 DB 삭제, manual_media는 CASCADE) */
   async function deleteManual(manualId) {
     loading.value = true
     error.value = null
     try {
+      // 1. 해당 매뉴얼의 미디어 파일 목록 조회
+      const { data: mediaList } = await supabase
+        .from('manual_media')
+        .select('file_url')
+        .eq('manual_id', manualId)
+
+      // 2. Storage 파일 삭제 (실패해도 DB 삭제 계속 진행)
+      if (mediaList && mediaList.length > 0) {
+        try {
+          const paths = mediaList
+            .map((m) => extractStoragePath(m.file_url))
+            .filter(Boolean)
+          if (paths.length > 0) {
+            await supabase.storage.from('manual-media').remove(paths)
+          }
+        } catch (storageErr) {
+          // Storage 삭제 실패는 무시 — DB 삭제 계속 진행
+          console.warn('Storage 파일 삭제 실패 (무시):', storageErr)
+        }
+      }
+
+      // 3. DB 삭제 (manual_media는 CASCADE로 자동 삭제)
       const { error: err } = await supabase
         .from('manuals')
         .delete()
@@ -204,6 +239,63 @@ export function useManuals() {
     return data.publicUrl
   }
 
+  /** 개별 미디어 파일 삭제 (DB + Storage) — edit 모드에서 사용 */
+  async function deleteManualMedia(mediaId, fileUrl) {
+    try {
+      // Storage 파일 삭제 (실패해도 DB 삭제 계속 진행)
+      try {
+        const path = extractStoragePath(fileUrl)
+        if (path) {
+          await supabase.storage.from('manual-media').remove([path])
+        }
+      } catch (storageErr) {
+        console.warn('Storage 파일 삭제 실패 (무시):', storageErr)
+      }
+      // DB 레코드 삭제
+      const { error: err } = await supabase
+        .from('manual_media')
+        .delete()
+        .eq('id', mediaId)
+      if (err) throw err
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '미디어 삭제에 실패했습니다'
+      return false
+    }
+  }
+
+  /** 기존 매뉴얼에 미디어 추가 (edit 모드용) */
+  async function addManualMedia(manualId, files) {
+    try {
+      // 현재 최대 sort_order 조회
+      const { data: existing } = await supabase
+        .from('manual_media')
+        .select('sort_order')
+        .eq('manual_id', manualId)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+      const startOrder = existing && existing.length > 0 ? existing[0].sort_order + 1 : 0
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const fileUrl = await uploadManualMedia(file)
+        if (fileUrl) {
+          await supabase.from('manual_media').insert({
+            manual_id: manualId,
+            file_url: fileUrl,
+            file_type: file.type,
+            file_size: file.size,
+            sort_order: startOrder + i,
+          })
+        }
+      }
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '미디어 추가에 실패했습니다'
+      return false
+    }
+  }
+
   return {
     manuals,
     currentManual,
@@ -216,5 +308,8 @@ export function useManuals() {
     updateManual,
     deleteManual,
     uploadManualMedia,
+    deleteManualMedia,
+    addManualMedia,
+    extractStoragePath,
   }
 }
