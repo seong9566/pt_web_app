@@ -62,7 +62,13 @@
         >
           <!-- Thumbnail -->
           <div class="manual-list__card-thumb">
-            <div class="manual-list__card-thumb-placeholder">
+            <img
+              v-if="getThumbUrl(manual)"
+              :src="getThumbUrl(manual)"
+              :alt="manual.title"
+              class="manual-list__card-thumb-img"
+            />
+            <div v-else class="manual-list__card-thumb-placeholder">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                 <path d="M6.5 2H20V22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -114,10 +120,16 @@ const categories = [
   { label: '재활', value: '재활' },
   { label: '근력', value: '근력' },
   { label: '다이어트', value: '다이어트' },
-  { label: '스포츠', value: '스포츠퍼포먼스' },
+  { label: '스포츠', value: '스포츠' },
   { label: '코어', value: '코어' },
   { label: '유연성', value: '유연성' },
 ]
+
+function getThumbUrl(manual) {
+  if (!manual.media || manual.media.length === 0) return null
+  const img = manual.media.find(m => m.file_type?.startsWith('image/'))
+  return img?.file_url || null
+}
 
 const filteredManuals = computed(() => {
   let result = manuals.value
