@@ -153,7 +153,6 @@ export function useMemos() {
       }
     } catch (e) {
       error.value = e?.message ?? '회원 정보를 불러오지 못했습니다'
-      console.log(e)
     } finally {
       loading.value = false
     }
