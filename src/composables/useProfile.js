@@ -259,11 +259,12 @@ export function useProfile() {
         .or(`trainer_id.eq.${auth.user.id},member_id.eq.${auth.user.id}`)
         .eq('status', 'active')
 
+      const userName = auth.profile?.name || '사용자'
       try {
         if (connections && connections.length > 0) {
           for (const conn of connections) {
             const otherUserId = conn.trainer_id === auth.user.id ? conn.member_id : conn.trainer_id
-            await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴했습니다', '연결된 사용자가 탈퇴하여 연결이 해제되었습니다.')
+            await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴했습니다', `${userName}님이 탈퇴했습니다.`)
           }
         }
       } catch (e) {}
@@ -286,6 +287,39 @@ export function useProfile() {
         }
       } catch (storageErr) {
         console.warn('chat-files 파일 삭제 실패 (무시):', storageErr)
+      }
+
+      if (auth.profile?.role === 'trainer') {
+        try {
+          const { data: manualsList } = await supabase
+            .from('manuals')
+            .select('id')
+            .eq('trainer_id', auth.user.id)
+          if (manualsList && manualsList.length > 0) {
+            for (const manual of manualsList) {
+              const { data: mediaList } = await supabase
+                .from('manual_media')
+                .select('file_url')
+                .eq('manual_id', manual.id)
+              if (mediaList && mediaList.length > 0) {
+                const paths = mediaList
+                  .map((m) => {
+                    const url = m.file_url
+                    if (!url) return null
+                    const marker = '/manual-media/'
+                    const idx = url.indexOf(marker)
+                    return idx !== -1 ? url.slice(idx + marker.length) : null
+                  })
+                  .filter(Boolean)
+                if (paths.length > 0) {
+                  await supabase.storage.from('manual-media').remove(paths)
+                }
+              }
+            }
+          }
+        } catch (storageErr) {
+          console.warn('manual-media 파일 삭제 실패 (무시):', storageErr)
+        }
       }
 
       const { error: rpcError } = await supabase.rpc('delete_user_account')
