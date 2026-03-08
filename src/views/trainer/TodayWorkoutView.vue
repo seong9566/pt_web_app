@@ -34,7 +34,7 @@
 
       <!-- ② 날짜 선택 (칩 버튼) -->
       <section class="today-workout__section">
-        <h2 class="today-workout__section-title">날짜 선택</h2>
+        <h2 class="today-workout__section-title">예약된 PT</h2>
         <div class="today-workout__date-chips">
           <button
             class="today-workout__date-chip"
@@ -167,8 +167,17 @@
             :key="plan.id"
             class="today-workout__history-item"
           >
-            <span class="today-workout__history-date">{{ formatDate(plan.date) }}</span>
-            <span class="today-workout__history-content">{{ formatHistoryPreview(plan.exercises) }}</span>
+            <div class="today-workout__history-top">
+              <div class="today-workout__history-info">
+                <span class="today-workout__history-date">{{ formatDate(plan.date) }}</span>
+                <span class="today-workout__history-content">{{ formatHistoryPreview(plan.exercises) }}</span>
+              </div>
+              <button
+                class="today-workout__history-copy"
+                type="button"
+                @click="copyFromHistory(plan)"
+              >복사</button>
+            </div>
           </div>
         </div>
       </section>
@@ -211,7 +220,8 @@ const {
   fetchMemberReservationDates,
 } = useWorkoutPlans()
 
-const todayStr = new Date().toISOString().split('T')[0]
+const _now = new Date()
+const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
 const selectedDate = ref(route.query.date || todayStr)
 const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const saveSuccess = ref(false)
@@ -276,6 +286,18 @@ async function handleSave() {
 function addExercise() {
   if (exercises.value.length >= 20) return
   exercises.value.push({ name: '', sets: 3, reps: 10, memo: '' })
+}
+
+/** 이전 배정 이력의 운동을 현재 펼집 영역에 복사 */
+function copyFromHistory(plan) {
+  if (!plan.exercises || plan.exercises.length === 0) return
+  exercises.value = plan.exercises.map(e => ({
+    name: e.name || '',
+    sets: e.sets ?? 3,
+    reps: e.reps ?? 10,
+    memo: e.memo || '',
+  }))
+  saveSuccess.value = false
 }
 
 function removeExercise(index) {

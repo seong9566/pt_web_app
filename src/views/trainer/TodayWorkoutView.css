@@ -426,6 +426,38 @@
   box-shadow: var(--shadow-card);
 }
 
+.today-workout__history-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.today-workout__history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.today-workout__history-copy {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+  background: var(--color-blue-light);
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.today-workout__history-copy:active {
+  background-color: #cce4ff;
+}
+
 .today-workout__history-date {
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
