@@ -1,7 +1,7 @@
 /**
  * 알림 관리 컴포저블
  *
- * 사용자 알림 목록 조회(7일 이내), 읽음 처리, 알림 생성 기능 제공.
+ * 사용자 알림 목록 조회(30일 이내), 읽음 처리, 알림 생성 기능 제공.
  * createNotification은 다른 컴포저블(usePayments, usePtSessions 등)에서 호출하는 유틸 함수.
  */
 
@@ -19,12 +19,12 @@ export function useNotifications() {
   const error = ref(null)
   const unreadCount = ref(0)
 
-  /** 7일 이내 알림 목록 조회 (최신순) */
+  /** 30일 이내 알림 목록 조회 (최신순) */
   async function fetchNotifications() {
     loading.value = true
     error.value = null
     try {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       const { data, error: err } = await supabase
         .from('notifications')
         .select('*')
@@ -70,7 +70,7 @@ export function useNotifications() {
   /** 전체 알림 읽음 처리 */
   async function markAllAsRead() {
     try {
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       const { error: err } = await supabase
         .from('notifications')
         .update({ is_read: true })

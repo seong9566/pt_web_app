@@ -18,6 +18,7 @@
         <p class="login-view__subtitle">체계적인 PT 일정 및<br />회원 관리 솔루션</p>
       </div>
       <div class="login-view__actions">
+        <p v-if="error" class="login-view__error">{{ error }}</p>
         <button class="login-view__btn login-view__btn--kakao" :disabled="isLoading" @click="handleKakao">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2C6.029 2 2 5.358 2 9.5c0 2.647 1.617 4.97 4.063 6.33L5.1 19.5a.25.25 0 0 0 .37.27L10.1 17.1c.296.025.596.04.9.04 4.971 0 9-3.358 9-7.5S15.971 2 11 2z" fill="#000000"/>
@@ -54,18 +55,20 @@ import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
 const isLoading = ref(false)
+const error = ref(null)
 
 /** 카카오 OAuth 로그인 처리 */
 async function handleKakao() {
   isLoading.value = true
-  const { error } = await supabase.auth.signInWithOAuth({
+  error.value = null
+  const { error: oauthError } = await supabase.auth.signInWithOAuth({
     provider: 'kakao',
     options: {
       redirectTo: window.location.origin + '/auth/callback',
     },
   })
-  if (error) {
-    console.error('Kakao OAuth error:', error.message)
+  if (oauthError) {
+    error.value = '카카오 로그인에 실패했습니다. 다시 시도해주세요.'
     isLoading.value = false
   }
 }

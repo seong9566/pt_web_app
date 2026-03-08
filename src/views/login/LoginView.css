@@ -143,3 +143,9 @@
   color: var(--color-blue-primary);
   text-decoration: underline;
 }
+.login-view__error {
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  text-align: center;
+  margin-bottom: 4px;
+}

@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useNotifications } from '@/composables/useNotifications'
 
 /** 전문 분야 코드를 한글 라벨로 변환하는 맵 */
 const SPECIALTY_LABELS = {
@@ -94,6 +95,7 @@ export function useTrainerSearch() {
   /** 특정 트레이너에 연결 요청 (status='pending') */
   async function requestConnection(trainerId) {
     const auth = useAuthStore()
+    const { createNotification } = useNotifications()
     loading.value = true
     error.value = null
 
@@ -103,6 +105,21 @@ export function useTrainerSearch() {
         .from('trainer_members')
         .insert({ trainer_id: trainerId, member_id: user.id, status: 'pending' })
       if (err) throw err
+      
+      // 트레이너에게 알림 발송
+      try {
+        const memberProfile = auth.profile
+        await createNotification(
+          trainerId,
+          'connection_requested',
+          '새로운 연결 요청',
+          `${memberProfile?.name || '회원'}님이 연결을 요청했습니다.`
+        )
+      } catch (notifError) {
+        console.error('알림 발송 실패:', notifError)
+        // 알림 발송 실패가 메인 기능을 막지 않도록 처리
+      }
+      
       return true
     } catch (e) {
       error.value = e.message

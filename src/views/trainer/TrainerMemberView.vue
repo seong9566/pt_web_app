@@ -238,6 +238,9 @@ defineOptions({ name: 'TrainerMemberView' })
 import { useRouter } from 'vue-router'
 import { useMembers } from '@/composables/useMembers'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import { useNotifications } from '@/composables/useNotifications'
+import { useAuthStore } from '@/stores/auth'
+
 import { useMembersStore } from '@/stores/members'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 
@@ -309,9 +312,30 @@ async function handleApprove(connectionId) {
   try {
     const success = await approveConnection(connectionId)
     if (success) {
+      // 승인된 연결에서 회원 정보 가져오기
+      const connection = pendingRequests.value.find(r => r.id === connectionId)
+      const memberId = connection?.member_id
+      
       membersStore.invalidate()
       pendingRequests.value = pendingRequests.value.filter(r => r.id !== connectionId)
       await fetchMembers()
+      
+      // 회원에게 알림 발송
+      if (memberId) {
+        try {
+          const { createNotification } = useNotifications()
+          const auth = useAuthStore()
+          await createNotification(
+            memberId,
+            'connection_approved',
+            '연결 승인',
+            `트레이너 ${auth.profile?.name || '님'}님이 연결을 승인했습니다.`
+          )
+        } catch (notifError) {
+          console.error('알림 발송 실패:', notifError)
+          // 알림 발송 실패가 메인 기능을 막지 않도록 처리
+        }
+      }
     }
   } finally {
     processingId.value = null

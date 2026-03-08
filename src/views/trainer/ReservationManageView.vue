@@ -22,6 +22,26 @@
       </div>
     </AppBottomSheet>
 
+    <!-- ── 취소 확인 Dialog ── -->
+    <AppBottomSheet v-model="showCancelDialog" title="예약 취소">
+      <div class="cancel-dialog">
+        <p class="cancel-dialog__text">
+          <strong>{{ cancelTarget?.partner_name }}</strong> 님의 예약을 취소하시겠습니까?
+        </p>
+        <textarea
+          v-model="cancelReason"
+          class="cancel-dialog__textarea"
+          placeholder="취소 사유를 입력해주세요 (선택)"
+          rows="3"
+          maxlength="200"
+        />
+        <div class="cancel-dialog__actions">
+          <button class="cancel-dialog__btn cancel-dialog__btn--cancel" @click="showCancelDialog = false">취소</button>
+          <button class="cancel-dialog__btn cancel-dialog__btn--confirm" @click="confirmCancel">취소</button>
+        </div>
+      </div>
+    </AppBottomSheet>
+
     <!-- ── Header ── -->
     <div class="reservation__header">
       <button class="reservation__back" @click="router.back()">
@@ -192,6 +212,12 @@
                 </svg>
                 완료
               </button>
+              <button class="res-card__btn res-card__btn--reject" @click="handleCancel(item)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                취소
+              </button>
             </div>
 
 
@@ -288,6 +314,28 @@ async function confirmReject() {
   showRejectDialog.value = false
   rejectTarget.value = null
   rejectReason.value = ''
+  if (success) {
+    reservationsStore.invalidate()
+    await fetchMyReservations('trainer')
+  }
+}
+
+const showCancelDialog = ref(false)
+const cancelTarget = ref(null)
+const cancelReason = ref('')
+
+function handleCancel(item) {
+  cancelTarget.value = item
+  cancelReason.value = ''
+  showCancelDialog.value = true
+}
+
+async function confirmCancel() {
+  if (!cancelTarget.value) return
+  const success = await updateReservationStatus(cancelTarget.value.id, 'cancelled')
+  showCancelDialog.value = false
+  cancelTarget.value = null
+  cancelReason.value = ''
   if (success) {
     reservationsStore.invalidate()
     await fetchMyReservations('trainer')

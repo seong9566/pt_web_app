@@ -1,18 +1,30 @@
 <!-- OAuth 콜백 처리 페이지. Supabase 인증 후 세션 확인 → 프로필 존재 확인 → 역할에 따라 라우팅 -->
 <template>
   <div class="auth-callback">
-    <p class="auth-callback__text">로그인 처리 중...</p>
+    <div v-if="error" class="auth-callback__error">
+      <svg class="auth-callback__error-icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2"/>
+        <path d="M24 14v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="24" cy="34" r="1.5" fill="currentColor"/>
+      </svg>
+      <p class="auth-callback__error-text">{{ error }}</p>
+      <button class="auth-callback__retry-btn" @click="router.replace('/login')">다시 시도</button>
+    </div>
+    <p v-else-if="loading" class="auth-callback__text">로그인 처리 중...</p>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 
 const router = useRouter()
 const auth = useAuthStore()
+
+const loading = ref(true)
+const error = ref(null)
 
 let authListener = null
 
@@ -21,13 +33,19 @@ let authListener = null
  */
 async function handleRedirect(session) {
   if (!session) {
-    console.warn('[AuthCallback] session 없음 - /login 으로 리다이렉트')
-    router.replace('/login')
+    error.value = '세션 정보를 가져올 수 없습니다. 다시 로그인해 주세요.'
+    loading.value = false
     return
   }
 
-  // store 상태 동기화 (이미 onAuthStateChange에서 처리됐을 수 있지만, 명시적으로 실행)
-  await auth.hydrateFromSession(session)
+  try {
+    // store 상태 동기화 (이미 onAuthStateChange에서 처리됐을 수 있지만, 명시적으로 실행)
+    await auth.hydrateFromSession(session)
+  } catch (e) {
+    error.value = '인증 처리 중 오류가 발생했습니다. 다시 시도해 주세요.'
+    loading.value = false
+    return
+  }
 
   if (!auth.role) {
     router.replace('/onboarding/role')
@@ -66,13 +84,13 @@ onMounted(async () => {
     return
   }
 
-  // 3분 타임아웃: 세션이 오지 않으면 로그인 화면으로 보냄
+  // 3분 타임아웃: 세션이 오지 않으면 에러 표시
   setTimeout(() => {
     if (authListener) {
-      console.warn('[AuthCallback] 세션 획득 타임아웃 - /login 으로 이동')
       authListener.subscription.unsubscribe()
       authListener = null
-      router.replace('/login')
+      error.value = '로그인 시간이 초과되었습니다. 다시 시도해 주세요.'
+      loading.value = false
     }
   }, 180000)
 })
@@ -98,5 +116,36 @@ onUnmounted(() => {
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-reg);
   color: var(--color-gray-600);
+}
+
+.auth-callback__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px var(--side-margin);
+  text-align: center;
+}
+
+.auth-callback__error-icon {
+  color: var(--color-red);
+}
+
+.auth-callback__error-text {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+}
+
+.auth-callback__retry-btn {
+  margin-top: 8px;
+  padding: 12px 32px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  border: none;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
 }
 </style>
