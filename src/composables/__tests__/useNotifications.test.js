@@ -42,7 +42,7 @@ describe('useNotifications', () => {
     vi.setSystemTime(new Date('2026-03-08T12:00:00.000Z'))
   })
 
-  it('알림 조회 시 7일 이내 필터를 적용하고 미읽은 수를 계산한다', async () => {
+  it('알림 조회 시 30일 이내 필터를 적용하고 미읽은 수를 계산한다', async () => {
     const query = createBuilder()
     query.order.mockResolvedValue({
       data: [
@@ -57,7 +57,7 @@ describe('useNotifications', () => {
     const { fetchNotifications, unreadCount, notifications } = useNotifications()
     await fetchNotifications()
 
-    const expectedThreshold = '2026-03-01T12:00:00.000Z'
+    const expectedThreshold = '2026-02-06T12:00:00.000Z'
     expect(query.gte).toHaveBeenCalledWith('created_at', expectedThreshold)
     expect(notifications.value).toHaveLength(2)
     expect(unreadCount.value).toBe(1)

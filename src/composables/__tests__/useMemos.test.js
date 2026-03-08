@@ -110,4 +110,32 @@ describe('useMemos', () => {
     expect(builder.eq).toHaveBeenCalledWith('member_id', 'member-user-1')
     expect(builder.eq).toHaveBeenCalledTimes(1)
   })
+
+  it('updateMemo는 update를 호출하고 성공 시 true를 반환한다', async () => {
+    const builder = createBuilder()
+    builder.eq.mockResolvedValue({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { updateMemo } = useMemos()
+    const result = await updateMemo('memo-1', '수정된 내용', ['수정된태그'])
+
+    expect(result).toBe(true)
+    expect(builder.update).toHaveBeenCalledWith({
+      content: '수정된 내용',
+      tags: ['수정된태그'],
+    })
+    expect(builder.eq).toHaveBeenCalledWith('id', 'memo-1')
+  })
+
+  it('updateMemo DB 오류 시 false를 반환하고 error를 설정한다', async () => {
+    const builder = createBuilder()
+    builder.eq.mockResolvedValue({ error: { message: '수정 실패' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { updateMemo, error } = useMemos()
+    const result = await updateMemo('memo-1', '수정된 내용', [])
+
+    expect(result).toBe(false)
+    expect(error.value).toBe('수정 실패')
+  })
 })

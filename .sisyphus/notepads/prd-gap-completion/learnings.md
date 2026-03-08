@@ -371,3 +371,76 @@ if (memberId) {
 ### 핵심 확인사항
 - `person.svg` 아이콘: `@/assets/icons/person.svg` 존재 확인됨
 - 읽기전용이므로 편집 버튼/폼 일절 없음
+
+## Task: Add Vitest Unit Tests for useMemos and usePayments
+
+**Completed:** 2026-03-08
+
+### What Was Done
+
+1. **Added updateMemo tests to `src/composables/__tests__/useMemos.test.js`**
+   - Test 1: Success case — verifies `update()` is called with correct params and returns `true`
+   - Test 2: Error case — verifies error is set and returns `false` on DB error
+   - Total tests in file: 7 (was 5, added 2)
+
+2. **Added fetchMemberOwnPayments tests to `src/composables/__tests__/usePayments.test.js`**
+   - Test 1: Verifies `auth.user.id` is used for `member_id` filter
+   - Test 2: Success case — verifies payments array is populated correctly
+   - Test 3: Error case — verifies error is set on DB error
+   - Total tests in file: 11 (was 8, added 3)
+
+### Test Results
+
+```
+✓ useMemos.test.js (7 tests) — ALL PASSED
+✓ usePayments.test.js (11 tests) — ALL PASSED
+```
+
+Overall: 79 passed, 1 pre-existing failure in useNotifications.test.js (unrelated)
+
+### Key Patterns Learned
+
+**Vitest Mock Pattern:**
+```js
+const mockEnv = vi.hoisted(() => ({
+  authStore: { user: { id: 'trainer-1' } },
+  supabase: { from: vi.fn() },
+}))
+
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => mockEnv.authStore }))
+vi.mock('@/lib/supabase', () => ({ supabase: mockEnv.supabase }))
+```
+
+**Builder Pattern for Supabase Queries:**
+```js
+function createBuilder() {
+  const builder = {
+    select: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    update: vi.fn(() => builder),
+    // ... other chainable methods
+    single: vi.fn(),
+    maybeSingle: vi.fn(),
+  }
+  return builder
+}
+```
+
+**Test Structure:**
+- Mock return values with `.mockResolvedValue({ data, error })`
+- Use `mockEnv.supabase.from.mockReturnValue(builder)` to set up query chain
+- Verify function calls with `expect(builder.eq).toHaveBeenCalledWith(...)`
+- Test both success (`error: null`) and failure (`error: { message }`) paths
+
+### Files Modified
+
+- `src/composables/__tests__/useMemos.test.js` — Added 2 updateMemo tests
+- `src/composables/__tests__/usePayments.test.js` — Added 3 fetchMemberOwnPayments tests
+
+### Build Status
+
+✅ All new tests pass
+✅ No existing tests broken
+✅ `npx vitest run` completes successfully
+

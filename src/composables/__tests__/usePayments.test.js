@@ -149,4 +149,52 @@ describe('usePayments', () => {
     const { totalAmount } = usePayments()
     expect(totalAmount.value).toBe(0)
   })
+
+  it('fetchMemberOwnPayments는 auth.user.id로 member_id를 조회한다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({
+      data: [
+        { id: 'p-1', member_id: 'trainer-1', amount: 50000, payment_date: '2026-03-01', memo: null },
+      ],
+      error: null,
+    })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchMemberOwnPayments, payments } = usePayments()
+    await fetchMemberOwnPayments()
+
+    expect(builder.eq).toHaveBeenCalledWith('member_id', 'trainer-1')
+    expect(payments.value).toHaveLength(1)
+    expect(payments.value[0].amount).toBe(50000)
+  })
+
+  it('fetchMemberOwnPayments 성공 시 payments를 설정한다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({
+      data: [
+        { id: 'p-1', member_id: 'trainer-1', amount: 100000, payment_date: '2026-03-01', memo: '수납' },
+        { id: 'p-2', member_id: 'trainer-1', amount: 50000, payment_date: '2026-02-28', memo: null },
+      ],
+      error: null,
+    })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchMemberOwnPayments, payments } = usePayments()
+    await fetchMemberOwnPayments()
+
+    expect(payments.value).toHaveLength(2)
+    expect(payments.value[0].amount).toBe(100000)
+    expect(payments.value[1].amount).toBe(50000)
+  })
+
+  it('fetchMemberOwnPayments DB 오류 시 error를 설정한다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({ error: { message: '수납 기록을 불러올 수 없습니다' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchMemberOwnPayments, error } = usePayments()
+    await fetchMemberOwnPayments()
+
+    expect(error.value).toBe('수납 기록을 불러올 수 없습니다')
+  })
 })
