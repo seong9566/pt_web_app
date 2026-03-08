@@ -215,8 +215,6 @@
         :key="session.id"
         class="scard"
         :class="`scard--${session.status}`"
-        @click="session.status === 'approved' && goWorkout(session)"
-        :style="session.status === 'approved' ? 'cursor: pointer;' : ''"
       >
         <div class="scard__border" />
         <div class="scard__body">
@@ -239,10 +237,20 @@
             </svg>
             {{ session.time }}
           </div>
+          <button
+            v-if="session.status === 'approved'"
+            class="scard__action"
+            @click.stop="goWorkout(session)"
+          >
+            운동 배정하기
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
-      </div>
     </div>
 
+    </div>
     <div style="height: calc(var(--nav-height) + 32px);" />
     </AppPullToRefresh>
 
