@@ -189,13 +189,13 @@ const { holidays, fetchHolidays } = useHolidays()
 
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
 const workingDays = ref(new Set())
-// 캘린더에 현재 표시 중인 연-월 (YYYY-MM) — disabledDates 계산 기준
-const displayedMonth = ref(todayStr.slice(0, 7))
 
 // Date Selection
 const today = new Date()
 const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
 const selectedDate = ref(todayStr)
+// 캘린더에 현재 표시 중인 연-월 (YYYY-MM) — disabledDates 계산 기준
+const displayedMonth = ref(todayStr.slice(0, 7))
 
 // Time Selection
 const selectedTime = ref(null)
