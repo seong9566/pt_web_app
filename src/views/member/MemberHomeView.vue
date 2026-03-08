@@ -234,8 +234,9 @@ async function loadData() {
   if (connected && auth.user?.id) {
     fetchMyReservations('member')
 
-    const today = new Date().toISOString().split('T')[0]
-    fetchWorkoutPlan(auth.user.id, today)
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+    await fetchWorkoutPlan(auth.user.id, today)
 
     getUnreadCount()
 
@@ -287,7 +288,7 @@ const nextSession = computed(() => {
     countdown: (next.start_time || '').slice(0, 5),
     title: next.session_type || 'PT 세션',
     trainer: next.partner_name || '트레이너',
-    routine: [],
+    routine: currentPlan.value?.exercises?.map(e => e.name).filter(Boolean) || [],
   }
 })
 
