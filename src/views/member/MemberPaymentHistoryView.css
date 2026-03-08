@@ -1,0 +1,136 @@
+/* =====================================================
+   MemberPaymentHistoryView.css
+   ===================================================== */
+
+/* ── Page shell ── */
+.member-payment-history {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ── Error message ── */
+.member-payment-history__error {
+  padding: 12px 16px;
+  background-color: #FFE5E5;
+  border-left: 4px solid var(--color-red);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 12px var(--side-margin);
+}
+
+/* ── Header ── */
+.member-payment-history__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  color: var(--color-gray-900);
+}
+
+.member-payment-history__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+  color: var(--color-gray-900);
+}
+
+.member-payment-history__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.member-payment-history__title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Body scroll area ── */
+.member-payment-history__body {
+  flex: 1;
+  padding: 24px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Loading state ── */
+.member-payment-history__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+
+/* ── Payment list ── */
+.payment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px var(--side-margin);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
+}
+
+/* ── Payment Card ── */
+.payment-card {
+  background-color: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-large);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Top row: date + amount */
+.payment-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.payment-card__date {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.payment-card__amount {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+/* Memo text */
+.payment-card__memo {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  line-height: 1.6;
+  margin: 0;
+}

@@ -108,6 +108,12 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: '/trainer/members/:id/memo/:memoId/edit',
+      name: 'trainer-memo-edit',
+      component: () => import('@/views/trainer/MemoWriteView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/trainer/members/:id/pt-count',
       name: 'trainer-pt-count',
       component: () => import('@/views/trainer/PtCountManageView.vue'),
@@ -183,6 +189,12 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: '/member/payments',
+      name: 'member-payments',
+      component: () => import('@/views/member/MemberPaymentHistoryView.vue'),
+      meta: { hideNav: true },
+    },
+    {
       path: '/member/chat',
       name: 'member-chat',
       component: () => import('@/views/member/MemberChatView.vue'),
@@ -213,6 +225,12 @@ const router = createRouter({
       path: '/trainer/profile-edit',
       name: 'trainer-profile-edit',
       component: () => import('@/views/trainer/TrainerProfileEditView.vue'),
+      meta: { hideNav: true },
+    },
+    {
+      path: '/trainer/profile-view',
+      name: 'trainer-profile-view',
+      component: () => import('@/views/trainer/TrainerProfileReadOnlyView.vue'),
       meta: { hideNav: true },
     },
     {

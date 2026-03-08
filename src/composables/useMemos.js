@@ -27,6 +27,7 @@ export function useMemos() {
   const memos = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const currentMemo = ref(null)
 
   /** YYYY-MM-DD → YYYY.MM.DD 형식으로 변환 */
   function formatDate(dateStr) {
@@ -188,6 +189,25 @@ export function useMemos() {
     }
   }
 
+  /** 단일 메모 조회 (편집 모드용) */
+  async function fetchMemoById(memoId) {
+    loading.value = true
+    error.value = null
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('memos')
+        .select('*')
+        .eq('id', memoId)
+        .single()
+      if (fetchError) throw fetchError
+      currentMemo.value = data
+    } catch (e) {
+      error.value = e?.message ?? '메모를 불러오지 못했습니다'
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 메모 생성 */
   async function createMemo(memberId, content, tags) {
     loading.value = true
@@ -200,6 +220,25 @@ export function useMemos() {
       return true
     } catch (e) {
       error.value = e?.message ?? '메모 저장에 실패했습니다.'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 메모 수정 */
+  async function updateMemo(memoId, content, tags) {
+    loading.value = true
+    error.value = null
+    try {
+      const { error: updateError } = await supabase
+        .from('memos')
+        .update({ content, tags })
+        .eq('id', memoId)
+      if (updateError) throw updateError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '메모 수정에 실패했습니다.'
       return false
     } finally {
       loading.value = false
@@ -263,9 +302,12 @@ export function useMemos() {
     memos,
     loading,
     error,
+    currentMemo,
     fetchMemberDetail,
     fetchMemos,
+    fetchMemoById,
     createMemo,
+    updateMemo,
     deleteMemo,
     getMemberMemos,
   }

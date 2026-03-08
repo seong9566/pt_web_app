@@ -386,6 +386,37 @@
   flex-shrink: 0;
 }
 
+.memo-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.memo-card__edit-btn,
+.memo-card__delete-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  color: var(--color-gray-600);
+  transition: background-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.memo-card__edit-btn:active {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.memo-card__delete-btn:active {
+  background-color: #FFE5E5;
+  color: var(--color-red);
+}
 /* Tags row */
 .memo-card__tags {
   display: flex;

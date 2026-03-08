@@ -297,3 +297,77 @@ if (memberId) {
 - 에러 메시지: 한국어 완성형 문장으로 (예: '카카오 로그인에 실패했습니다. 다시 시도해주세요.')
 - 글로벌 에러 핸들러 금지 — 뷰 로컬 error ref만 사용
 - CSS custom property `--color-red` 사용 (#FF3B30 하드코딩 금지)
+
+## 메모 수정/삭제 기능 추가 (2026-03-08)
+
+### 구현 패턴: Edit Mode via Route Param
+- 단일 View 컴포넌트로 write/edit 두 모드 처리: `route.params.memoId` 유무로 구분
+- `const isEditMode = computed(() => !!memoId)` — falsy check로 undefined/null 모두 처리
+- ManualRegisterView와 동일 패턴: `isEditMode ? updateFn : createFn`
+
+### Composable에 단일 조회 함수 추가 시
+- `currentMemo = ref(null)` ref 추가 후 return에 포함
+- `fetchMemoById(memoId)` — `.eq('id', memoId).single()` 패턴
+- `updateMemo(memoId, content, tags)` — `.update({...}).eq('id', memoId)` 패턴 (insert → update, member_id/trainer_id 불필요)
+
+### 라우트 명명 규칙
+- write route: `trainer-memo-write` (path: `/trainer/members/:id/memo/write`)
+- edit route: `trainer-memo-edit` (path: `/trainer/members/:id/memo/:memoId/edit`)
+- 두 라우트가 같은 컴포넌트를 가리켜도 router가 param으로 구분
+
+### CSS 패턴: 인라인 액션 버튼 그룹
+```css
+.memo-card__actions { display: flex; align-items: center; gap: 4px; }
+.memo-card__edit-btn, .memo-card__delete-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; border-radius: var(--radius-small);
+  cursor: pointer; color: var(--color-gray-600);
+}
+```
+- `active` 상태에 색상 피드백 추가 (edit: blue, delete: red)
+
+### 주의사항
+- useMemos.js return 블록에 새 함수/ref 추가 필수 — 빠뜨리면 view에서 undefined
+- onMounted에서 edit mode fetch 후 null check 필수 (`if (currentMemo.value)`)
+- content, tags만 수정 가능 — 날짜/시간/사진은 편집 UI 그대로 두되 저장 시 무시
+
+---
+
+## Wave N — 회원 수납 내역 조회 뷰 (MemberPaymentHistoryView)
+
+**날짜:** 2026-03-08
+
+### 구현 내용
+- `src/views/member/MemberPaymentHistoryView.vue` + `.css` 생성 (MemberMemoView 패턴 복사)
+- `usePayments.js`에 `fetchMemberOwnPayments()` 추가 — `auth.user.id`를 `member_id`로 조회
+- `router/index.js`에 `/member/payments` (name: `member-payments`, meta: hideNav) 추가
+- `MemberSettingsView.vue` '내 계정' 섹션에 '수납 내역' 메뉴 버튼 추가
+
+### 패턴 / 주의사항
+- **Edit 툴 다중 연산 주의**: 같은 파일에서 `append` + `replace`를 한 번에 호출할 때, 두 연산이 pre-edit 스냅샷 기준으로 bottom-up 적용됨. 이로 인해 return 객체 닫는 `}` 가 누락되어 syntax error 발생 → 별도 수정 필요했음.
+- SVG inline에서 `stroke="currentColor"` 사용 (hard-coded hex 금지)
+- CSS `background-color: #FFE5E5` 같은 에러 배경은 관례적으로 허용 (기존 MemberMemoView.css도 동일)
+- `amount.toLocaleString('ko-KR')` + '원' 포맷 패턴
+- MemberSettingsView '내 계정' 섹션에 버튼 삽입 시 기존 divider 패턴 유지 (새 버튼 다음에 divider 추가)
+
+## TrainerProfileReadOnlyView 생성 (Wave N — 트레이너 프로필 읽기전용)
+
+### 패턴
+- `auth.profile?.trainer_profiles?.specialties` + `auth.profile?.trainer_profiles?.bio` — auth store에 trainer_profiles 중첩 포함됨
+- `useMembers().fetchMembers()` → `members.value.length`로 연결 회원 수 계산
+- 전문 분야: specialtyOptions 배열로 id→label 매핑 후 `computed`로 필터링
+- CSS BEM 접두사: `.trainer-profile-ro__*` (read-only 구분)
+
+### SettingsView.vue 버튼 추가 패턴
+- `handleNav(target)` 함수에 `else if` 분기 추가
+- `router.push({ name: 'route-name' })` 패턴 유지
+- 버튼은 기존 settings__row 클래스 재사용, divider로 항목 구분
+
+### 라우터 추가 위치
+- trainer-profile-edit 라우트 바로 뒤에 추가 (라인 229 이후)
+- `meta: { hideNav: true }` 필수 — 하위 페이지 패턴
+
+### 핵심 확인사항
+- `person.svg` 아이콘: `@/assets/icons/person.svg` 존재 확인됨
+- 읽기전용이므로 편집 버튼/폼 일절 없음

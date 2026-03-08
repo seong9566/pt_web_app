@@ -1,0 +1,126 @@
+.trainer-profile-ro {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-white);
+}
+
+/* ── 헤더 ── */
+.trainer-profile-ro__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.trainer-profile-ro__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-900);
+  padding: 0;
+}
+
+.trainer-profile-ro__nav-title {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-subtitle);
+  color: var(--color-gray-900);
+}
+
+/* ── 콘텐츠 ── */
+.trainer-profile-ro__content {
+  flex: 1;
+  padding: var(--spacing-section) var(--side-margin) 0;
+}
+
+/* ── 프로필 래퍼 ── */
+.trainer-profile-ro__profile-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: var(--spacing-section);
+  padding: 20px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+}
+
+.trainer-profile-ro__photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.trainer-profile-ro__name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trainer-profile-ro__name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.trainer-profile-ro__member-count {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+/* ── 섹션 ── */
+.trainer-profile-ro__section {
+  margin-bottom: var(--spacing-section);
+}
+
+.trainer-profile-ro__section-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-item);
+}
+
+/* ── 전문 분야 칩 ── */
+.trainer-profile-ro__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trainer-profile-ro__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+}
+
+/* ── 소개글 ── */
+.trainer-profile-ro__bio {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  white-space: pre-wrap;
+}
+
+/* ── 빈 상태 ── */
+.trainer-profile-ro__empty {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}

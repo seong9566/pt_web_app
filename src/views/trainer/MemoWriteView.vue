@@ -9,7 +9,7 @@
           <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h1 class="memo-write__title">메모 작성</h1>
+      <h1 class="memo-write__title">{{ isEditMode ? '메모 수정' : '메모 작성' }}</h1>
     </div>
 
     <!-- ── Body (scrollable) ── -->
@@ -114,7 +114,7 @@
         :disabled="!canSave || loading"
         @click="handleSave"
       >
-        {{ loading ? '저장 중...' : '메모 저장하기' }}
+        {{ loading ? '저장 중...' : (isEditMode ? '메모 수정하기' : '메모 저장하기') }}
       </button>
     </div>
 
@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
@@ -143,8 +143,10 @@ import { useMemos } from '@/composables/useMemos'
 const router = useRouter()
 const route = useRoute()
 const memberId = route.params.id
+const memoId = route.params.memoId
+const isEditMode = computed(() => !!memoId)
 
-const { createMemo, loading, error } = useMemos()
+const { createMemo, updateMemo, fetchMemoById, currentMemo, loading, error } = useMemos()
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -221,12 +223,25 @@ function removePhoto(idx) {
 // ── Save ──
 const canSave = computed(() => content.value.trim().length > 0)
 
+onMounted(async () => {
+  if (isEditMode.value) {
+    await fetchMemoById(memoId)
+    if (currentMemo.value) {
+      content.value = currentMemo.value.content || ''
+      selectedTags.value = Array.isArray(currentMemo.value.tags) ? [...currentMemo.value.tags] : []
+    }
+  }
+})
+
 async function handleSave() {
   if (!canSave.value || loading.value) return
 
-  const success = await createMemo(memberId, content.value.trim(), [...selectedTags.value])
-  if (success) {
-    router.back()
+  if (isEditMode.value) {
+    const success = await updateMemo(memoId, content.value.trim(), [...selectedTags.value])
+    if (success) router.back()
+  } else {
+    const success = await createMemo(memberId, content.value.trim(), [...selectedTags.value])
+    if (success) router.back()
   }
 }
 </script>

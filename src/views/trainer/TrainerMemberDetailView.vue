@@ -175,6 +175,11 @@
               </div>
               <div class="memo-card__actions">
                 <span class="memo-card__time">{{ memo.time }}</span>
+                <button class="memo-card__edit-btn" @click="handleEditMemo(memo)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 4H4C3.44772 4 3 4.44772 3 5V20C3 20.5523 3.44772 21 4 21H19C19.5523 21 20 20.5523 20 20V13M18.5 2.5C18.8978 2.10218 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10218 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10218 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
                 <button class="memo-card__delete-btn" @click="handleDeleteMemo(memo)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -289,6 +294,10 @@ async function handleDisconnect() {
 function handleDeleteMemo(memo) {
   deleteMemoTarget.value = memo
   showDeleteMemoSheet.value = true
+}
+
+function handleEditMemo(memo) {
+  router.push({ name: 'trainer-memo-edit', params: { id: route.params.id, memoId: memo.id } })
 }
 
 async function confirmDeleteMemo() {

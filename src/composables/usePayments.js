@@ -44,6 +44,28 @@ export function usePayments() {
     }
   }
 
+  /** 본인 수납 목록 조회 (회원 본인이 조회, 최신순) */
+  async function fetchMemberOwnPayments() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('member_id', auth.user.id)
+        .order('payment_date', { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      payments.value = data || []
+    } catch (e) {
+      error.value = e?.message ?? '수납 기록을 불러오지 못했습니다'
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 수납 기록 생성 (금액 > 0 검증) */
   async function createPayment(memberId, amount, paymentDate, memo = null) {
     if (!amount || amount <= 0) {
@@ -133,6 +155,7 @@ export function usePayments() {
     error,
     totalAmount,
     fetchPayments,
+    fetchMemberOwnPayments,
     createPayment,
     updatePayment,
     deletePayment,
