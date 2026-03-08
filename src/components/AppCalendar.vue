@@ -33,7 +33,7 @@
         :key="cell.key"
         class="app-calendar__cell"
         :class="{ 'app-calendar__cell--empty': !cell.date }"
-        @click="cell.date && !isPast(cell.date) && handleSelect(cell.date)"
+        @click="cell.date && !isPast(cell.date) && !isDisabled(cell.date) && handleSelect(cell.date)"
       >
         <div
           v-if="cell.date"
@@ -41,6 +41,7 @@
           :class="{
             'app-calendar__inner--selected': isSelected(cell.date),
             'app-calendar__inner--past': isPast(cell.date),
+            'app-calendar__inner--disabled': !isPast(cell.date) && isDisabled(cell.date),
           }"
         >
           <span
@@ -48,8 +49,9 @@
             :class="{
               'app-calendar__num--selected': isSelected(cell.date),
               'app-calendar__num--past': isPast(cell.date),
-              'app-calendar__num--sun': !isPast(cell.date) && cell.isSun,
-              'app-calendar__num--sat': !isPast(cell.date) && cell.isSat,
+              'app-calendar__num--disabled': !isPast(cell.date) && isDisabled(cell.date),
+              'app-calendar__num--sun': !isPast(cell.date) && !isDisabled(cell.date) && cell.isSun,
+              'app-calendar__num--sat': !isPast(cell.date) && !isDisabled(cell.date) && cell.isSat,
             }"
           >{{ cell.date }}</span>
           <div v-if="getCellDots(cell.date).length" class="app-calendar__dots">
@@ -73,9 +75,10 @@ import { ref, computed } from 'vue'
 const props = defineProps({
   modelValue: { type: String, default: '' },
   dots: { type: Object, default: () => ({}) },
+  disabledDates: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'monthChange'])
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -134,6 +137,11 @@ function isPast(day) {
   return dateStr < todayStr
 }
 
+function isDisabled(day) {
+  const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
+  return props.disabledDates.includes(dateStr)
+}
+
 function handleSelect(day) {
   const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
   emit('update:modelValue', dateStr)
@@ -146,6 +154,7 @@ function prevMonth() {
   } else {
     displayMonth.value--
   }
+  emit('monthChange', `${displayYear.value}-${pad(displayMonth.value)}`)
 }
 
 function nextMonth() {
@@ -155,6 +164,7 @@ function nextMonth() {
   } else {
     displayMonth.value++
   }
+  emit('monthChange', `${displayYear.value}-${pad(displayMonth.value)}`)
 }
 </script>
 
@@ -279,6 +289,15 @@ function nextMonth() {
 }
 
 .app-calendar__num--past {
+  color: var(--color-gray-200);
+}
+
+.app-calendar__inner--disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.app-calendar__num--disabled {
   color: var(--color-gray-200);
 }
 

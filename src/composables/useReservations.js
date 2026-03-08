@@ -318,7 +318,7 @@ export function useReservations() {
         .eq('member_id', user.id)
         .eq('trainer_id', trainerId)
       if (err) return 0
-      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+      return Math.max(0, (data || []).reduce((sum, s) => sum + s.change_amount, 0))
     } catch {
       return 0
     }

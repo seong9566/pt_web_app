@@ -54,7 +54,7 @@ export const usePtSessionsStore = defineStore('ptSessions', () => {
       .eq('trainer_id', trainerId)
 
     if (!error && data) {
-      const remaining = (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+      const remaining = Math.max(0, (data || []).reduce((sum, s) => sum + s.change_amount, 0))
       _cache.value.set(key, { data: remaining, lastFetchedAt: Date.now() })
       _dirty.value = false
       return remaining

@@ -20,7 +20,7 @@
       <section class="reservation-section">
         <h2 class="reservation-section__title">날짜 선택</h2>
         <div class="date-selector-card">
-          <AppCalendar :modelValue="selectedDate" @update:modelValue="handleDateChange" />
+          <AppCalendar :modelValue="selectedDate" :disabledDates="disabledDates" @update:modelValue="handleDateChange" @monthChange="handleMonthChange" />
         </div>
       </section>
 
@@ -176,12 +176,21 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
+import { useWorkHours } from '@/composables/useWorkHours'
+import { useHolidays } from '@/composables/useHolidays'
 import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId } = useReservations()
 const reservationsStore = useReservationsStore()
+const { fetchWorkingDays } = useWorkHours()
+const { holidays, fetchHolidays } = useHolidays()
+
+// 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
+const workingDays = ref(new Set())
+// 캘린더에 현재 표시 중인 연-월 (YYYY-MM) — disabledDates 계산 기준
+const displayedMonth = ref(todayStr.slice(0, 7))
 
 // Date Selection
 const today = new Date()
@@ -200,8 +209,14 @@ onMounted(async () => {
   const connectedTrainerId = await getConnectedTrainerId()
   if (connectedTrainerId) {
     trainerId.value = connectedTrainerId
-    // Fetch available slots for today
-    await fetchAvailableSlots(connectedTrainerId, selectedDate.value)
+    // 근무 요일 + 이번 달 휴무일 + 오늘 슬롯 병렬 조회
+    const currentMonth = todayStr.slice(0, 7)
+    const [days] = await Promise.all([
+      fetchWorkingDays(connectedTrainerId),
+      fetchHolidays(connectedTrainerId, currentMonth),
+      fetchAvailableSlots(connectedTrainerId, selectedDate.value),
+    ])
+    workingDays.value = days
   }
 })
 
@@ -213,12 +228,52 @@ async function handleDateChange(newDate) {
   }
   selectedDate.value = newDate
   selectedTime.value = null
+  displayedMonth.value = newDate.slice(0, 7)
   
   // Fetch available slots for the selected date
   if (trainerId.value) {
     await fetchAvailableSlots(trainerId.value, newDate)
   }
 }
+
+/** 캘린더 월 변경 시 해당 월의 휴무일 재조회 + 표시 월 갱신 */
+async function handleMonthChange(yearMonth) {
+  displayedMonth.value = yearMonth
+  if (trainerId.value) {
+    await fetchHolidays(trainerId.value, yearMonth)
+  }
+}
+
+/**
+ * 비근무일 + 휴무일을 합산하여 캘린더에 회색 표시할 날짜 배열 계산.
+ * 현재 표시 중인 달의 모든 날짜 중:
+ *   - 해당 요일이 근무 요일이 아닌 날
+ *   - 휴무일(trainer_holidays)로 등록된 날
+ */
+const disabledDates = computed(() => {
+  if (!trainerId.value) return []
+
+  const [year, month] = displayedMonth.value.split('-').map(Number)
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const pad = (n) => String(n).padStart(2, '0')
+  const disabled = []
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${pad(month)}-${pad(d)}`
+    const dayOfWeek = new Date(year, month - 1, d).getDay()
+
+    // 해당 요일이 근무 요일이 아닌 경우
+    if (!workingDays.value.has(dayOfWeek)) {
+      disabled.push(dateStr)
+      continue
+    }
+    // 휴무일인 경우
+    if (holidays.value.includes(dateStr)) {
+      disabled.push(dateStr)
+    }
+  }
+  return disabled
+})
 
 function selectTime(val) {
   selectedTime.value = val
@@ -230,6 +285,7 @@ const pmTimes = computed(() => slots.value.pm || [])
 const eveningTimes = computed(() => slots.value.evening || [])
 
 const hasAnySlots = computed(() => amTimes.value.length > 0 || pmTimes.value.length > 0 || eveningTimes.value.length > 0)
+
 
 const formattedSelection = computed(() => {
   if (!selectedDate.value) return '날짜를 선택해주세요'

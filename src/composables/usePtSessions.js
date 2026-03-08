@@ -21,7 +21,7 @@ export function usePtSessions() {
 
   /** 잔여 횟수 계산 */
   const remainingCount = computed(() =>
-    ptHistory.value.reduce((sum, s) => sum + s.change_amount, 0)
+    Math.max(0, ptHistory.value.reduce((sum, s) => sum + s.change_amount, 0))
   )
 
   /** 총 부여 횟수 계산 (양수 변동 합산) */
@@ -56,7 +56,7 @@ export function usePtSessions() {
 
       if (fetchError) throw fetchError
 
-      return (data || []).reduce((sum, s) => sum + s.change_amount, 0)
+      return Math.max(0, (data || []).reduce((sum, s) => sum + s.change_amount, 0))
     } catch (e) {
       return 0
     }
