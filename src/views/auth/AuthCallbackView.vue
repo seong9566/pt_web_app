@@ -34,7 +34,7 @@ async function handleRedirect(session) {
   } else if (auth.role === 'trainer') {
     router.replace('/trainer/home')
   } else {
-    router.replace('/home')
+    router.replace('/member/home')
   }
 }
 

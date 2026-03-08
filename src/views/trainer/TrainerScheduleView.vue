@@ -323,16 +323,16 @@ const legend = [
   { status: 'pending',   label: '대기중' },
   { status: 'approved',  label: '승인됨' },
   { status: 'done',      label: '완료' },
-  { status: 'cancelled', label: '취소됨' },
 ]
 
 // ── Compute dots from real reservations ──
 // dotsData 키: "YYYY-MM-DD", 값: dot CSS 클래스 배열 (completed → done 변환)
-const STATUS_TO_DOT = { pending: 'pending', approved: 'approved', completed: 'done', cancelled: 'cancelled' }
+const STATUS_TO_DOT = { pending: 'pending', approved: 'approved', completed: 'done' }
 
 const dotsData = computed(() => {
   const dots = {}
   reservations.value.forEach((res) => {
+    if (res.status === 'cancelled') return
     if (!dots[res.date]) {
       dots[res.date] = []
     }

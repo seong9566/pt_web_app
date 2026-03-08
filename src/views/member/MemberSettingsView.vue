@@ -234,6 +234,7 @@ async function handleDeleteAccount() {
 }
 
 async function handleLogout() {
+  if (!confirm('로그아웃 하시겠습니까?')) return
   await auth.signOut()
   router.push('/login')
 }

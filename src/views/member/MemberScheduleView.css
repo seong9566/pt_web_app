@@ -12,7 +12,7 @@
 
 .error-message {
   padding: 12px 16px;
-  background-color: #FFE5E5;
+  background-color: #ffe5e5;
   border-left: 4px solid var(--color-red);
   border-radius: var(--radius-small);
   font-size: var(--fs-body2);
@@ -36,9 +36,6 @@
   color: var(--color-gray-900);
   margin: 0;
 }
-
-
-
 
 /* ── Calendar Card ── */
 .calendar-card {
@@ -94,8 +91,12 @@
   padding: 4px 0;
 }
 
-.calendar-card__weekday--sun { color: #FF3B30; }
-.calendar-card__weekday--sat { color: var(--color-blue-primary); }
+.calendar-card__weekday--sun {
+  color: #ff3b30;
+}
+.calendar-card__weekday--sat {
+  color: var(--color-blue-primary);
+}
 
 /* Date grid */
 .calendar-card__grid {
@@ -149,9 +150,16 @@
   font-weight: var(--fw-body1-bold);
 }
 
-.cal-cell__num--sun { color: #FF3B30; }
-.cal-cell__num--sat { color: var(--color-blue-primary); }
-.cal-cell__num--off { color: var(--color-gray-600); opacity: 0.5; }
+.cal-cell__num--sun {
+  color: #ff3b30;
+}
+.cal-cell__num--sat {
+  color: var(--color-blue-primary);
+}
+.cal-cell__num--off {
+  color: var(--color-gray-600);
+  opacity: 0.5;
+}
 
 .cal-cell__inner--selected .cal-cell__num--sun,
 .cal-cell__inner--selected .cal-cell__num--sat,
@@ -174,10 +182,15 @@
   border-radius: 50%;
 }
 
-.cal-cell__dot--pending   { background-color: var(--color-yellow, #FFB340); }
-.cal-cell__dot--approved  { background-color: var(--color-green); }
-.cal-cell__dot--done      { background-color: #9CA3AF; }
-.cal-cell__dot--cancelled { background-color: var(--color-red); }
+.cal-cell__dot--pending {
+  background-color: var(--color-yellow, #ffb340);
+}
+.cal-cell__dot--approved {
+  background-color: var(--color-green);
+}
+.cal-cell__dot--done {
+  background-color: #9ca3af;
+}
 
 /* Legend */
 .calendar-card__legend {
@@ -203,10 +216,15 @@
   border-radius: 50%;
 }
 
-.legend-item__dot--pending   { background-color: var(--color-yellow, #FFB340); }
-.legend-item__dot--approved  { background-color: var(--color-green); }
-.legend-item__dot--done      { background-color: #9CA3AF; }
-.legend-item__dot--cancelled { background-color: var(--color-red); }
+.legend-item__dot--pending {
+  background-color: var(--color-yellow, #ffb340);
+}
+.legend-item__dot--approved {
+  background-color: var(--color-green);
+}
+.legend-item__dot--done {
+  background-color: #9ca3af;
+}
 
 /* ── Date Header ── */
 .schedule-date-header {
@@ -254,11 +272,21 @@
   border-radius: 4px;
 }
 
-.scard--done      .scard__border { background-color: #D1D5DB; }
-.scard--approved  .scard__border { background-color: var(--color-green); }
-.scard--pending   .scard__border { background-color: #FFB340; }
-.scard--cancelled .scard__border { background-color: var(--color-red); }
-.scard--rejected  .scard__border { background-color: var(--color-red); }
+.scard--done .scard__border {
+  background-color: #d1d5db;
+}
+.scard--approved .scard__border {
+  background-color: var(--color-green);
+}
+.scard--pending .scard__border {
+  background-color: #ffb340;
+}
+.scard--cancelled .scard__border {
+  background-color: var(--color-red);
+}
+.scard--rejected .scard__border {
+  background-color: var(--color-red);
+}
 
 .scard__body {
   padding: 16px 14px 16px 12px;
@@ -290,11 +318,26 @@
   white-space: nowrap;
 }
 
-.scard__badge--done      { background-color: #F3F4F6; color: #6B7280; }
-.scard__badge--approved  { background-color: #E6F8EB; color: #248A3D; }
-.scard__badge--pending   { background-color: #FFF8E6; color: #E89A00; }
-.scard__badge--cancelled { background-color: #FFEBEA; color: var(--color-red); }
-.scard__badge--rejected  { background-color: #FFEBEA; color: var(--color-red); }
+.scard__badge--done {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+.scard__badge--approved {
+  background-color: #e6f8eb;
+  color: #248a3d;
+}
+.scard__badge--pending {
+  background-color: #fff8e6;
+  color: #e89a00;
+}
+.scard__badge--cancelled {
+  background-color: #ffebea;
+  color: var(--color-red);
+}
+.scard__badge--rejected {
+  background-color: #ffebea;
+  color: var(--color-red);
+}
 
 /* Time */
 .scard__time {
@@ -302,11 +345,11 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
 .scard__time--approved {
-  color: #248A3D;
+  color: #248a3d;
 }
 
 /* Trainer info row */
@@ -326,7 +369,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #F3F4F6;
+  background-color: #f3f4f6;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -357,7 +400,7 @@
 }
 
 .scard__cancel-btn:active {
-  background-color: #FFEBEA;
+  background-color: #ffebea;
 }
 
 /* Rejection reason */
@@ -366,7 +409,7 @@
   align-items: flex-start;
   gap: 6px;
   padding: 10px 12px;
-  background-color: #FFF5F5;
+  background-color: #fff5f5;
   border-radius: var(--radius-small);
   font-size: var(--fs-caption);
   color: var(--color-red);
@@ -414,12 +457,13 @@
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
   cursor: pointer;
   z-index: 90;
-  transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s,
+    opacity 0.15s;
 }
 
 .member-schedule__fab:active {
   transform: scale(0.92);
   opacity: 0.9;
 }
-
-

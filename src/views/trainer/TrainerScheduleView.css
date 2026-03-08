@@ -257,9 +257,7 @@
     background-color: #9CA3AF;
 }
 
-.cal-cell__dot--cancelled {
-    background-color: var(--color-red);
-}
+
 
 /* Legend */
 .calendar-card__legend {
@@ -297,9 +295,7 @@
     background-color: #9CA3AF;
 }
 
-.legend-item__dot--cancelled {
-    background-color: var(--color-red);
-}
+
 
 /* ── Date Header ── */
 .schedule-date-header {
@@ -737,9 +733,7 @@
     background-color: #9CA3AF;
 }
 
-.weekly-days__dot--cancelled {
-    background-color: var(--color-red);
-}
+
 
 /* ── Scrollable time grid ── */
 .weekly-grid-wrap {

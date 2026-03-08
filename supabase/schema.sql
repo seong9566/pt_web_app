@@ -794,6 +794,36 @@ insert into storage.buckets (id, name, public, file_size_limit)
 values ('manual-media', 'manual-media', true, 524288000)
 on conflict (id) do nothing;
 
+-- manual-media bucket storage policies
+drop policy if exists "Manual media files are publicly readable" on storage.objects;
+create policy "Manual media files are publicly readable"
+on storage.objects
+for select
+to public
+using (bucket_id = 'manual-media');
+
+drop policy if exists "Manual media files are uploadable by authenticated users" on storage.objects;
+create policy "Manual media files are uploadable by authenticated users"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'manual-media' and auth.uid() is not null);
+
+drop policy if exists "Manual media files are updatable by owners" on storage.objects;
+create policy "Manual media files are updatable by owners"
+on storage.objects
+for update
+to authenticated
+using (bucket_id = 'manual-media' and owner = auth.uid())
+with check (bucket_id = 'manual-media' and owner = auth.uid());
+
+drop policy if exists "Manual media files are deletable by owners" on storage.objects;
+create policy "Manual media files are deletable by owners"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'manual-media' and owner = auth.uid());
+
 -- T10: create_reservation RPC — PT 횟수 검증 추가
 create or replace function public.create_reservation(
   p_trainer_id uuid,

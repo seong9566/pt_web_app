@@ -173,7 +173,15 @@
                 <span class="memo-card__dot" :class="`memo-card__dot--${memo.dotColor}`" />
                 <span class="memo-card__date">{{ memo.date }}</span>
               </div>
-              <span class="memo-card__time">{{ memo.time }}</span>
+              <div class="memo-card__actions">
+                <span class="memo-card__time">{{ memo.time }}</span>
+                <button class="memo-card__delete-btn" @click="handleDeleteMemo(memo)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 6V4C8 3.44772 8.44772 3 9 3H15C15.5523 3 16 3.44772 16 4V6M19 6V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Tags -->
@@ -206,6 +214,14 @@
       <button class="mem-detail__sheet-btn mem-detail__sheet-btn--confirm" @click="handleDisconnect">확인</button>
     </div>
   </AppBottomSheet>
+
+  <AppBottomSheet v-model="showDeleteMemoSheet" title="메모 삭제">
+    <p class="mem-detail__sheet-desc">이 메모를 삭제하시겠습니까?</p>
+    <div class="mem-detail__sheet-actions">
+      <button class="mem-detail__sheet-btn mem-detail__sheet-btn--cancel" @click="showDeleteMemoSheet = false">취소</button>
+      <button class="mem-detail__sheet-btn mem-detail__sheet-btn--confirm" @click="confirmDeleteMemo">삭제</button>
+    </div>
+  </AppBottomSheet>
 </template>
 
 <script>
@@ -222,11 +238,13 @@ import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { member, memos, loading, error, fetchMemberDetail, fetchMemos } = useMemos()
+const { member, memos, loading, error, fetchMemberDetail, fetchMemos, deleteMemo } = useMemos()
 const { disconnectMember } = useProfile()
 const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
 
 const showDisconnectSheet = ref(false)
+const showDeleteMemoSheet = ref(false)
+const deleteMemoTarget = ref(null)
 const initialLoaded = ref(false)
 
 onMounted(async () => {
@@ -265,6 +283,19 @@ async function handleDisconnect() {
   if (ok) {
     showDisconnectSheet.value = false
     router.push({ name: 'trainer-members' })
+  }
+}
+
+function handleDeleteMemo(memo) {
+  deleteMemoTarget.value = memo
+  showDeleteMemoSheet.value = true
+}
+
+async function confirmDeleteMemo() {
+  if (deleteMemoTarget.value) {
+    await deleteMemo(deleteMemoTarget.value.id)
+    showDeleteMemoSheet.value = false
+    deleteMemoTarget.value = null
   }
 }
 </script>
