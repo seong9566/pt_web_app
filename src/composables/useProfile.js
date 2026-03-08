@@ -8,10 +8,12 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useNotifications } from '@/composables/useNotifications'
 
 /** 프로필 이미지 업로드 및 URL 업데이트 */
 export function useProfile() {
   const auth = useAuthStore()
+  const { createNotification } = useNotifications()
   const uploading = ref(false)
   const error = ref(null)
 
@@ -251,12 +253,44 @@ export function useProfile() {
   async function softDeleteAccount() {
     error.value = null
     try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ name: '탈퇴한 사용자', phone: null, photo_url: null })
-        .eq('id', auth.user.id)
+      const { data: connections } = await supabase
+        .from('trainer_members')
+        .select('trainer_id, member_id')
+        .or(`trainer_id.eq.${auth.user.id},member_id.eq.${auth.user.id}`)
+        .eq('status', 'active')
 
-      if (updateError) throw updateError
+      try {
+        if (connections && connections.length > 0) {
+          for (const conn of connections) {
+            const otherUserId = conn.trainer_id === auth.user.id ? conn.member_id : conn.trainer_id
+            await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴했습니다', '연결된 사용자가 탈퇴하여 연결이 해제되었습니다.')
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const { data: avatarFiles } = await supabase.storage.from('avatars').list(auth.user.id)
+        if (avatarFiles && avatarFiles.length > 0) {
+          const paths = avatarFiles.map((f) => `${auth.user.id}/${f.name}`)
+          await supabase.storage.from('avatars').remove(paths)
+        }
+      } catch (storageErr) {
+        console.warn('avatars 파일 삭제 실패 (무시):', storageErr)
+      }
+
+      try {
+        const { data: chatFiles } = await supabase.storage.from('chat-files').list(auth.user.id)
+        if (chatFiles && chatFiles.length > 0) {
+          const paths = chatFiles.map((f) => `${auth.user.id}/${f.name}`)
+          await supabase.storage.from('chat-files').remove(paths)
+        }
+      } catch (storageErr) {
+        console.warn('chat-files 파일 삭제 실패 (무시):', storageErr)
+      }
+
+      const { error: rpcError } = await supabase.rpc('delete_user_account')
+      if (rpcError) throw rpcError
+
       await supabase.auth.signOut()
       return true
     } catch (e) {

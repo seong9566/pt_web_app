@@ -733,7 +733,8 @@ do $$ begin
     'reservation_requested', 'reservation_approved', 'reservation_rejected', 'reservation_cancelled',
     'new_message', 'workout_assigned',
     'connection_requested', 'connection_approved',
-    'pt_count_changed', 'payment_recorded'
+    'pt_count_changed', 'payment_recorded',
+    'account_deleted'
   );
 exception when duplicate_object then null;
 end $$;
@@ -793,6 +794,13 @@ on conflict (id) do nothing;
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('manual-media', 'manual-media', true, 524288000)
 on conflict (id) do nothing;
+
+-- chat-files bucket storage policies
+drop policy if exists "Users can list own chat files" on storage.objects;
+create policy "Users can list own chat files"
+on storage.objects
+for select
+using (bucket_id = 'chat-files' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- manual-media bucket storage policies
 drop policy if exists "Manual media files are publicly readable" on storage.objects;
@@ -899,6 +907,18 @@ begin
 exception
   when unique_violation then
     raise exception 'Reservation time slot is already booked';
+end;
+$$;
+
+-- T11: delete_user_account RPC — 계정 삭제 (auth.users CASCADE)
+create or replace function public.delete_user_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from auth.users where id = auth.uid();
 end;
 $$;
 

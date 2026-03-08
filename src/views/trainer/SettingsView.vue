@@ -151,9 +151,9 @@
     <input v-model="deleteConfirmInput" class="settings__sheet-input" placeholder="탈퇴" type="text" />
     <button
       class="settings__sheet-btn settings__sheet-btn--delete"
-      :disabled="deleteConfirmInput !== '탈퇴'"
+      :disabled="deleteConfirmInput !== '탈퇴' || deleting"
       @click="handleDeleteAccount"
-    >삭제</button>
+    >{{ deleting ? '삭제 중...' : '삭제' }}</button>
   </AppBottomSheet>
 </template>
 
@@ -176,6 +176,7 @@ const roleBadge = computed(() => {
 
 const showDeleteSheet = ref(false)
 const deleteConfirmInput = ref('')
+const deleting = ref(false)
 
 function handleNav(target) {
   if (target === 'work-hours') {
@@ -195,10 +196,13 @@ function handleNav(target) {
 
 async function handleDeleteAccount() {
   if (deleteConfirmInput.value !== '탈퇴') return
+  deleting.value = true
   const ok = await softDeleteAccount()
   if (ok) {
     showDeleteSheet.value = false
     router.push({ name: 'login' })
+  } else {
+    deleting.value = false
   }
 }
 
