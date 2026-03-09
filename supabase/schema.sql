@@ -365,61 +365,125 @@ using (auth.uid() = trainer_id);
 
 drop policy if exists "Reservations are insertable by participants" on public.reservations;
 create policy "Reservations are insertable by participants"
-on public.reservations
-for insert
-to authenticated
-with check (auth.uid() = trainer_id or auth.uid() = member_id);
+on public.reservations for insert to authenticated
+with check (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = reservations.trainer_id
+      and tm.member_id = reservations.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Reservations are readable by participants" on public.reservations;
 create policy "Reservations are readable by participants"
-on public.reservations
-for select
-to authenticated
-using (auth.uid() = trainer_id or auth.uid() = member_id);
+on public.reservations for select to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = reservations.trainer_id
+      and tm.member_id = reservations.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Reservations are updatable by participants" on public.reservations;
 create policy "Reservations are updatable by participants"
-on public.reservations
-for update
-to authenticated
-using (auth.uid() = trainer_id or auth.uid() = member_id)
-with check (auth.uid() = trainer_id or auth.uid() = member_id);
+on public.reservations for update to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = reservations.trainer_id
+      and tm.member_id = reservations.member_id
+      and tm.status = 'active'
+  )
+)
+with check (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = reservations.trainer_id
+      and tm.member_id = reservations.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Reservations are deletable by participants" on public.reservations;
 create policy "Reservations are deletable by participants"
-on public.reservations
-for delete
-to authenticated
-using (auth.uid() = trainer_id or auth.uid() = member_id);
+on public.reservations for delete to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = reservations.trainer_id
+      and tm.member_id = reservations.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Memos are insertable by trainer" on public.memos;
 create policy "Memos are insertable by trainer"
-on public.memos
-for insert
-to authenticated
-with check (auth.uid() = trainer_id);
+on public.memos for insert to authenticated
+with check (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = memos.trainer_id
+      and tm.member_id = memos.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Memos are readable by trainer" on public.memos;
 create policy "Memos are readable by trainer"
-on public.memos
-for select
-to authenticated
-using (auth.uid() = trainer_id);
+on public.memos for select to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = memos.trainer_id
+      and tm.member_id = memos.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Memos are updatable by trainer" on public.memos;
 create policy "Memos are updatable by trainer"
-on public.memos
-for update
-to authenticated
-using (auth.uid() = trainer_id)
-with check (auth.uid() = trainer_id);
+on public.memos for update to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = memos.trainer_id
+      and tm.member_id = memos.member_id
+      and tm.status = 'active'
+  )
+)
+with check (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = memos.trainer_id
+      and tm.member_id = memos.member_id
+      and tm.status = 'active'
+  )
+);
 
 drop policy if exists "Memos are deletable by trainer" on public.memos;
 create policy "Memos are deletable by trainer"
-on public.memos
-for delete
-to authenticated
-using (auth.uid() = trainer_id);
+on public.memos for delete to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = memos.trainer_id
+      and tm.member_id = memos.member_id
+      and tm.status = 'active'
+  )
+);
 
 insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)
@@ -633,9 +697,42 @@ create table if not exists public.messages (
 create index if not exists idx_messages_participants on public.messages (sender_id, receiver_id, created_at desc);
 create index if not exists idx_messages_receiver_unread on public.messages (receiver_id) where is_read = false;
 alter table public.messages enable row level security;
-create policy "Messages are readable by participants" on public.messages for select to authenticated using (auth.uid() = sender_id or auth.uid() = receiver_id);
-create policy "Messages are insertable by sender" on public.messages for insert to authenticated with check (auth.uid() = sender_id);
-create policy "Messages are updatable by receiver" on public.messages for update to authenticated using (auth.uid() = receiver_id);
+create policy "Messages are readable by participants" on public.messages for select to authenticated
+using (
+  (auth.uid() = sender_id or auth.uid() = receiver_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where (
+      (tm.trainer_id = messages.sender_id and tm.member_id = messages.receiver_id)
+      or (tm.trainer_id = messages.receiver_id and tm.member_id = messages.sender_id)
+    )
+    and tm.status = 'active'
+  )
+);
+create policy "Messages are insertable by sender" on public.messages for insert to authenticated
+with check (
+  auth.uid() = sender_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where (
+      (tm.trainer_id = messages.sender_id and tm.member_id = messages.receiver_id)
+      or (tm.trainer_id = messages.receiver_id and tm.member_id = messages.sender_id)
+    )
+    and tm.status = 'active'
+  )
+);
+create policy "Messages are updatable by receiver" on public.messages for update to authenticated
+using (
+  auth.uid() = receiver_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where (
+      (tm.trainer_id = messages.sender_id and tm.member_id = messages.receiver_id)
+      or (tm.trainer_id = messages.receiver_id and tm.member_id = messages.sender_id)
+    )
+    and tm.status = 'active'
+  )
+);
 
 -- T3: pt_sessions table (PT 횟수 이력)
 create table if not exists public.pt_sessions (
@@ -648,8 +745,26 @@ create table if not exists public.pt_sessions (
 );
 create index if not exists idx_pt_sessions_member on public.pt_sessions (member_id, created_at desc);
 alter table public.pt_sessions enable row level security;
-create policy "PT sessions readable by trainer and member" on public.pt_sessions for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
-create policy "PT sessions insertable by trainer" on public.pt_sessions for insert to authenticated with check (auth.uid() = trainer_id);
+create policy "PT sessions readable by trainer and member" on public.pt_sessions for select to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = pt_sessions.trainer_id
+      and tm.member_id = pt_sessions.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "PT sessions insertable by trainer" on public.pt_sessions for insert to authenticated
+with check (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = pt_sessions.trainer_id
+      and tm.member_id = pt_sessions.member_id
+      and tm.status = 'active'
+  )
+);
 
 -- T3: payments table (수납 기록)
 create table if not exists public.payments (
@@ -663,9 +778,36 @@ create table if not exists public.payments (
 );
 create index if not exists idx_payments_member on public.payments (member_id, created_at desc);
 alter table public.payments enable row level security;
-create policy "Payments readable by trainer and member" on public.payments for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
-create policy "Payments insertable by trainer" on public.payments for insert to authenticated with check (auth.uid() = trainer_id);
-create policy "Payments deletable by trainer" on public.payments for delete to authenticated using (auth.uid() = trainer_id);
+create policy "Payments readable by trainer and member" on public.payments for select to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = payments.trainer_id
+      and tm.member_id = payments.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "Payments insertable by trainer" on public.payments for insert to authenticated
+with check (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = payments.trainer_id
+      and tm.member_id = payments.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "Payments deletable by trainer" on public.payments for delete to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = payments.trainer_id
+      and tm.member_id = payments.member_id
+      and tm.status = 'active'
+  )
+);
 
 -- T4: manual_category enum + manuals table
 do $$ begin
@@ -722,10 +864,46 @@ create table if not exists public.workout_plans (
 );
 create index if not exists idx_workout_plans_member_date on public.workout_plans (member_id, date desc);
 alter table public.workout_plans enable row level security;
-create policy "Workout plans readable by trainer and member" on public.workout_plans for select to authenticated using (auth.uid() = trainer_id or auth.uid() = member_id);
-create policy "Workout plans insertable by trainer" on public.workout_plans for insert to authenticated with check (auth.uid() = trainer_id);
-create policy "Workout plans updatable by trainer" on public.workout_plans for update to authenticated using (auth.uid() = trainer_id);
-create policy "Workout plans deletable by trainer" on public.workout_plans for delete to authenticated using (auth.uid() = trainer_id);
+create policy "Workout plans readable by trainer and member" on public.workout_plans for select to authenticated
+using (
+  (auth.uid() = trainer_id or auth.uid() = member_id)
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = workout_plans.trainer_id
+      and tm.member_id = workout_plans.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "Workout plans insertable by trainer" on public.workout_plans for insert to authenticated
+with check (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = workout_plans.trainer_id
+      and tm.member_id = workout_plans.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "Workout plans updatable by trainer" on public.workout_plans for update to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = workout_plans.trainer_id
+      and tm.member_id = workout_plans.member_id
+      and tm.status = 'active'
+  )
+);
+create policy "Workout plans deletable by trainer" on public.workout_plans for delete to authenticated
+using (
+  auth.uid() = trainer_id
+  and exists (
+    select 1 from public.trainer_members tm
+    where tm.trainer_id = workout_plans.trainer_id
+      and tm.member_id = workout_plans.member_id
+      and tm.status = 'active'
+  )
+);
 
 -- T6: notification_type enum + notifications table
 do $$ begin
@@ -782,7 +960,16 @@ alter type public.connection_status add value if not exists 'pending';
 
 -- T8: memos 회원 읽기 RLS 추가
 do $$ begin
-  create policy "Memos are readable by member" on public.memos for select to authenticated using (auth.uid() = member_id);
+  create policy "Memos are readable by member" on public.memos for select to authenticated
+  using (
+    auth.uid() = member_id
+    and exists (
+      select 1 from public.trainer_members tm
+      where tm.trainer_id = memos.trainer_id
+        and tm.member_id = memos.member_id
+        and tm.status = 'active'
+    )
+  );
 exception when duplicate_object then null;
 end $$;
 

@@ -32,6 +32,7 @@ export function usePayments() {
         .from('payments')
         .select('*')
         .eq('member_id', memberId)
+        .eq('trainer_id', auth.user.id)
         .order('payment_date', { ascending: false })
 
       if (fetchError) throw fetchError

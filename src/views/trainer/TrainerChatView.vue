@@ -1,6 +1,22 @@
 <!-- 트레이너 채팅 페이지 — 대화 목록 ↔ 채팅방 (Supabase Realtime) -->
 <template>
   <div class="trainer-chat">
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+        <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
+      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    </div>
+
+    <template v-else>
 
     <!-- ══ 대화 목록 패널 ══ -->
     <div v-if="!selectedPartnerId" class="trainer-chat__list-panel">
@@ -140,16 +156,21 @@
     </div>
 
     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { isActiveConnection } from '@/composables/useConnection'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
 import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
 
+const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const {
   conversations,
@@ -172,6 +193,7 @@ const partnerName = ref('')
 const inputText = ref('')
 const messageListRef = ref(null)
 const fileInputRef = ref(null)
+const hasActiveConnection = ref(null)
 
 // ── 시간 포맷: 상대 시간 (대화 목록용) ──
 function formatRelativeTime(isoString) {
@@ -205,6 +227,13 @@ async function scrollToBottom() {
 
 // ── 채팅방 열기 ──
 async function openChat(conv) {
+  hasActiveConnection.value = null
+  hasActiveConnection.value = await isActiveConnection(auth.user?.id, conv.partnerId)
+  if (!hasActiveConnection.value) {
+    selectedPartnerId.value = null
+    partnerName.value = ''
+    return
+  }
   partnerName.value = conv.partnerName ?? '채팅'
   selectedPartnerId.value = conv.partnerId
   await fetchMessages(conv.partnerId)
@@ -219,6 +248,7 @@ function closeChat() {
   selectedPartnerId.value = null
   partnerName.value = ''
   inputText.value = ''
+  hasActiveConnection.value = true
 }
 
 // ── 메시지 전송 ──
@@ -253,8 +283,26 @@ watch(error, (val) => {
   if (val) showError(val)
 })
 
-onMounted(() => {
-  fetchConversations()
+onMounted(async () => {
+  await fetchConversations()
+  const partnerId = route.query.partnerId || route.params.partnerId || route.params.memberId
+  if (!partnerId || !auth.user?.id) {
+    hasActiveConnection.value = true
+    return
+  }
+  hasActiveConnection.value = await isActiveConnection(auth.user.id, partnerId)
+  if (!hasActiveConnection.value) return
+  const targetConversation = conversations.value.find(conv => conv.partnerId === partnerId)
+  if (targetConversation) {
+    await openChat(targetConversation)
+    return
+  }
+  selectedPartnerId.value = partnerId
+  partnerName.value = '채팅'
+  await fetchMessages(partnerId)
+  await markAsRead(partnerId)
+  subscribeToMessages(partnerId)
+  scrollToBottom()
 })
 
 onUnmounted(() => {

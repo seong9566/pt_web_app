@@ -12,8 +12,22 @@
       <div style="width: 40px;" />
     </div>
 
-    <!-- ── Body (scrollable) ── -->
-    <div class="pt-count-manage__body">
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+        <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
+      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    </div>
+
+    <div v-else class="pt-count-manage__body">
 
       <!-- 잔여 횟수 요약 카드 -->
       <div class="pt-count-manage__summary-card">
@@ -210,16 +224,20 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import { isActiveConnection } from '@/composables/useConnection'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { usePayments } from '@/composables/usePayments'
+import { useAuthStore } from '@/stores/auth'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useMembersStore } from '@/stores/members'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const memberId = route.params.id
 const ptSessionsStore = usePtSessionsStore()
 const membersStore = useMembersStore()
+const hasActiveConnection = ref(null)
 
 const {
   ptHistory,
@@ -261,6 +279,12 @@ const editError = ref('')
 const editIsPositive = ref(true)
 
 onMounted(async () => {
+  if (!memberId || !auth.user?.id) {
+    hasActiveConnection.value = false
+    return
+  }
+  hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
+  if (!hasActiveConnection.value) return
   await getRemainingCount(memberId)
   await fetchPtHistory(memberId)
 })
@@ -300,6 +324,7 @@ function openDeductSheet() {
 }
 
 async function handleAdd() {
+  if (hasActiveConnection.value !== true) return
   addError.value = ''
   if (!addAmount.value || addAmount.value <= 0) {
     addError.value = '추가 횟수는 1 이상이어야 합니다'
@@ -329,6 +354,7 @@ async function handleAdd() {
 }
 
 async function handleDeduct() {
+  if (hasActiveConnection.value !== true) return
   deductError.value = ''
   if (!deductAmount.value || deductAmount.value <= 0) {
     deductError.value = '차감 횟수는 1 이상이어야 합니다'
@@ -350,6 +376,7 @@ async function handleDeduct() {
 }
 
 async function handleEdit() {
+  if (hasActiveConnection.value !== true) return
   editError.value = ''
   if (!editAmount.value || editAmount.value <= 0) {
     editError.value = '횟수는 1 이상이어야 합니다'

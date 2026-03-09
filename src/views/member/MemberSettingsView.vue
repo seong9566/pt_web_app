@@ -27,7 +27,7 @@
       </section>
 
       <!-- ── 내 수강권 ── -->
-      <section class="settings__group">
+      <section v-if="hasActiveConnection === true" class="settings__group">
         <h2 class="settings__group-title">내 회원권</h2>
         <div class="settings__card settings__pt-card">
           <div class="settings__pt-info">
@@ -98,7 +98,7 @@
       </section>
 
       <!-- ── 연결 관리 ── -->
-      <section class="settings__group">
+      <section v-if="hasActiveConnection === true" class="settings__group">
         <h2 class="settings__group-title">연결 관리</h2>
         <div class="settings__card">
           <button v-if="trainerName" class="settings__row" @click="showDisconnectSheet = true">
@@ -181,6 +181,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'
+import { useReservations } from '@/composables/useReservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
@@ -190,6 +191,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const { disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName } = useProfile()
 const { remainingCount, totalCount, fetchMemberOwnPtCount } = usePtSessions()
+const { checkTrainerConnection } = useReservations()
 const ptSessionsStore = usePtSessionsStore()
 
 const roleBadge = computed(() => {
@@ -197,9 +199,17 @@ const roleBadge = computed(() => {
 })
 
 const trainerName = ref('')
+const hasActiveConnection = ref(null)
 const loaded = ref(false)
 
 async function loadData() {
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+  if (!connected) {
+    trainerName.value = ''
+    loaded.value = true
+    return
+  }
   await fetchMemberOwnPtCount()
   const name = await fetchConnectedTrainerName()
   trainerName.value = name || ''
@@ -207,6 +217,7 @@ async function loadData() {
 }
 
 async function handleRefresh() {
+  if (hasActiveConnection.value !== true) return
   await ptSessionsStore.loadMemberOwnPtCount(true)
 }
 

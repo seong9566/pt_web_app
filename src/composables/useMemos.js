@@ -101,10 +101,14 @@ export function useMemos() {
         .select('connected_at, status')
         .eq('trainer_id', auth.user.id)
         .eq('member_id', memberId)
-        .in('status', ['active', 'pending'])
+        .eq('status', 'active')
         .maybeSingle()
 
       if (tmError) throw tmError
+      if (!trainerMember) {
+        member.value = null
+        return
+      }
 
       // Fetch last completed reservation
       const { data: lastVisitData, error: lvError } = await supabase

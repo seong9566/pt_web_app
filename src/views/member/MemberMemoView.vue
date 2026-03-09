@@ -18,6 +18,17 @@
 
     <div class="member-memo__body">
 
+      <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
+        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
+        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
+      </div>
+
+      <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+        불러오는 중...
+      </div>
+
+      <template v-else>
+
       <!-- 로딩 상태 -->
       <div v-if="loading" class="member-memo__loading">
         로딩 중...
@@ -57,6 +68,7 @@
           <p class="memo-card__text">{{ memo.content }}</p>
         </div>
       </div>
+      </template>
 
     </div>
 
@@ -65,14 +77,22 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
+import { useReservations } from '@/composables/useReservations'
 
 const router = useRouter()
 const { memos, loading, error, getMemberMemos } = useMemos()
+const { checkTrainerConnection } = useReservations()
+const hasActiveConnection = ref(null)
 
 onMounted(async () => {
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+  if (!connected) {
+    return
+  }
   await getMemberMemos()
 })
 </script>

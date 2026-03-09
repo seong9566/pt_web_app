@@ -1,6 +1,22 @@
 <!-- 회원 상세 페이지. 회원 프로필 정보 + 메모 목록 표시 -->
 <template>
   <div class="mem-detail">
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+        <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
+      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    </div>
+
+    <template v-else>
 
     <!-- ── Header ── -->
     <div class="mem-detail__header">
@@ -210,8 +226,6 @@
     </button>
 
     <div style="height: calc(var(--nav-height) + 32px);" />
-  </div>
-
   <AppBottomSheet v-model="showDisconnectSheet" title="회원 연결 해제">
     <p class="mem-detail__sheet-desc">정말 연결을 해제하시겠습니까?</p>
     <div class="mem-detail__sheet-actions">
@@ -227,22 +241,24 @@
       <button class="mem-detail__sheet-btn mem-detail__sheet-btn--confirm" @click="confirmDeleteMemo">삭제</button>
     </div>
   </AppBottomSheet>
+    </template>
+  </div>
 </template>
 
-<script>
-export default { name: 'TrainerMemberDetailView' }
-</script>
-
 <script setup>
+defineOptions({ name: 'TrainerMemberDetailView' })
 import { onMounted, onActivated, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'
+import { isActiveConnection } from '@/composables/useConnection'
+import { useAuthStore } from '@/stores/auth'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const { member, memos, loading, error, fetchMemberDetail, fetchMemos, deleteMemo } = useMemos()
 const { disconnectMember } = useProfile()
 const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
@@ -251,20 +267,25 @@ const showDisconnectSheet = ref(false)
 const showDeleteMemoSheet = ref(false)
 const deleteMemoTarget = ref(null)
 const initialLoaded = ref(false)
+const hasActiveConnection = ref(null)
 
 onMounted(async () => {
   const memberId = route.params.id
-  if (memberId) {
-    await fetchMemberDetail(memberId)
-    await fetchMemos(memberId)
-    await fetchPtHistory(memberId)
-    initialLoaded.value = true
+  if (!memberId || !auth.user?.id) {
+    hasActiveConnection.value = false
+    return
   }
+  hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
+  if (!hasActiveConnection.value) return
+  await fetchMemberDetail(memberId)
+  await fetchMemos(memberId)
+  await fetchPtHistory(memberId)
+  initialLoaded.value = true
 })
 
 /** keep-alive 복귀 시: PT 횟수/수납 변경 반영을 위해 경량 재조회 */
 onActivated(async () => {
-  if (!initialLoaded.value) return
+  if (!initialLoaded.value || hasActiveConnection.value !== true) return
   const memberId = route.params.id
   if (memberId) {
     await fetchPtHistory(memberId)

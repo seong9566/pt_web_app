@@ -13,8 +13,22 @@
       <div class="payment-view__header-spacer"></div>
     </div>
 
-    <!-- ── Body ── -->
-    <div class="payment-view__body">
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+        <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
+      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    </div>
+
+    <div v-else class="payment-view__body">
 
       <!-- 로딩 -->
       <div v-if="loading && !showEditSheet" class="payment-view__loading">로딩 중...</div>
@@ -183,11 +197,15 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import { isActiveConnection } from '@/composables/useConnection'
 import { usePayments } from '@/composables/usePayments'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const memberId = route.params.id
+const hasActiveConnection = ref(null)
 
 const { payments, totalAmount, loading, error, fetchPayments, updatePayment, deletePayment } = usePayments()
 
@@ -199,8 +217,14 @@ const editDate = ref('')
 const editMemo = ref('')
 const editError = ref('')
 
-onMounted(() => {
-  fetchPayments(memberId)
+onMounted(async () => {
+  if (!memberId || !auth.user?.id) {
+    hasActiveConnection.value = false
+    return
+  }
+  hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
+  if (!hasActiveConnection.value) return
+  await fetchPayments(memberId)
 })
 
 function formatAmount(amount) {
@@ -222,6 +246,7 @@ function openEditSheet(payment) {
 }
 
 async function handleEdit() {
+  if (hasActiveConnection.value !== true) return
   editError.value = ''
   const parsedAmount = Number(editAmount.value)
   if (!editAmount.value || parsedAmount <= 0) {
@@ -247,11 +272,13 @@ async function handleEdit() {
 }
 
 async function handleDelete(id) {
+  if (hasActiveConnection.value !== true) return
   if (!confirm('이 수납 기록을 삭제하시겠습니까?')) return
   await deletePayment(id)
 }
 
 function goToWrite() {
+  if (hasActiveConnection.value !== true) return
   router.push({ name: 'trainer-payment-write', params: { id: memberId } })
 }
 </script>

@@ -10,6 +10,17 @@
       <!-- 에러 메시지 -->
       <div v-if="error" class="error-message">{{ error }}</div>
 
+      <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
+        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
+        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
+      </div>
+
+      <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+        불러오는 중...
+      </div>
+
+      <template v-else>
+
       <!-- ── Monthly Calendar ── -->
       <div class="calendar-card">
         <div class="calendar-card__nav">
@@ -249,6 +260,7 @@
         </svg>
         예약하기
       </button>
+      </template>
     </AppPullToRefresh>
   </div>
 </template>
@@ -271,6 +283,7 @@ const {
   error,
   fetchMyReservations,
   updateReservationStatus,
+  checkTrainerConnection,
   getConnectedTrainerId,
 } = useReservations();
 const { fetchWorkingDays } = useWorkHours();
@@ -299,8 +312,15 @@ const legend = [
 
 const loaded = ref(false);
 const workingDays = ref(new Set());
+const hasActiveConnection = ref(null);
 
 async function loadData() {
+  const connected = await checkTrainerConnection();
+  hasActiveConnection.value = connected;
+  if (!connected) {
+    loaded.value = true;
+    return;
+  }
   await fetchMyReservations("member");
   const trainerId = await getConnectedTrainerId();
   if (trainerId) {

@@ -16,6 +16,17 @@
     <!-- ── Body ── -->
     <div class="workout-detail__body">
 
+      <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
+        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
+        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
+      </div>
+
+      <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+        불러오는 중...
+      </div>
+
+      <template v-else>
+
       <!-- 날짜 네비게이션 -->
       <div class="workout-detail__date-nav">
         <button
@@ -70,6 +81,7 @@
 
       <!-- 하단 스페이서 -->
       <div style="height: 32px;" />
+      </template>
     </div>
 
     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
@@ -80,6 +92,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppToast from '@/components/AppToast.vue'
@@ -89,7 +102,9 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const { workoutPlans, currentPlan, loading, fetchWorkoutPlan, fetchWorkoutPlans, error } = useWorkoutPlans()
+const { checkTrainerConnection } = useReservations()
 const { showToast, toastMessage, toastType, showError } = useToast()
+const hasActiveConnection = ref(null)
 
 watch(error, (val) => {
   if (val) showError(val)
@@ -125,6 +140,11 @@ function formatDate(dateStr) {
 }
 
 onMounted(async () => {
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+  if (!connected) {
+    return
+  }
   await fetchWorkoutPlans(auth.user.id)
   await fetchWorkoutPlan(auth.user.id, selectedDate.value)
 })

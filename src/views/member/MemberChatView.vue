@@ -2,6 +2,17 @@
 <template>
   <div class="member-chat">
 
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+      불러오는 중...
+    </div>
+
+    <template v-else>
+
     <!-- ══ 대화 목록 패널 ══ -->
     <div v-if="!selectedPartnerId" class="member-chat__list-panel">
 
@@ -138,6 +149,7 @@
         </button>
       </div>
     </div>
+    </template>
 
     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
@@ -147,6 +159,7 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
+import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
 
@@ -165,12 +178,14 @@ const {
 } = useChat()
 
 const { showToast, toastMessage, toastType, showError } = useToast()
+const { checkTrainerConnection } = useReservations()
 
 const selectedPartnerId = ref(null)
 const partnerName = ref('')
 const inputText = ref('')
 const messageListRef = ref(null)
 const fileInputRef = ref(null)
+const hasActiveConnection = ref(null)
 
 function formatRelativeTime(isoString) {
   if (!isoString) return ''
@@ -243,7 +258,10 @@ watch(error, (val) => {
   if (val) showError(val)
 })
 
-onMounted(() => {
+onMounted(async () => {
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+  if (!connected) return
   fetchConversations()
 })
 

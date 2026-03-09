@@ -13,6 +13,16 @@
       <div style="width: 24px;"></div> <!-- spacer -->
     </div>
 
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+      불러오는 중...
+    </div>
+
+    <template v-else>
     <!-- ── Content Scroll Area ── -->
     <div class="reservation-content">
       
@@ -166,6 +176,7 @@
         </svg>
       </button>
     </div>
+    </template>
 
   </div>
 </template>
@@ -182,7 +193,7 @@ import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId } = useReservations()
+const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
 const { holidays, fetchHolidays } = useHolidays()
@@ -202,10 +213,16 @@ const selectedTime = ref(null)
 
 // Trainer Connection
 const trainerId = ref(null)
+const hasActiveConnection = ref(null)
 const isSubmitting = ref(false)
 
 // Initialize trainer ID on mount
 onMounted(async () => {
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+  if (!connected) {
+    return
+  }
   const connectedTrainerId = await getConnectedTrainerId()
   if (connectedTrainerId) {
     trainerId.value = connectedTrainerId

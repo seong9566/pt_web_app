@@ -12,8 +12,22 @@
       <div class="today-workout__header-spacer" />
     </div>
 
-    <!-- Body -->
-    <div class="today-workout__body">
+    <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
+        <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
+      <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
+      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+    </div>
+
+    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
+      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    </div>
+
+    <div v-else class="today-workout__body">
 
       <!-- ① 회원 프로필 -->
       <section v-if="memberProfile" class="today-workout__profile">
@@ -201,10 +215,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { isActiveConnection } from '@/composables/useConnection'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 
 const {
   workoutPlans,
@@ -227,6 +244,7 @@ const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const saveSuccess = ref(false)
 const isSaving = ref(false)
 const historyLoading = ref(false)
+const hasActiveConnection = ref(null)
 
 const filteredReservationDates = computed(() =>
   reservationDates.value.filter(d => d !== todayStr)
@@ -234,10 +252,12 @@ const filteredReservationDates = computed(() =>
 
 onMounted(async () => {
   const memberId = route.query.memberId
-  if (!memberId) {
+  if (!memberId || !auth.user?.id) {
     router.back()
     return
   }
+  hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
+  if (!hasActiveConnection.value) return
   await Promise.all([
     fetchMemberProfile(memberId),
     fetchMemberReservationDates(memberId),
@@ -246,6 +266,7 @@ onMounted(async () => {
 })
 
 async function selectDate(date) {
+  if (hasActiveConnection.value !== true) return
   if (selectedDate.value === date) return
   selectedDate.value = date
   saveSuccess.value = false
@@ -258,6 +279,7 @@ async function selectDate(date) {
 }
 
 async function loadPlanAndHistory() {
+  if (hasActiveConnection.value !== true) return
   const memberId = route.query.memberId
   if (!memberId) return
   historyLoading.value = true
@@ -270,6 +292,7 @@ async function loadPlanAndHistory() {
 }
 
 async function handleSave() {
+  if (hasActiveConnection.value !== true) return
   const memberId = route.query.memberId
   const validExercises = exercises.value.filter(e => e.name.trim())
   if (!memberId || validExercises.length === 0 || isSaving.value) return
