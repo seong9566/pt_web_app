@@ -36,9 +36,21 @@
           maxlength="200"
         />
         <div class="cancel-dialog__actions">
-          <button class="cancel-dialog__btn cancel-dialog__btn--cancel" @click="showCancelDialog = false">취소</button>
-          <button class="cancel-dialog__btn cancel-dialog__btn--confirm" @click="confirmCancel">취소</button>
+          <button class="cancel-dialog__btn cancel-dialog__btn--cancel" @click="showCancelDialog = false">닫기</button>
+          <button class="cancel-dialog__btn cancel-dialog__btn--confirm" @click="confirmCancel">취소 확인</button>
         </div>
+      </div>
+    </AppBottomSheet>
+
+    <!-- ── ··· 액션 바텀시트 ── -->
+    <AppBottomSheet v-model="showMenuSheet" title="예약 관리">
+      <div style="padding: 0 0 8px;">
+        <button class="res-menu-popup__item res-menu-popup__item--cancel" @click="handleCancelFromMenu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+          예약 취소
+        </button>
       </div>
     </AppBottomSheet>
 
@@ -177,12 +189,26 @@
                 </div>
                 <span class="res-card__name">{{ item.partner_name }}</span>
               </div>
-              <span class="res-card__status res-card__status--approved">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                승인됨
-              </span>
+              <div class="res-card__top-right">
+                <span class="res-card__status res-card__status--approved">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  승인됨
+                </span>
+                <!-- ··· 점 메뉴 버튼 -->
+                <button
+                  class="res-card__menu-btn"
+                  :disabled="processingId === item.id"
+                  @click.stop="toggleMenu(item)"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                    <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div class="res-card__meta">
@@ -202,25 +228,6 @@
                 {{ item.start_time }} ~ {{ item.end_time }}
               </span>
             </div>
-
-            <div class="res-card__divider" />
-
-            <div class="res-card__actions">
-              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleComplete(item)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                {{ processingId === item.id ? '처리 중...' : '완료' }}
-              </button>
-              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleCancel(item)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
-                {{ processingId === item.id ? '처리 중...' : '취소' }}
-              </button>
-            </div>
-
-
           </div>
         </div>
       </section>
@@ -246,13 +253,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
-import { usePtSessionsStore } from '@/stores/ptSessions'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const { reservations, loading, error, fetchMyReservations, updateReservationStatus, rejectReservation } = useReservations()
 const reservationsStore = useReservationsStore()
-const ptSessionsStore = usePtSessionsStore()
 
 // ── Filter ──
 const filterChips = [
@@ -262,8 +267,24 @@ const filterChips = [
   { id: 'completed', label: '완료', icon: 'history' },
 ]
 const activeFilter = ref('all')
-
 const processingId = ref(null)
+
+// ── ··· 바텀시트 메뉴 ──
+const showMenuSheet = ref(false)
+const menuTargetItem = ref(null)
+
+function toggleMenu(item) {
+  menuTargetItem.value = item
+  showMenuSheet.value = true
+}
+
+function handleCancelFromMenu() {
+  showMenuSheet.value = false
+  if (!menuTargetItem.value) return
+  const item = menuTargetItem.value
+  menuTargetItem.value = null
+  handleCancel(item)
+}
 
 // ── Initialize ──
 onMounted(async () => {
@@ -360,20 +381,6 @@ async function handleApprove(item) {
     const success = await updateReservationStatus(item.id, 'approved')
     if (success) {
       reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
-    }
-  } finally {
-    processingId.value = null
-  }
-}
-
-async function handleComplete(item) {
-  processingId.value = item.id
-  try {
-    const success = await updateReservationStatus(item.id, 'completed')
-    if (success) {
-      reservationsStore.invalidate()
-      ptSessionsStore.invalidate()
       await fetchMyReservations('trainer')
     }
   } finally {
