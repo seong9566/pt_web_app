@@ -18,6 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref(null)   // Supabase 세션 객체 (access_token 포함)
   const loading = ref(true)   // 초기화/인증 진행 중 여부
   const error = ref(null)     // 마지막 에러 메시지
+  const deletionPending = ref(false)
 
   let _initialized = false        // 초기화 완료 여부
   let _initializePromise = null   // 중복 초기화 방지용 Promise
@@ -34,6 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     profile.value = null
     role.value = null
+    deletionPending.value = false
   }
 
   /** 프로필 데이터 설정 + role 동기화 */
@@ -104,6 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       setProfile(data)
+      deletionPending.value = !!data?.deleted_at
       return data
     } catch (e) {
       console.error('[AuthStore] fetchProfile 과정 중 예외 발생:', e)
@@ -253,5 +256,6 @@ export const useAuthStore = defineStore('auth', () => {
     hydrateFromSession,
     initialize,
     signOut,
+    deletionPending,
   }
 })

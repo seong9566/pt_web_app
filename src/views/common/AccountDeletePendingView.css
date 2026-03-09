@@ -1,0 +1,89 @@
+.account-delete-pending {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px var(--side-margin);
+  background-color: var(--color-white);
+  text-align: center;
+}
+
+.account-delete-pending__icon-wrap {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-color: rgba(255, 204, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-yellow);
+  margin-bottom: 24px;
+}
+
+.account-delete-pending__title {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-display);
+  color: var(--color-gray-900);
+  margin: 0 0 12px;
+}
+
+.account-delete-pending__desc {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-reg);
+  color: var(--color-gray-900);
+  margin: 0 0 6px;
+  line-height: var(--lh-body);
+}
+
+.account-delete-pending__desc strong {
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-red);
+}
+
+.account-delete-pending__subdesc {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0 0 32px;
+  line-height: var(--lh-body);
+}
+
+.account-delete-pending__error {
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 0 0 16px;
+}
+
+.account-delete-pending__actions {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-delete-pending__btn {
+  width: 100%;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  border: none;
+}
+
+.account-delete-pending__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.account-delete-pending__btn--primary {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+.account-delete-pending__btn--secondary {
+  background-color: var(--color-white);
+  color: var(--color-gray-600);
+  border: 1px solid var(--color-gray-200);
+}

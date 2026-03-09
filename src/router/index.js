@@ -9,7 +9,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login", "/email-login", "/password-reset", "/password-update"];
+const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login", "/email-login", "/password-reset", "/password-update", "/account-delete-pending"];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,6 +59,12 @@ const router = createRouter({
       path: '/notifications',
       name: 'notifications',
       component: () => import('@/views/common/NotificationListView.vue'),
+      meta: { hideNav: true },
+    },
+    {
+      path: '/account-delete-pending',
+      name: 'account-delete-pending',
+      component: () => import('@/views/common/AccountDeletePendingView.vue'),
       meta: { hideNav: true },
     },
     {
@@ -307,6 +313,10 @@ router.beforeEach(async (to) => {
       if (auth.role === "trainer") return "/trainer/home";
       if (auth.role === "member") return "/member/home";
       return "/onboarding/role";
+    }
+
+    if (isAuthenticated && auth.deletionPending && to.path !== '/account-delete-pending') {
+      return '/account-delete-pending'
     }
 
     // Onboarding routes: require auth but no role check

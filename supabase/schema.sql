@@ -24,7 +24,8 @@ create table if not exists public.profiles (
   name text not null,
   phone text,
   photo_url text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  deleted_at timestamptz default null
 );
 
 create table if not exists public.trainer_profiles (
@@ -161,7 +162,7 @@ create policy "Trainer profiles are searchable by authenticated users"
 on public.profiles
 for select
 to authenticated
-using (role = 'trainer' and auth.uid() is not null);
+using (role = 'trainer' and deleted_at is null and auth.uid() is not null);
 
 drop policy if exists "Profiles are readable by connected users" on public.profiles;
 create policy "Profiles are readable by connected users"
@@ -169,7 +170,8 @@ on public.profiles
 for select
 to authenticated
 using (
-  exists (
+  deleted_at is null
+  and exists (
     select 1
     from public.trainer_members tm
     where tm.status in ('active', 'pending')
@@ -1109,6 +1111,33 @@ begin
 end;
 $$;
 
+create or replace function public.soft_delete_user_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.profiles
+  set deleted_at = now()
+  where id = auth.uid()
+    and deleted_at is null;
+end;
+$$;
+
+create or replace function public.cancel_account_deletion()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.profiles
+  set deleted_at = null
+  where id = auth.uid();
+end;
+$$;
+
 -- T10: PT 자동 차감 trigger
 create or replace function public.auto_deduct_pt_session()
 returns trigger as $$
@@ -1144,10 +1173,33 @@ begin
 end;
 $$;
 
+create or replace function public.purge_deleted_accounts()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from auth.users
+  where id in (
+    select p.id
+    from public.profiles p
+    where p.deleted_at is not null
+      and p.deleted_at <= now() - interval '30 days'
+  );
+end;
+$$;
+
 select cron.schedule(
   'auto-complete-reservations',
   '*/5 * * * *',
   $$select public.auto_complete_past_reservations()$$
+);
+
+select cron.schedule(
+  'purge-deleted-accounts',
+  '0 3 * * *',
+  $$select public.purge_deleted_accounts()$$
 );
 
 commit;

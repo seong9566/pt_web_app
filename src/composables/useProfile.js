@@ -264,65 +264,12 @@ export function useProfile() {
         if (connections && connections.length > 0) {
           for (const conn of connections) {
             const otherUserId = conn.trainer_id === auth.user.id ? conn.member_id : conn.trainer_id
-            await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴했습니다', `${userName}님이 탈퇴했습니다.`)
+            await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴 예정입니다', `${userName}님이 탈퇴 예정입니다. 30일 후 계정이 완전히 삭제됩니다.`)
           }
         }
       } catch (e) {}
 
-      try {
-        const { data: avatarFiles } = await supabase.storage.from('avatars').list(auth.user.id)
-        if (avatarFiles && avatarFiles.length > 0) {
-          const paths = avatarFiles.map((f) => `${auth.user.id}/${f.name}`)
-          await supabase.storage.from('avatars').remove(paths)
-        }
-      } catch (storageErr) {
-        console.warn('avatars 파일 삭제 실패 (무시):', storageErr)
-      }
-
-      try {
-        const { data: chatFiles } = await supabase.storage.from('chat-files').list(auth.user.id)
-        if (chatFiles && chatFiles.length > 0) {
-          const paths = chatFiles.map((f) => `${auth.user.id}/${f.name}`)
-          await supabase.storage.from('chat-files').remove(paths)
-        }
-      } catch (storageErr) {
-        console.warn('chat-files 파일 삭제 실패 (무시):', storageErr)
-      }
-
-      if (auth.profile?.role === 'trainer') {
-        try {
-          const { data: manualsList } = await supabase
-            .from('manuals')
-            .select('id')
-            .eq('trainer_id', auth.user.id)
-          if (manualsList && manualsList.length > 0) {
-            for (const manual of manualsList) {
-              const { data: mediaList } = await supabase
-                .from('manual_media')
-                .select('file_url')
-                .eq('manual_id', manual.id)
-              if (mediaList && mediaList.length > 0) {
-                const paths = mediaList
-                  .map((m) => {
-                    const url = m.file_url
-                    if (!url) return null
-                    const marker = '/manual-media/'
-                    const idx = url.indexOf(marker)
-                    return idx !== -1 ? url.slice(idx + marker.length) : null
-                  })
-                  .filter(Boolean)
-                if (paths.length > 0) {
-                  await supabase.storage.from('manual-media').remove(paths)
-                }
-              }
-            }
-          }
-        } catch (storageErr) {
-          console.warn('manual-media 파일 삭제 실패 (무시):', storageErr)
-        }
-      }
-
-      const { error: rpcError } = await supabase.rpc('delete_user_account')
+      const { error: rpcError } = await supabase.rpc('soft_delete_user_account')
       if (rpcError) throw rpcError
 
       await supabase.auth.signOut()
@@ -333,5 +280,15 @@ export function useProfile() {
     }
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName }
+  async function cancelAccountDeletion() {
+    const { error: rpcError } = await supabase.rpc('cancel_account_deletion')
+    if (rpcError) {
+      error.value = rpcError.message
+      return false
+    }
+    if (auth.profile) auth.profile.deleted_at = null
+    return true
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount, cancelAccountDeletion, fetchConnectedTrainerName }
 }

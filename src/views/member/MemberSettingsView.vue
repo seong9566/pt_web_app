@@ -163,7 +163,7 @@
   </AppBottomSheet>
 
   <AppBottomSheet v-model="showDeleteSheet" title="계정 삭제">
-    <p class="settings__sheet-desc">계정을 삭제하면 복구할 수 없습니다.<br>'탈퇴'를 입력하세요.</p>
+    <p class="settings__sheet-desc">30일 후 계정이 완전히 삭제됩니다. 30일 이내에 로그인하면 삭제를 취소할 수 있습니다.<br>'탈퇴'를 입력하세요.</p>
     <input v-model="deleteConfirmInput" class="settings__sheet-input" placeholder="탈퇴" type="text" />
     <button
       class="settings__sheet-btn settings__sheet-btn--delete"
