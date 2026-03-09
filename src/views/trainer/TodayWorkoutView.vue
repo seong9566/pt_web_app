@@ -182,15 +182,45 @@
             class="today-workout__history-item"
           >
             <div class="today-workout__history-top">
-              <div class="today-workout__history-info">
+              <div class="today-workout__history-info" @click="toggleHistoryExpand(plan.id)">
                 <span class="today-workout__history-date">{{ formatDate(plan.date) }}</span>
                 <span class="today-workout__history-content">{{ formatHistoryPreview(plan.exercises) }}</span>
               </div>
-              <button
-                class="today-workout__history-copy"
-                type="button"
-                @click="copyFromHistory(plan)"
-              >복사</button>
+              <div class="today-workout__history-actions">
+                <button
+                  class="today-workout__history-copy"
+                  type="button"
+                  @click="copyFromHistory(plan)"
+                >전체 복사</button>
+                <button
+                  class="today-workout__history-toggle"
+                  type="button"
+                  @click="toggleHistoryExpand(plan.id)"
+                  :class="{ 'today-workout__history-toggle--open': expandedHistoryId === plan.id }"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div v-if="expandedHistoryId === plan.id" class="today-workout__history-exercises">
+              <div
+                v-for="(ex, ei) in plan.exercises"
+                :key="ei"
+                class="today-workout__history-exercise"
+              >
+                <div class="today-workout__history-exercise-info">
+                  <span class="today-workout__history-exercise-name">{{ ex.name || '(이름 없음)' }}</span>
+                  <span class="today-workout__history-exercise-detail">{{ ex.sets ?? 3 }}세트 × {{ ex.reps ?? 10 }}회</span>
+                </div>
+                <button
+                  class="today-workout__history-exercise-add"
+                  type="button"
+                  :disabled="exercises.length >= 20"
+                  @click="copySingleExercise(ex)"
+                >+</button>
+              </div>
             </div>
           </div>
         </div>
@@ -244,6 +274,7 @@ const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const saveSuccess = ref(false)
 const isSaving = ref(false)
 const historyLoading = ref(false)
+const expandedHistoryId = ref(null)
 const hasActiveConnection = ref(null)
 
 const filteredReservationDates = computed(() =>
@@ -320,6 +351,21 @@ function copyFromHistory(plan) {
     reps: e.reps ?? 10,
     memo: e.memo || '',
   }))
+  saveSuccess.value = false
+}
+
+function toggleHistoryExpand(planId) {
+  expandedHistoryId.value = expandedHistoryId.value === planId ? null : planId
+}
+
+function copySingleExercise(exercise) {
+  if (exercises.value.length >= 20) return
+  exercises.value.push({
+    name: exercise.name || '',
+    sets: exercise.sets ?? 3,
+    reps: exercise.reps ?? 10,
+    memo: exercise.memo || '',
+  })
   saveSuccess.value = false
 }
 

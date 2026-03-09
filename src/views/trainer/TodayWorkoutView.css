@@ -439,6 +439,7 @@
   gap: 4px;
   flex: 1;
   min-width: 0;
+  cursor: pointer;
 }
 
 .today-workout__history-copy {
@@ -469,6 +470,102 @@
   color: var(--color-gray-600);
   line-height: var(--lh-body);
   white-space: pre-line;
+}
+
+.today-workout__history-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.today-workout__history-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-600);
+  border-radius: 50%;
+  transition: background-color 0.15s, transform 0.2s;
+}
+
+.today-workout__history-toggle:active {
+  background-color: var(--color-gray-100);
+}
+
+.today-workout__history-toggle--open {
+  transform: rotate(180deg);
+}
+
+.today-workout__history-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-gray-200);
+  margin-top: 8px;
+}
+
+.today-workout__history-exercise {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-small);
+}
+
+.today-workout__history-exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.today-workout__history-exercise-name {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-workout__history-exercise-detail {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.today-workout__history-exercise-add {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.today-workout__history-exercise-add:active:not(:disabled) {
+  background-color: #cce4ff;
+}
+
+.today-workout__history-exercise-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Sticky save button */
