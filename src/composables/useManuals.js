@@ -247,6 +247,23 @@ export function useManuals() {
     try {
       const blob = await generateVideoThumbnail(videoFile)
       if (!blob) return
+
+      const { data: oldThumbs } = await supabase
+        .from('manual_media')
+        .select('id, file_url')
+        .eq('manual_id', manualId)
+        .eq('sort_order', -1)
+      if (oldThumbs) {
+        for (const old of oldThumbs) {
+          try {
+            const path = extractStoragePath(old.file_url)
+            if (path) await supabase.storage.from('manual-media').remove([path])
+          } catch {
+          }
+          await supabase.from('manual_media').delete().eq('id', old.id)
+        }
+      }
+
       const thumbFile = new File([blob], `thumb_${Date.now()}.jpg`, { type: 'image/jpeg' })
       const thumbUrl = await uploadManualMedia(thumbFile)
       if (thumbUrl) {
@@ -254,7 +271,7 @@ export function useManuals() {
           manual_id: manualId,
           file_url: thumbUrl,
           file_type: 'image/jpeg',
-          file_size: blob.size,
+          file_size: thumbFile.size,
           sort_order: -1,
         })
       }

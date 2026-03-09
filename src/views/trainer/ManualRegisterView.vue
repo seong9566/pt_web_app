@@ -18,7 +18,7 @@
 
       <!-- 카테고리 -->
       <section class="manual-reg__section">
-        <label class="manual-reg__label">카테고리</label>
+        <label class="manual-reg__label">카테고리 <span style="color: var(--color-red);">*</span></label>
         <div class="manual-reg__chips">
           <button
             v-for="cat in categories"
@@ -59,7 +59,7 @@
       <section class="manual-reg__section">
         <div class="manual-reg__label-row">
           <label class="manual-reg__label">사진 및 영상</label>
-          <span class="manual-reg__label-sub">최대 10장</span>
+          <span class="manual-reg__label-sub">사진 최대 10장, 영상 1개</span>
         </div>
 
         <div class="manual-reg__media-row">
@@ -166,16 +166,20 @@
     </div>
 
   </div>
+  <AppToast v-model="showToast" :message="toastMessage" type="error" />
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
+import { useToast } from '@/composables/useToast'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { loading, error, createManual, fetchManual, updateManual, deleteManualMedia, addManualMedia, currentManual } = useManuals()
+const { showToast, toastMessage, showError } = useToast()
 
 const isEditMode = computed(() => !!route.params.id)
 
@@ -201,6 +205,12 @@ const rawFiles = ref([])
 
 const totalMediaCount = computed(() => existingMedia.value.length + mediaFiles.value.length)
 
+const hasVideo = computed(() => {
+  const existingVideo = existingMedia.value.some(m => !m.file_type?.startsWith('image/'))
+  const newVideo = mediaFiles.value.some(m => !m.isImage)
+  return existingVideo || newVideo
+})
+
 function openFilePicker() {
   fileInput.value?.click()
 }
@@ -210,7 +220,12 @@ function handleFileChange(e) {
   const remaining = 10 - totalMediaCount.value
   const toAdd = files.slice(0, remaining)
 
-  toAdd.forEach(file => {
+  for (const file of toAdd) {
+    if (file.type.startsWith('video/') && hasVideo.value) {
+      showError('영상은 1개만 등록할 수 있습니다')
+      e.target.value = ''
+      return
+    }
     const url = URL.createObjectURL(file)
     mediaFiles.value.push({
       url,
@@ -218,7 +233,7 @@ function handleFileChange(e) {
       name: file.name,
     })
     rawFiles.value.push(file)
-  })
+  }
 
   e.target.value = ''
 }
@@ -237,6 +252,10 @@ function removeExistingMedia(idx) {
 
 async function handleSave() {
   if (!form.title.trim()) return
+  if (!form.category) {
+    showError('카테고리는 필수 선택 항목입니다')
+    return
+  }
 
   if (isEditMode.value) {
     for (const removed of removedMediaIds.value) {
@@ -274,7 +293,9 @@ onMounted(async () => {
       form.description = currentManual.value.description || ''
       form.category = currentManual.value.category || ''
       form.youtubeUrl = currentManual.value.youtube_url || ''
-      existingMedia.value = currentManual.value.media ? [...currentManual.value.media] : []
+      existingMedia.value = currentManual.value.media
+        ? currentManual.value.media.filter(m => m.sort_order !== -1)
+        : []
     }
   }
 })

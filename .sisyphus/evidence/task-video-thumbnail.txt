@@ -1,0 +1,17 @@
+ls src/utils/video.js
+src/utils/video.js
+
+grep -c "generateVideoThumbnail" src/composables/useManuals.js
+2
+
+grep -c "generateVideoThumbnail" src/utils/video.js
+1
+
+npm run build
+exit code: 0
+vite build completed successfully
+
+npx vitest run
+exit code: 0
+Test Files: 15 passed
+Tests: 85 passed
