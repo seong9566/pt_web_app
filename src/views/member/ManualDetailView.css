@@ -306,36 +306,53 @@
   opacity: 0.8;
 }
 
-.manual-detail__actions {
+/* ── 하단 고정 액션 바 (트레이너 전용) ── */
+.manual-detail__action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 8px;
-  padding: 20px var(--side-margin) 0;
+  gap: 10px;
+  padding: 12px var(--side-margin) calc(12px + env(safe-area-inset-bottom, 0px));
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-gray-200);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  z-index: 50;
 }
 
-.manual-detail__action-btn {
+.manual-detail__action-bar-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   height: var(--btn-height);
   border-radius: var(--radius-medium);
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
+  font-family: inherit;
   cursor: pointer;
   border: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s, transform 0.1s;
 }
 
-.manual-detail__action-btn:active {
-  opacity: 0.8;
+.manual-detail__action-bar-btn:active {
+  opacity: 0.75;
+  transform: scale(0.97);
 }
 
-.manual-detail__action-btn--outline {
-  background-color: var(--color-white);
-  border: 1.5px solid var(--color-gray-200);
+.manual-detail__action-bar-btn--edit {
+  background-color: var(--color-gray-100);
   color: var(--color-gray-900);
+  flex: 1.4;
 }
 
-.manual-detail__action-btn--danger {
-  background-color: var(--color-red);
-  color: var(--color-white);
+.manual-detail__action-bar-btn--delete {
+  background-color: #fff0f0;
+  color: var(--color-red);
+  flex: 1;
+  border: 1.5px solid rgba(220, 38, 38, 0.2);
 }
 
 .detail-delete-dialog {
