@@ -9,6 +9,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { generateVideoThumbnail } from '@/utils/video'
 
 /** YouTube URL 유효성 검사 정규식 */
 const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/
@@ -139,6 +140,9 @@ export function useManuals() {
             file_size: file.size,
             sort_order: i,
           })
+          if (file.type.startsWith('video/')) {
+            await uploadVideoThumbnail(manual.id, file)
+          }
         }
       }
       return manual.id
@@ -239,6 +243,25 @@ export function useManuals() {
     return data.publicUrl
   }
 
+  async function uploadVideoThumbnail(manualId, videoFile) {
+    try {
+      const blob = await generateVideoThumbnail(videoFile)
+      if (!blob) return
+      const thumbFile = new File([blob], `thumb_${Date.now()}.jpg`, { type: 'image/jpeg' })
+      const thumbUrl = await uploadManualMedia(thumbFile)
+      if (thumbUrl) {
+        await supabase.from('manual_media').insert({
+          manual_id: manualId,
+          file_url: thumbUrl,
+          file_type: 'image/jpeg',
+          file_size: blob.size,
+          sort_order: -1,
+        })
+      }
+    } catch {
+    }
+  }
+
   /** 개별 미디어 파일 삭제 (DB + Storage) — edit 모드에서 사용 */
   async function deleteManualMedia(mediaId, fileUrl) {
     try {
@@ -287,6 +310,9 @@ export function useManuals() {
             file_size: file.size,
             sort_order: startOrder + i,
           })
+          if (file.type.startsWith('video/')) {
+            await uploadVideoThumbnail(manualId, file)
+          }
         }
       }
       return true
