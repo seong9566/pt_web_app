@@ -376,3 +376,4 @@ When adding real error handling: show inline error messages near the relevant fi
 - **Phase 2 완료**: Chat, manual, workout, payment, notification, PT count views all implemented. New views: `NotificationListView` (common/), `PtCountManageView`, `TrainerProfileEditView` (trainer/), `MemberProfileEditView`, `MemberMemoView` (member/). No remaining "준비 중" stubs.
 - **Vitest 설정됨**: Unit tests in `src/composables/__tests__/`. Run with `npm test`. No ESLint, Prettier configured.
 - **Dev server on 0.0.0.0**: Vite binds all interfaces for mobile testing on local network.
+- **사용자 응답 언어**: 사용자에게 설명할 때 항상 한글(Korean)로 응답할 것. 코드는 영어, 설명/대화는 한글.

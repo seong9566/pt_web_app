@@ -158,7 +158,7 @@ async function handleSubmit() {
       if (auth.role === 'trainer') {
         router.replace('/trainer/home')
       } else if (auth.role === 'member') {
-        router.replace('/home')
+        router.replace('/member/home')
       } else {
         router.replace('/onboarding/role')
       }

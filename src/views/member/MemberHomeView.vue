@@ -222,12 +222,29 @@ async function loadData() {
   if (connected && auth.user?.id) {
     await fetchMyReservations('member')
     getUnreadCount()
+    fetchNextWorkoutPlan()
     const trainerId = await getConnectedTrainerId()
     if (trainerId) {
       ptRemaining.value = await fetchRemainingByPair(auth.user.id, trainerId)
     }
   }
   loaded.value = true
+}
+
+function fetchNextWorkoutPlan() {
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+  const nowTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
+  const next = reservations.value
+    .filter(r => {
+      if (r.status !== 'approved') return false
+      const rd = typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0]
+      return rd > todayStr || (rd === todayStr && (r.start_time || '') > nowTime)
+    })
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.start_time || '').localeCompare(b.start_time || ''))[0]
+  if (next?.date && auth.user?.id) {
+    fetchWorkoutPlan(auth.user.id, next.date)
+  }
 }
 
 async function handleRefresh() {
@@ -278,10 +295,6 @@ const nextSession = computed(() => {
   const startTime = (next.start_time || '').slice(0, 5)
   const endTime = (next.end_time || '').slice(0, 5)
   const countdown = endTime ? `${startTime} ~ ${endTime}` : startTime
-
-  if (next.date && auth.user?.id) {
-    fetchWorkoutPlan(auth.user.id, next.date)
-  }
 
   const routine = currentPlan.value?.exercises?.map(e => e.name).filter(Boolean) || []
 
