@@ -263,7 +263,6 @@ const filterChips = [
 ]
 const activeFilter = ref('all')
 
-// ── Processing state ──
 const processingId = ref(null)
 
 // ── Initialize ──
