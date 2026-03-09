@@ -1127,4 +1127,27 @@ after update on public.reservations
 for each row
 execute function public.auto_deduct_pt_session();
 
+-- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
+create extension if not exists pg_cron with schema pg_catalog;
+
+create or replace function public.auto_complete_past_reservations()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update reservations
+  set status = 'completed'
+  where status = 'approved'
+    and (date + end_time) < (now() at time zone 'Asia/Seoul');
+end;
+$$;
+
+select cron.schedule(
+  'auto-complete-reservations',
+  '*/5 * * * *',
+  $$select public.auto_complete_past_reservations()$$
+);
+
 commit;
