@@ -1,9 +1,7 @@
-<!-- 회원 홈 대시보드. 다음 예약, 오늘의 운동, 이번 주 목표 등 표시 -->
 <template>
   <div class="member-home">
     <AppPullToRefresh @refresh="handleRefresh">
 
-    <!-- ── Header ── -->
     <div class="member-home__header">
       <div class="member-home__header-left">
         <div class="member-home__avatar">
@@ -33,46 +31,36 @@
       </button>
     </div>
 
-    <!-- ── Body ── -->
     <div class="member-home__body">
 
-      <!-- Unconnected state -->
-      <div v-if="hasTrainer === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 16px;">
+      <div v-if="hasTrainer === false" class="member-home__unconnected">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4" stroke="var(--color-gray-600)" stroke-width="1.6"/>
-          <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M16 4L20 8M20 4L16 8" stroke="var(--color-gray-600)" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M16 4L20 8M20 4L16 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
-        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">아직 담당 트레이너가 없습니다</p>
-        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 PT를 시작해보세요</p>
-        <button
-          style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;"
-          @click="router.push({ name: 'trainer-search' })"
-        >
+        <p class="member-home__unconnected-title">아직 담당 트레이너가 없습니다</p>
+        <p class="member-home__unconnected-desc">트레이너를 찾아 PT를 시작해보세요</p>
+        <button class="member-home__unconnected-btn" @click="router.push({ name: 'trainer-search' })">
           트레이너 찾기
         </button>
       </div>
 
-      <!-- Loading state -->
-      <div v-else-if="hasTrainer === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
+      <div v-else-if="hasTrainer === null" class="member-home__loading">
         불러오는 중...
       </div>
 
-      <!-- Connected state (existing dashboard) -->
       <template v-else>
 
-      <!-- ── 다음 PT 일정 ── -->
-      <section class="member-home__section">
+      <section class="member-home__section" :style="{ '--stagger-index': 0 }">
         <div class="member-home__section-row">
           <h2 class="member-home__section-title">다음 PT 일정</h2>
           <button class="member-home__see-all" @click="handleSeeAll">전체보기</button>
         </div>
 
         <div class="member-home__pt-card">
-          <!-- 배지: 예약 날짜 -->
           <span class="member-home__pt-badge">{{ nextSession.dateLabel }}</span>
 
-          <!-- 수업 시간 -->
           <div class="member-home__pt-time-row">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
@@ -83,10 +71,8 @@
           </div>
           <div class="member-home__pt-countdown">{{ nextSession.countdown }}</div>
 
-          <!-- 세션 제목 -->
           <h3 class="member-home__pt-title">{{ nextSession.title }}</h3>
 
-          <!-- 트레이너 -->
           <div class="member-home__pt-trainer">
             <div class="member-home__pt-trainer-avatar">
               <img v-if="nextSession.trainerPhoto" :src="nextSession.trainerPhoto" alt="trainer" class="member-home__pt-trainer-avatar-img" />
@@ -99,7 +85,6 @@
             <span>{{ nextSession.trainer }} 담당</span>
           </div>
 
-          <!-- 오늘의 운동 루틴 -->
           <div v-if="nextSession.routine.length > 0" class="member-home__pt-routine">
             <p class="member-home__pt-routine-label">배정된 운동 루틴</p>
             <ul class="member-home__pt-routine-list">
@@ -115,27 +100,22 @@
             </ul>
           </div>
           <div v-else-if="nextSession.hasReservation" class="member-home__pt-routine">
-            <p class="member-home__pt-routine-label" style="color: var(--color-gray-600); font-size: var(--fs-caption);">아직 운동이 배정되지 않았습니다</p>
+            <p class="member-home__pt-routine-empty">아직 운동이 배정되지 않았습니다</p>
           </div>
         </div>
       </section>
 
-
-      <!-- ── 오늘의 운동 ── -->
-      <section class="member-home__section">
+      <section class="member-home__section" :style="{ '--stagger-index': 1 }">
         <h2 class="member-home__section-title">오늘의 운동</h2>
 
-        <!-- 로딩 중 -->
         <div v-if="workoutLoading" class="member-home__workout-stub">
           <p class="member-home__workout-stub-text">로딩 중...</p>
         </div>
 
-        <!-- 에러 -->
         <div v-else-if="workoutError" class="member-home__workout-stub">
           <p class="member-home__workout-stub-text member-home__workout-stub-text--error">{{ workoutError }}</p>
         </div>
 
-        <!-- 운동 계획 없음 -->
         <div v-else-if="!currentPlan" class="member-home__workout-stub">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="4" width="18" height="18" rx="3" stroke="var(--color-gray-600)" stroke-width="1.6"/>
@@ -146,14 +126,12 @@
           <p class="member-home__workout-stub-text">오늘 운동 계획이 없습니다</p>
         </div>
 
-        <!-- 운동 계획 있음 -->
-        <div v-else class="member-home__workout-card" @click="goWorkoutDetail" style="cursor: pointer;">
+        <div v-else class="member-home__workout-card" @click="goWorkoutDetail">
           <p class="member-home__workout-content">{{ workoutPreview }}</p>
         </div>
       </section>
 
-      <!-- ── 이번 주 목표 ── -->
-      <section class="member-home__section">
+      <section class="member-home__section" :style="{ '--stagger-index': 2 }">
         <div class="member-home__goal-card">
           <div class="member-home__goal-left">
             <span class="member-home__goal-badge">이번 주 목표</span>
@@ -173,7 +151,6 @@
             <p class="member-home__goal-msg">{{ weekGoal.message }}</p>
           </div>
 
-          <!-- 원형 프로그레스 -->
           <div class="member-home__goal-circle">
             <svg width="76" height="76" viewBox="0 0 76 76">
               <circle cx="38" cy="38" r="30" fill="none"
@@ -295,16 +272,13 @@ const nextSession = computed(() => {
     }
   }
 
-  // 예약 날짜 레이블 (M월D일)
   const [, m, d] = (next.date || '').split('-')
   const dateLabel = m && d ? `${Number(m)}월 ${Number(d)}일` : '예정'
 
-  // 시간: "17:00 ~ 18:00"
   const startTime = (next.start_time || '').slice(0, 5)
   const endTime = (next.end_time || '').slice(0, 5)
   const countdown = endTime ? `${startTime} ~ ${endTime}` : startTime
 
-  // 예약 날짜의 운동 계획 비동기 로드 (이미 로드됐을 경우 currentPlan 재활용)
   if (next.date && auth.user?.id) {
     fetchWorkoutPlan(auth.user.id, next.date)
   }

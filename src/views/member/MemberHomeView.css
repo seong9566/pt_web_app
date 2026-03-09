@@ -1,7 +1,3 @@
-/* ──────────────────────────────────────────
-   MemberHomeView — 회원 홈
-────────────────────────────────────────── */
-
 .member-home {
   min-height: 100vh;
   display: flex;
@@ -9,12 +5,11 @@
   background-color: var(--color-gray-100);
 }
 
-/* ── Header ── */
 .member-home__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px var(--side-margin) 14px;
+  padding: 20px var(--side-margin) 16px;
   background-color: var(--color-white);
 }
 
@@ -25,8 +20,8 @@
 }
 
 .member-home__avatar {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f8d5a3, #e8a070);
   display: flex;
@@ -35,12 +30,14 @@
   color: var(--color-white);
   flex-shrink: 0;
   overflow: hidden;
+  border: 2px solid var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .member-home__greeting {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .member-home__greeting-sub {
@@ -56,8 +53,8 @@
 }
 
 .member-home__greeting-name {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-subtitle);
   color: var(--color-gray-900);
   margin: 0;
   line-height: 1.2;
@@ -68,8 +65,8 @@
   color: var(--color-blue-primary);
   font-size: 11px;
   font-weight: var(--fw-body1-bold);
-  padding: 3px 6px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-small);
   margin-left: 2px;
 }
 
@@ -81,41 +78,44 @@
   flex-shrink: 0;
 }
 
-/* Bell */
 .member-home__bell {
-  position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gray-200);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  background: none;
+  position: relative;
+  background-color: var(--color-white);
   color: var(--color-gray-900);
   cursor: pointer;
 }
 
 .member-home__bell-badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
+  top: 8px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background-color: var(--color-red);
   border: 1.5px solid var(--color-white);
 }
 
-/* ── Body ── */
 .member-home__body {
   flex: 1;
   padding: 16px var(--side-margin) 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* ── Section ── */
+.member-home__section {
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
+}
+
 .member-home__section-title {
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
@@ -140,7 +140,6 @@
   padding: 0;
 }
 
-/* ── PT 일정 카드 ── */
 .member-home__pt-card {
   position: relative;
   border-radius: var(--radius-large);
@@ -150,7 +149,6 @@
   overflow: hidden;
 }
 
-/* 배경 데코 */
 .member-home__pt-card::before {
   content: '';
   position: absolute;
@@ -182,6 +180,11 @@
   color: var(--color-gray-600);
   font-size: var(--fs-caption);
   margin-bottom: 4px;
+}
+
+.member-home__pt-time-label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }
 
 .member-home__pt-countdown {
@@ -228,7 +231,6 @@
   object-fit: cover;
 }
 
-/* 루틴 카드 */
 .member-home__pt-routine {
   background-color: var(--color-gray-50);
   border: 1px solid var(--color-gray-200);
@@ -241,6 +243,14 @@
   font-size: var(--fs-caption);
   color: var(--color-gray-600);
   margin: 0 0 10px;
+}
+
+.member-home__pt-routine-empty {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
+  text-align: center;
+  padding: 8px 0;
 }
 
 .member-home__pt-routine-list {
@@ -260,8 +270,6 @@
   color: var(--color-gray-900);
 }
 
-
-/* ── 오늘의 운동 ── */
 .member-home__workout-list {
   background-color: var(--color-white);
   border-radius: var(--radius-large);
@@ -294,7 +302,7 @@
   gap: 12px;
   padding: 14px 16px;
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
 }
 
 .member-home__workout-item:active {
@@ -330,7 +338,6 @@
   margin: 0 16px;
 }
 
-/* ── 이번 주 목표 카드 ── */
 .member-home__goal-card {
   background: linear-gradient(145deg, #111827 0%, #1c2535 60%, #0d1520 100%);
   border-radius: var(--radius-large);
@@ -393,7 +400,6 @@
   margin: 0;
 }
 
-/* 원형 프로그레스 */
 .member-home__goal-circle {
   position: relative;
   width: 76px;
@@ -412,12 +418,17 @@
   color: var(--color-white);
 }
 
-/* ── 오늘의 운동 카드 (계획 있을 때) ── */
 .member-home__workout-card {
   background-color: var(--color-white);
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-card);
   padding: 16px;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.member-home__workout-card:active {
+  background-color: var(--color-gray-100);
 }
 
 .member-home__workout-content {
@@ -431,4 +442,56 @@
 
 .member-home__workout-stub-text--error {
   color: var(--color-red);
+}
+
+.member-home__unconnected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 60px 20px 40px;
+  color: var(--color-gray-600);
+  text-align: center;
+  animation: fadeIn var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+}
+
+.member-home__unconnected-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 8px 0 0;
+}
+
+.member-home__unconnected-desc {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.member-home__unconnected-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+}
+
+.member-home__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-home__section,
+  .member-home__unconnected {
+    animation: none;
+  }
 }

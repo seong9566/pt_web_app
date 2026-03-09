@@ -1,492 +1,492 @@
 .trainer-home {
-    padding: 0 var(--side-margin);
-    background-color: var(--color-white);
-    /* matching the background */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
 }
 
-.error-message {
-    padding: 12px 16px;
-    background-color: #FFE5E5;
-    border-left: 4px solid var(--color-red);
-    border-radius: var(--radius-small);
-    font-size: var(--fs-body2);
-    color: var(--color-red);
-    margin: 12px 0;
+.trainer-home__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px var(--side-margin) 16px;
+  background-color: var(--color-white);
 }
 
-/* Header */
-.home-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 40px;
-    margin-bottom: 24px;
+.trainer-home__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.home-header__profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.trainer-home__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f0fe, #c4d7f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.12);
 }
 
-.profile-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: #FEEED1;
-    /* generic bg */
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 1px solid var(--color-gray-200);
+.trainer-home__avatar img,
+.trainer-home__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+.trainer-home__greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.status-dot {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 12px;
-    height: 12px;
-    background-color: var(--color-green);
-    border: 2px solid var(--color-white);
-    border-radius: 50%;
+.trainer-home__greeting-sub {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }
 
-.greeting {
-    font-size: var(--fs-caption);
-    color: var(--color-gray-600);
-    margin-bottom: 2px;
+.trainer-home__greeting-name {
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-subtitle);
+  color: var(--color-gray-900);
+  margin: 0;
 }
 
-.name {
-    font-size: var(--fs-title);
-    font-weight: var(--fw-title);
-    color: var(--color-gray-900);
+.trainer-home__bell {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  cursor: pointer;
 }
 
-.btn-bell {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid var(--color-gray-200);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background-color: transparent;
+.trainer-home__bell-dot {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-red);
+  border-radius: 50%;
 }
 
-.bell-dot {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-    width: 6px;
-    height: 6px;
-    background-color: var(--color-red);
-    border-radius: 50%;
+.trainer-home__error {
+  padding: 12px 16px;
+  margin: 0 var(--side-margin) 12px;
+  background-color: rgba(255, 59, 48, 0.08);
+  border-left: 3px solid var(--color-red);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-red);
 }
 
-/* Stat Grid */
-.stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 32px;
+.trainer-home__content {
+  flex: 1;
+  padding: 16px var(--side-margin) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.stat-card {
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-large);
-    padding: 16px;
-    background-color: var(--color-white);
+.trainer-home__action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, var(--color-blue-primary) 0%, #3d9aff 100%);
+  color: var(--color-white);
+  padding: 16px 18px;
+  border-radius: var(--radius-large);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-.stat-card__head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+.trainer-home__action-icon {
+  width: 42px;
+  height: 42px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.stat-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.trainer-home__action-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.stat-icon--blue {
-    background-color: var(--color-blue-light);
-    color: var(--color-blue-primary);
+.trainer-home__action-title {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
 }
 
-.stat-badge {
-    font-size: 11px;
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-600);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: var(--fw-body1-bold);
+.trainer-home__action-desc {
+  font-size: var(--fs-caption);
+  opacity: 0.85;
 }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--color-gray-900);
-    line-height: 1.2;
+.trainer-home__action-arrow {
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
-.stat-label {
-    font-size: var(--fs-caption);
-    color: var(--color-gray-600);
-    margin-top: 4px;
+.trainer-home__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-/* Sections */
-.home-section {
-    margin-bottom: 32px;
+.trainer-home__stat-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-card);
 }
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+.trainer-home__stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.section-title {
-    font-size: var(--fs-subtitle);
-    font-weight: var(--fw-subtitle);
-    color: var(--color-gray-900);
+.trainer-home__stat-icon--session {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
 }
 
-.section-link {
-    font-size: var(--fs-body2);
-    color: var(--color-blue-primary);
-    text-decoration: none;
+.trainer-home__stat-icon--member {
+  background-color: rgba(52, 199, 89, 0.1);
+  color: var(--color-green);
 }
 
-/* Date Tabs */
-.date-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    scrollbar-width: none;
+.trainer-home__stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  line-height: 1;
 }
 
-.date-tabs::-webkit-scrollbar {
-    display: none;
+.trainer-home__stat-label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }
 
-.date-tab {
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid var(--color-gray-200);
-    background-color: var(--color-white);
-    color: var(--color-gray-600);
-    font-size: var(--fs-body2);
-    white-space: nowrap;
+.trainer-home__schedule,
+.trainer-home__messages {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  padding: 20px 16px;
+  box-shadow: var(--shadow-card);
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-.date-tab--active {
-    background-color: var(--color-blue-primary);
-    color: var(--color-white);
-    border-color: var(--color-blue-primary);
-    font-weight: var(--fw-body1-bold);
+.trainer-home__section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
-/* Schedule List */
-.schedule-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.trainer-home__section-title {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
 }
 
-.schedule-list__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 32px var(--side-margin);
-    color: var(--color-gray-600);
-    font-size: var(--fs-body2);
-    text-align: center;
+.trainer-home__section-link {
+  font-size: var(--fs-caption);
+  color: var(--color-blue-primary);
+  text-decoration: none;
+  font-weight: var(--fw-body1-bold);
 }
 
-.schedule-list__invite-btn {
-    margin-top: 8px;
-    padding: 10px 20px;
-    background-color: var(--color-blue-primary);
-    color: var(--color-white);
-    border: none;
-    border-radius: var(--radius-medium);
-    font-size: var(--fs-body2);
-    cursor: pointer;
+.trainer-home__date-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.schedule-card {
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-large);
-    padding: 20px;
-    background-color: var(--color-white);
-    position: relative;
-    overflow: hidden;
+.trainer-home__date-tabs::-webkit-scrollbar {
+  display: none;
 }
 
-.schedule-card--active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    background-color: var(--color-blue-primary);
+.trainer-home__date-tab {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  color: var(--color-gray-600);
+  font-size: var(--fs-caption);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) var(--animation-easing-default),
+              color var(--animation-duration-fast) var(--animation-easing-default);
 }
 
-.schedule-card__main {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.trainer-home__date-tab--active {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border-color: var(--color-blue-primary);
+  font-weight: var(--fw-body1-bold);
 }
 
-.schedule-card--active .schedule-card__main {
-    margin-bottom: 16px;
+.trainer-home__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  text-align: center;
 }
 
-.schedule-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--color-gray-100);
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.trainer-home__empty-hint {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
 }
 
-.schedule-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.trainer-home__invite-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  cursor: pointer;
 }
 
-.schedule-name {
-    font-size: var(--fs-body1);
-    font-weight: var(--fw-body1-bold);
-    color: var(--color-gray-900);
+.trainer-home__schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.schedule-time {
-    font-size: var(--fs-body2);
-    color: var(--color-gray-600);
+.trainer-home__schedule-card {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-.schedule-card__divider {
-    height: 1px;
-    background-color: var(--color-gray-100);
-    margin-bottom: 12px;
+.trainer-home__schedule-card--workout::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--color-blue-primary);
 }
 
-.schedule-card__workout-label {
-    font-size: var(--fs-caption);
-    font-weight: var(--fw-body1-bold);
-    color: var(--color-gray-600);
-    margin: 0 0 4px;
+.trainer-home__schedule-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.schedule-card__workout-text {
-    font-size: var(--fs-body2);
-    color: var(--color-gray-900);
-    line-height: var(--lh-body);
-    margin: 0;
+.trainer-home__schedule-time-col {
+  width: 44px;
+  flex-shrink: 0;
+  text-align: center;
 }
 
-.desc-label {
-    font-size: var(--fs-caption);
-    color: var(--color-gray-600);
-    margin-bottom: 4px;
+.trainer-home__schedule-time-text {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
 }
 
-.desc-text {
-    font-size: var(--fs-body2);
-    color: var(--color-gray-900);
-    line-height: var(--lh-body);
+.trainer-home__schedule-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-/* Badge */
-.badge-red {
-    background-color: var(--color-red);
-    color: var(--color-white);
-    font-size: 11px;
-    font-weight: var(--fw-body1-bold);
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.trainer-home__schedule-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Message List */
-.message-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
+.trainer-home__schedule-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.message-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-large);
+.trainer-home__schedule-name {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 0;
 }
 
-.message-avatar {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--color-gray-100);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
+.trainer-home__schedule-sub {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
 }
 
-.message-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+.trainer-home__schedule-divider {
+  height: 1px;
+  background-color: var(--color-gray-100);
+  margin: 12px 0;
 }
 
-.message-avatar__badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
+.trainer-home__schedule-workout-label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  margin: 0 0 4px;
 }
 
-.message-content {
-    flex: 1;
+.trainer-home__schedule-workout-text {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  margin: 0;
 }
 
-.message-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
+.trainer-home__message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.message-name {
-    font-size: var(--fs-body1);
-    font-weight: var(--fw-body1-bold);
-    color: var(--color-gray-900);
+.trainer-home__message-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-decelerate) both;
+  animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-.message-time {
-    font-size: var(--fs-caption);
-    color: var(--color-gray-600);
+.trainer-home__message-card:active {
+  background-color: var(--color-gray-100);
 }
 
-.message-preview {
-    font-size: var(--fs-body2);
-    color: var(--color-gray-600);
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.trainer-home__message-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* Action Card */
-.action-card-dark {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background-color: var(--color-blue-primary);
-    color: var(--color-white);
-    padding: 20px;
-    border-radius: var(--radius-large);
-    margin-bottom: 24px;
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
+.trainer-home__message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.action-icon {
-    width: 48px;
-    height: 48px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-medium);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.trainer-home__message-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  font-size: 10px;
+  font-weight: var(--fw-body1-bold);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid var(--color-white);
 }
 
-.action-icon svg {
-    color: var(--color-white);
+.trainer-home__message-body {
+  flex: 1;
+  min-width: 0;
 }
 
-.action-text {
-    flex: 1;
+.trainer-home__message-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
 }
 
-.action-title {
-    font-size: var(--fs-body1);
-    font-weight: var(--fw-body1-bold);
-    margin-bottom: 4px;
+.trainer-home__message-name {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
 }
 
-.action-desc {
-    font-size: var(--fs-caption);
-    color: rgba(255, 255, 255, 0.85);
+.trainer-home__message-time {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }
 
-.action-arrow {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.trainer-home__message-preview {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Floating Animation */
-@keyframes float {
-    0% {
-        transform: translateY(0px);
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
-    }
-
-    50% {
-        transform: translateY(-6px);
-        box-shadow: 0 12px 24px rgba(0, 122, 255, 0.35);
-    }
-
-    100% {
-        transform: translateY(0px);
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
-    }
-}
-
-.floating-card {
-    animation: float 3s ease-in-out infinite;
-    /* ensure it stays rendering above smoothly */
-    will-change: transform, box-shadow;
+@media (prefers-reduced-motion: reduce) {
+  .trainer-home__action-card,
+  .trainer-home__stats,
+  .trainer-home__schedule,
+  .trainer-home__messages,
+  .trainer-home__schedule-card,
+  .trainer-home__message-card {
+    animation: none;
+  }
 }
