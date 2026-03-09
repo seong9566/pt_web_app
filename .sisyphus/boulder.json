@@ -1,10 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/ux-critical-fixes.md",
-  "started_at": "2026-03-09T00:45:29.786Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/ux-improvements-email-auth.md",
+  "started_at": "2026-03-09T05:24:37.611Z",
   "session_ids": [
     "ses_3305480b1ffeVj2f0xaRZpL4PQ"
   ],
-  "plan_name": "ux-critical-fixes",
+  "plan_name": "ux-improvements-email-auth",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas"
 }

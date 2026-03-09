@@ -111,6 +111,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
+import { getYoutubeThumbnailUrl } from '@/utils/youtube'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
@@ -131,9 +132,11 @@ const categories = [
 ]
 
 function getThumbUrl(manual) {
-  if (!manual.media || manual.media.length === 0) return null
+  if (!manual.media || manual.media.length === 0) {
+    return getYoutubeThumbnailUrl(manual.youtube_url)
+  }
   const img = manual.media.find(m => m.file_type?.startsWith('image/'))
-  return img?.file_url || null
+  return img?.file_url || getYoutubeThumbnailUrl(manual.youtube_url)
 }
 
 const filteredManuals = computed(() => {

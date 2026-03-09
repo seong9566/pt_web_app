@@ -1,0 +1,38 @@
+=== TASK 11: Router 업데이트 + LoginView 버튼 수정 + Settings 라우트 변경 ===
+
+QA VERIFICATION RESULTS:
+
+1. Router /email-login configuration:
+      path: "/email-login",
+      name: "email-login",
+      component: () => import("@/views/login/EmailLoginView.vue"),
+      meta: { hideNav: true },
+
+2. Router /dev-login configuration (backward compatibility redirect):
+      path: "/dev-login",
+      redirect: "/email-login",
+    },
+
+3. Router /account-manage configuration:
+      path: "/account-manage",
+      name: "account-manage",
+      component: () => import("@/views/common/AccountManageView.vue"),
+      meta: { hideNav: true },
+    },
+
+4. LoginView email button navigation:
+function handleEmail() {
+  router.push('/email-login')
+
+5. SettingsView (trainer) account button navigation:
+    router.push({ name: 'trainer-profile-edit' })
+  } else if (target === 'account') {
+    router.push({ name: 'account-manage' })
+
+6. MemberSettingsView account button navigation:
+    router.push({ name: 'member-profile-edit' })
+  } else if (target === 'account') {
+    router.push({ name: 'account-manage' })
+
+7. Build result:
+✓ Build succeeded with exit code 0

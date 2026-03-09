@@ -1,0 +1,23 @@
+MIGRATION 3: Add SELECT Policy to chat-files Storage Bucket
+============================================================
+
+Status: ✅ APPLIED AND VERIFIED
+
+SQL Applied:
+CREATE POLICY "Users can list own chat files"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'chat-files' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+Verification Query:
+SELECT policyname FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Users can list own chat files';
+
+Verification Result:
+[{"policyname":"Users can list own chat files"}]
+
+✅ Storage policy successfully created and verified.
+
+Policy Details:
+- Bucket: chat-files
+- Operation: SELECT (list files)
+- Condition: User can only list files in their own folder (auth.uid() matches folder name)
+- Pattern: Matches avatars bucket SELECT policy pattern from schema.sql

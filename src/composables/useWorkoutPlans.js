@@ -28,13 +28,15 @@ export function useWorkoutPlans() {
    * @param {string} date - 날짜 (YYYY-MM-DD)
    */
   async function fetchWorkoutPlan(memberId, date) {
+    const targetId = memberId || auth.user?.id
+    if (!targetId) return
     loading.value = true
     error.value = null
     try {
       const { data, error: err } = await supabase
         .from('workout_plans')
         .select('*')
-        .eq('member_id', memberId)
+        .eq('member_id', targetId)
         .eq('date', date)
         .maybeSingle()
       if (err) throw err

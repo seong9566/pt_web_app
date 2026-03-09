@@ -25,24 +25,11 @@
         <span class="settings__profile-badge">{{ roleBadge }}</span>
       </section>
 
-      <!-- ── 내 계정 ── -->
-      <section class="settings__group">
-        <h2 class="settings__group-title">내 계정</h2>
-        <div class="settings__card">
-          <button class="settings__row" @click="handleNav('profile-edit')">
-            <span class="settings__row-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <span class="settings__row-label">내 프로필 수정</span>
-            <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <div class="settings__divider" />
-          <button class="settings__row" @click="handleNav('profile-view')">
+       <!-- ── 내 계정 ── -->
+       <section class="settings__group">
+         <h2 class="settings__group-title">내 계정</h2>
+         <div class="settings__card">
+           <button class="settings__row" @click="handleNav('profile-view')">
             <span class="settings__row-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
@@ -186,7 +173,7 @@ function handleNav(target) {
   } else if (target === 'profile-edit') {
     router.push({ name: 'trainer-profile-edit' })
   } else if (target === 'account') {
-    router.push({ name: 'trainer-profile-edit' })
+    router.push({ name: 'account-manage' })
   } else if (target === 'invite') {
     router.push({ name: 'invite-manage' })
   } else if (target === 'profile-view') {

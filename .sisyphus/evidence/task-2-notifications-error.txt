@@ -1,0 +1,6 @@
+    error.value = null
+      error.value = e?.message ?? '알림을 불러오지 못했습니다'
+      error.value = e?.message ?? '알림 읽음 처리에 실패했습니다'
+      error.value = e?.message ?? '전체 읽음 처리에 실패했습니다'
+    error.value = null
+      error.value = '알림 생성에 실패했습니다'

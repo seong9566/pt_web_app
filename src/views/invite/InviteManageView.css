@@ -235,6 +235,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.member-item__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .member-item__info {

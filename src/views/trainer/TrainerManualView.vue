@@ -2,19 +2,6 @@
 <template>
   <div class="manual-list">
 
-    <!-- ── 삭제 확인 Dialog ── -->
-    <AppBottomSheet v-model="showDeleteDialog" title="매뉴얼 삭제">
-      <div class="delete-dialog">
-        <p class="delete-dialog__text">
-          <strong>{{ deleteTarget?.title }}</strong> 매뉴얼을 삭제하시겠습니까?
-        </p>
-        <div class="delete-dialog__actions">
-          <button class="delete-dialog__btn delete-dialog__btn--cancel" @click="showDeleteDialog = false">취소</button>
-          <button class="delete-dialog__btn delete-dialog__btn--confirm" @click="confirmDelete">삭제</button>
-        </div>
-      </div>
-    </AppBottomSheet>
-
     <!-- ── Header ── -->
     <div class="manual-list__header">
       <button class="manual-list__header-btn" @click="router.back()">
@@ -107,22 +94,6 @@
             <span class="manual-list__card-dot">·</span>
             <span class="manual-list__card-level">{{ formatDate(manual.created_at) }}</span>
           </div>
-
-          <!-- Edit / Delete — own manuals only -->
-          <div
-            v-if="manual.trainer_id === auth.user?.id"
-            class="manual-list__card-actions"
-            @click.stop
-          >
-            <button
-              class="manual-list__card-action-btn"
-              @click="router.push({ name: 'trainer-manual-edit', params: { id: manual.id } })"
-            >수정</button>
-            <button
-              class="manual-list__card-action-btn manual-list__card-action-btn--danger"
-              @click="handleDelete(manual)"
-            >삭제</button>
-          </div>
         </div>
       </div>
 
@@ -153,25 +124,25 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
-import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import { getYoutubeThumbnailUrl } from '@/utils/youtube'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { manuals, loading, fetchManuals, deleteManual, error } = useManuals()
+const { manuals, loading, fetchManuals, error } = useManuals()
 const { showToast, toastMessage, toastType, showError } = useToast()
 
 const CATEGORIES = ['전체', '재활', '근력', '다이어트', '스포츠', '코어', '유연성']
 
 const searchQuery = ref('')
 const selectedCategory = ref('전체')
-const showDeleteDialog = ref(false)
-const deleteTarget = ref(null)
 
 function getThumbUrl(manual) {
-  if (!manual.media || manual.media.length === 0) return null
+  if (!manual.media || manual.media.length === 0) {
+    return getYoutubeThumbnailUrl(manual.youtube_url)
+  }
   const img = manual.media.find(m => m.file_type?.startsWith('image/'))
-  return img?.file_url || null
+  return img?.file_url || getYoutubeThumbnailUrl(manual.youtube_url)
 }
 
 const filteredManuals = computed(() => {
@@ -197,18 +168,6 @@ function formatDate(dateStr) {
 
 function goToDetail(id) {
   router.push({ name: 'trainer-manual-detail', params: { id } })
-}
-
-function handleDelete(manual) {
-  deleteTarget.value = manual
-  showDeleteDialog.value = true
-}
-
-async function confirmDelete() {
-  if (!deleteTarget.value) return
-  showDeleteDialog.value = false
-  await deleteManual(deleteTarget.value.id)
-  deleteTarget.value = null
 }
 
 watch(error, (val) => {

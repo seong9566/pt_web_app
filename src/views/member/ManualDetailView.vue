@@ -55,9 +55,9 @@
         />
         <div v-else class="manual-detail__hero-placeholder" />
         <div class="manual-detail__hero-overlay" />
-        <button class="manual-detail__back" @click="router.back()">
+        <button class="manual-detail__back-btn" @click="router.back()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <div class="manual-detail__hero-bottom">
@@ -70,15 +70,20 @@
       <div class="manual-detail__body">
 
         <!-- Trainer meta -->
-        <div class="manual-detail__meta">
-          <div class="manual-detail__meta-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            <span class="manual-detail__meta-label">트레이너</span>
-            <span class="manual-detail__meta-value">{{ manual.trainer?.name || '-' }}</span>
-          </div>
+        <div class="manual-detail__trainer">
+          <img
+            v-if="manual.trainer?.photo_url"
+            :src="manual.trainer.photo_url"
+            :alt="manual.trainer?.name"
+            class="manual-detail__trainer-avatar"
+          />
+          <img
+            v-else
+            :src="personIcon"
+            alt="트레이너"
+            class="manual-detail__trainer-avatar manual-detail__trainer-avatar--placeholder"
+          />
+          <span class="manual-detail__trainer-name">{{ manual.trainer?.name || '-' }}</span>
         </div>
 
         <!-- 설명 -->
@@ -151,7 +156,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
 import { useAuthStore } from '@/stores/auth'
+import { extractYoutubeVideoId } from '@/utils/youtube'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -168,15 +175,7 @@ const heroPhotoUrl = computed(() => {
   return photo?.file_url || null
 })
 
-const youtubeVideoId = computed(() => {
-  const url = manual.value?.youtube_url
-  if (!url) return null
-  const watchMatch = url.match(/youtube\.com\/watch\?v=([\w-]{11})/)
-  if (watchMatch) return watchMatch[1]
-  const shortMatch = url.match(/youtu\.be\/([\w-]{11})/)
-  if (shortMatch) return shortMatch[1]
-  return null
-})
+const youtubeVideoId = computed(() => extractYoutubeVideoId(manual.value?.youtube_url))
 
 async function confirmDelete() {
   showDeleteDialog.value = false

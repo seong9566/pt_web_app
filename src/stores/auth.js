@@ -146,6 +146,12 @@ export const useAuthStore = defineStore('auth', () => {
     const { data } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (!_initialized) return
 
+      if (event === 'PASSWORD_RECOVERY') {
+        const { default: router } = await import('@/router')
+        router.push('/password-update')
+        return
+      }
+
       loading.value = true
       error.value = null
 

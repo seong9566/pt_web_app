@@ -183,7 +183,7 @@
     </div>
 
     <!-- ── Holiday Toggle ── -->
-    <div class="holiday-toggle">
+    <!-- <div class="holiday-toggle">
       <button 
         v-if="!isHolidaySelected" 
         class="holiday-toggle__btn holiday-toggle__btn--set"
@@ -200,7 +200,7 @@
       >
         {{ holidayProcessing ? '처리 중...' : '휴무 해제' }}
       </button>
-    </div>
+    </div> -->
 
     <!-- ── Session Cards ── -->
     <div class="schedule-list">

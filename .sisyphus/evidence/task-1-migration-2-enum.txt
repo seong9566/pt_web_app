@@ -1,0 +1,15 @@
+MIGRATION 2: Add account_deleted to notification_type Enum
+===========================================================
+
+Status: ✅ APPLIED AND VERIFIED
+
+SQL Applied:
+ALTER TYPE notification_type ADD VALUE IF NOT EXISTS 'account_deleted';
+
+Verification Query:
+SELECT enumlabel FROM pg_enum WHERE enumtypid = 'notification_type'::regtype AND enumlabel = 'account_deleted';
+
+Verification Result:
+[{"enumlabel":"account_deleted"}]
+
+✅ Enum value successfully added and verified.

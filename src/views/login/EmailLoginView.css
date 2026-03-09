@@ -1,0 +1,171 @@
+.email-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px var(--side-margin);
+  background-color: var(--color-white);
+}
+
+.email-login__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-900);
+  margin-left: -8px;
+  flex-shrink: 0;
+}
+
+.email-login__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 32px;
+  gap: 12px;
+}
+
+.email-login__icon-box {
+  width: 72px;
+  height: 72px;
+  background-color: var(--color-blue-light);
+  border-radius: var(--radius-large);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.email-login__app-name {
+  font-size: var(--fs-title);
+  font-weight: var(--fw-display);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.email-login__tabs {
+  display: flex;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-medium);
+  padding: 4px;
+  margin-bottom: 28px;
+  gap: 4px;
+}
+
+.email-login__tab {
+  flex: 1;
+  height: 40px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.email-login__tab--active {
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.email-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.email-login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.email-login__label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.email-login__input {
+  height: 48px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  padding: 0 16px;
+  font-size: var(--fs-body1);
+  font-family: inherit;
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-100);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.email-login__input:focus {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-white);
+}
+
+.email-login__input::placeholder {
+  color: var(--color-gray-600);
+}
+
+.email-login__error {
+  font-size: var(--fs-body2);
+  color: var(--color-red);
+  margin: 0;
+}
+
+.email-login__success {
+  font-size: var(--fs-body2);
+  color: var(--color-green);
+  margin: 0;
+}
+
+.email-login__forgot {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: var(--fs-body2);
+  color: var(--color-blue-primary);
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  margin-top: -8px;
+}
+
+.email-login__forgot:active {
+  opacity: 0.7;
+}
+
+.email-login__btn {
+  width: 100%;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+
+.email-login__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.email-login__btn:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.email-login__btn--primary {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}

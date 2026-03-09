@@ -170,7 +170,8 @@
             <div class="scard__trainer-row">
               <div class="scard__trainer-info">
                 <div class="scard__avatar">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <img v-if="session.trainerPhoto" :src="session.trainerPhoto" :alt="session.trainer" class="scard__avatar-img" />
+                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <circle
                       cx="12"
                       cy="8"
@@ -195,6 +196,23 @@
               >
                 취소
               </button>
+            </div>
+            <!-- 배정된 운동 요약 -->
+            <div v-if="session.workoutSummary" class="scard__workout-summary">
+              <svg v-if="session.status === 'completed'" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" fill="rgba(0,122,255,0.08)" stroke="var(--color-blue-primary)" stroke-width="1.4"/>
+                <path d="M8 12L11 15L16 9" stroke="var(--color-blue-primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <span>{{ session.workoutSummary }}</span>
+            </div>
+            <div v-else-if="session.status === 'approved'" class="scard__workout-summary scard__workout-summary--empty">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <span>아직 운동이 배정되지 않았습니다</span>
             </div>
             <div
               v-if="session.status === 'rejected' && session.rejection_reason"
@@ -272,6 +290,7 @@ defineOptions({ name: "MemberScheduleView" });
 import { useRouter } from "vue-router";
 import { useReservations } from "@/composables/useReservations";
 import { useWorkHours } from "@/composables/useWorkHours";
+import { useWorkoutPlans } from "@/composables/useWorkoutPlans";
 import { useReservationsStore } from "@/stores/reservations";
 import AppPullToRefresh from "@/components/AppPullToRefresh.vue";
 
@@ -287,12 +306,16 @@ const {
   getConnectedTrainerId,
 } = useReservations();
 const { fetchWorkingDays } = useWorkHours();
+const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans();
 
 // ── Calendar state ──
 const now = new Date();
 const currentYear = ref(now.getFullYear());
 const currentMonth = ref(now.getMonth() + 1);
 const selectedDate = ref(now.getDate());
+
+// ── Workout plan cache (date → exercises) ──
+const workoutPlanCache = ref({})
 
 const weekdays = [
   { label: "일", cls: "calendar-card__weekday--sun" },
@@ -326,11 +349,14 @@ async function loadData() {
   if (trainerId) {
     workingDays.value = await fetchWorkingDays(trainerId);
   }
+  // 오늘 날짜의 운동 계획 미리 로드
+  await loadWorkoutForDate(currentYear.value, currentMonth.value, selectedDate.value);
   loaded.value = true;
 }
 
 async function handleRefresh() {
   await reservationsStore.loadReservations("member", true);
+  await loadWorkoutForDate(currentYear.value, currentMonth.value, selectedDate.value);
 }
 
 onMounted(() => {
@@ -339,6 +365,15 @@ onMounted(() => {
 onActivated(() => {
   if (loaded.value && reservationsStore.isStale()) loadData();
 });
+
+// ── 날짜에 해당하는 운동 계획 로드 ──
+async function loadWorkoutForDate(year, month, day) {
+  // 선택 날짜의 예약이 있는 경우에만 fetch
+  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  if (workoutPlanCache.value[dateStr] !== undefined) return;
+  await fetchWorkoutPlan(undefined, dateStr); // member 자신 기준으로 조회
+  workoutPlanCache.value[dateStr] = currentPlan.value ? [...(currentPlan.value.exercises || [])] : null;
+}
 
 // ── Compute dots from real reservations ──
 // dotsData 키: "YYYY-MM-DD", 값: dot CSS 클래스 배열 (completed → done 변환)
@@ -386,6 +421,8 @@ function isSelected(date) {
 
 function selectDate(date) {
   selectedDate.value = date;
+  // 선택 날짜 변경 시 운동 계획 로드
+  loadWorkoutForDate(currentYear.value, currentMonth.value, date);
 }
 
 // ── Calendar cells ──
@@ -456,6 +493,11 @@ const selectedDateLabel = computed(() => {
 // ── Filter reservations by selected date ──
 const selectedDaySessions = computed(() => {
   const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(selectedDate.value).padStart(2, "0")}`;
+  const exercises = workoutPlanCache.value[selectedDateStr];
+  const workoutSummary = exercises && exercises.length > 0
+    ? exercises.filter(e => e.name).slice(0, 3).map(e => `${e.name} ${e.sets}×${e.reps}`).join(', ')
+    : null;
+
   return reservations.value
     .filter((res) => res.date === selectedDateStr && res.status !== "cancelled")
     .map((res) => ({
@@ -463,8 +505,10 @@ const selectedDaySessions = computed(() => {
       title: res.session_type || "운동 세션",
       time: `${res.start_time} - ${res.end_time}`,
       trainer: res.partner_name,
+      trainerPhoto: res.partner_photo || null,
       status: res.status,
       rejection_reason: res.rejection_reason,
+      workoutSummary,
     }));
 });
 

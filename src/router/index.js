@@ -9,7 +9,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login"]; // 인증 없이 접근 가능한 경로
+const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login", "/email-login", "/password-reset", "/password-update"];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,9 +28,31 @@ const router = createRouter({
       meta: { hideNav: true },
     },
     {
+      path: "/email-login",
+      name: "email-login",
+      component: () => import("@/views/login/EmailLoginView.vue"),
+      meta: { hideNav: true },
+    },
+    {
       path: "/dev-login",
-      name: "dev-login",
-      component: () => import("@/views/login/DevLoginView.vue"),
+      redirect: "/email-login",
+    },
+    {
+      path: "/password-reset",
+      name: "password-reset",
+      component: () => import("@/views/login/PasswordResetView.vue"),
+      meta: { hideNav: true },
+    },
+    {
+      path: "/password-update",
+      name: "password-update",
+      component: () => import("@/views/login/PasswordUpdateView.vue"),
+      meta: { hideNav: true },
+    },
+    {
+      path: "/account-manage",
+      name: "account-manage",
+      component: () => import("@/views/common/AccountManageView.vue"),
       meta: { hideNav: true },
     },
     {

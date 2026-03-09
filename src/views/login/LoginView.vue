@@ -73,7 +73,7 @@ async function handleKakao() {
   }
 }
 function handleEmail() {
-  router.push('/dev-login')
+  router.push('/email-login')
 }
 </script>
 

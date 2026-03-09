@@ -69,8 +69,8 @@
         </div>
 
         <div class="member-home__pt-card">
-          <!-- 배지 -->
-          <span class="member-home__pt-badge">오늘</span>
+          <!-- 배지: 예약 날짜 -->
+          <span class="member-home__pt-badge">{{ nextSession.dateLabel }}</span>
 
           <!-- 수업 시간 -->
           <div class="member-home__pt-time-row">
@@ -88,17 +88,20 @@
 
           <!-- 트레이너 -->
           <div class="member-home__pt-trainer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
-                stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            </svg>
+            <div class="member-home__pt-trainer-avatar">
+              <img v-if="nextSession.trainerPhoto" :src="nextSession.trainerPhoto" alt="trainer" class="member-home__pt-trainer-avatar-img" />
+              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
             <span>{{ nextSession.trainer }} 담당</span>
           </div>
 
           <!-- 오늘의 운동 루틴 -->
-          <div class="member-home__pt-routine">
-            <p class="member-home__pt-routine-label">오늘의 운동 루틴</p>
+          <div v-if="nextSession.routine.length > 0" class="member-home__pt-routine">
+            <p class="member-home__pt-routine-label">배정된 운동 루틴</p>
             <ul class="member-home__pt-routine-list">
               <li v-for="item in nextSession.routine" :key="item" class="member-home__pt-routine-item">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -110,6 +113,9 @@
                 <span>{{ item }}</span>
               </li>
             </ul>
+          </div>
+          <div v-else-if="nextSession.hasReservation" class="member-home__pt-routine">
+            <p class="member-home__pt-routine-label" style="color: var(--color-gray-600); font-size: var(--fs-caption);">아직 운동이 배정되지 않았습니다</p>
           </div>
         </div>
       </section>
@@ -237,14 +243,8 @@ async function loadData() {
   const connected = await checkTrainerConnection()
   hasTrainer.value = connected
   if (connected && auth.user?.id) {
-    fetchMyReservations('member')
-
-    const now = new Date()
-    const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
-    await fetchWorkoutPlan(auth.user.id, today)
-
+    await fetchMyReservations('member')
     getUnreadCount()
-
     const trainerId = await getConnectedTrainerId()
     if (trainerId) {
       ptRemaining.value = await fetchRemainingByPair(auth.user.id, trainerId)
@@ -285,18 +285,40 @@ const nextSession = computed(() => {
   const next = upcoming[0]
   if (!next) {
     return {
+      dateLabel: '-',
       countdown: '--:--',
       title: '예정된 세션 없음',
       trainer: '-',
+      trainerPhoto: null,
       routine: [],
+      hasReservation: false,
     }
   }
 
+  // 예약 날짜 레이블 (M월D일)
+  const [, m, d] = (next.date || '').split('-')
+  const dateLabel = m && d ? `${Number(m)}월 ${Number(d)}일` : '예정'
+
+  // 시간: "17:00 ~ 18:00"
+  const startTime = (next.start_time || '').slice(0, 5)
+  const endTime = (next.end_time || '').slice(0, 5)
+  const countdown = endTime ? `${startTime} ~ ${endTime}` : startTime
+
+  // 예약 날짜의 운동 계획 비동기 로드 (이미 로드됐을 경우 currentPlan 재활용)
+  if (next.date && auth.user?.id) {
+    fetchWorkoutPlan(auth.user.id, next.date)
+  }
+
+  const routine = currentPlan.value?.exercises?.map(e => e.name).filter(Boolean) || []
+
   return {
-    countdown: (next.start_time || '').slice(0, 5),
+    dateLabel,
+    countdown,
     title: next.session_type || 'PT 세션',
     trainer: next.partner_name || '트레이너',
-    routine: currentPlan.value?.exercises?.map(e => e.name).filter(Boolean) || [],
+    trainerPhoto: next.partner_photo || null,
+    routine,
+    hasReservation: true,
   }
 })
 

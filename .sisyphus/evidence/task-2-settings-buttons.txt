@@ -1,0 +1,65 @@
+TASK 2: 트레이너 설정 뷰에서 "내 프로필 수정" 버튼 제거 + TrainerProfileReadOnlyView 헤더에 수정 버튼 추가
+
+COMPLETION EVIDENCE
+===================
+
+1. SettingsView.vue - "내 프로필 수정" 버튼 제거
+   - File: src/views/trainer/SettingsView.vue
+   - Lines removed: 32-43 (original)
+   - Removed button block:
+     * <button class="settings__row" @click="handleNav('profile-edit')">
+     * Icon SVG (profile icon)
+     * Label: "내 프로필 수정"
+     * Chevron SVG
+     * Divider
+   - Result: "내 프로필 보기" button now directly follows "내 계정" section title
+   - No CSS cleanup needed (no dedicated styles for removed button)
+
+2. TrainerProfileReadOnlyView.vue - 헤더에 수정 버튼 추가
+   - File: src/views/trainer/TrainerProfileReadOnlyView.vue
+   - Location: Header section (lines 5-19)
+   - Changes:
+     * Replaced: <div style="width: 40px" /> (spacer)
+     * With: <button class="trainer-profile-ro__edit-btn" @click="router.push({ name: 'trainer-profile-edit' })">
+     * Icon: Pencil SVG (edit icon)
+     * SVG attributes: width="20" height="20", stroke="currentColor", stroke-width="2"
+   - Router import: Already present (line 65)
+   - Route name: 'trainer-profile-edit' (verified in router/index.js:226)
+
+3. TrainerProfileReadOnlyView.css - 수정 버튼 스타일 추가
+   - File: src/views/trainer/TrainerProfileReadOnlyView.css
+   - Added class: .trainer-profile-ro__edit-btn (lines 36-47)
+   - Styles:
+     * width: 40px; height: 40px;
+     * display: flex; align-items: center; justify-content: center;
+     * background: none; border: none; cursor: pointer;
+     * padding: 8px;
+     * color: var(--color-gray-900);
+   - BEM naming: Follows project convention
+   - CSS variables: Uses design tokens (--color-gray-900)
+
+4. Build Verification
+   - Command: npm run build
+   - Result: ✓ built in 1.25s
+   - No errors or warnings
+   - All modules transformed successfully
+   - Output: dist/ directory created
+
+5. LSP Diagnostics
+   - SettingsView.vue: No errors
+   - TrainerProfileReadOnlyView.vue: No errors
+
+6. Route Verification
+   - Route name: 'trainer-profile-edit'
+   - Location: src/router/index.js:226
+   - Status: Exists and functional
+
+SUMMARY
+=======
+✓ "내 프로필 수정" button completely removed from SettingsView
+✓ Edit button (pencil icon) added to TrainerProfileReadOnlyView header
+✓ Button navigates to 'trainer-profile-edit' route on click
+✓ CSS styling applied with design tokens
+✓ Build passes without errors
+✓ No LSP diagnostics errors
+✓ All changes follow project conventions (BEM, CSS variables, <script setup>)

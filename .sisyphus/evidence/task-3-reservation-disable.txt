@@ -1,0 +1,17 @@
+              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleReject(item)">
+                {{ processingId === item.id ? '처리 중...' : '거절' }}
+              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleApprove(item)">
+                {{ processingId === item.id ? '처리 중...' : '승인' }}
+              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleComplete(item)">
+                {{ processingId === item.id ? '처리 중...' : '완료' }}
+              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleCancel(item)">
+                {{ processingId === item.id ? '처리 중...' : '취소' }}
+const processingId = ref(null)
+  processingId.value = rejectTarget.value.id
+    processingId.value = null
+  processingId.value = cancelTarget.value.id
+    processingId.value = null
+  processingId.value = item.id
+    processingId.value = null
+  processingId.value = item.id
+    processingId.value = null

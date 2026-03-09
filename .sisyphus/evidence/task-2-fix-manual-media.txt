@@ -1,0 +1,45 @@
+## Task 2 Fix: manual-media cleanup + notification body
+
+### Issue 1 Fixed: manual-media Storage cleanup (trainer role only)
+Inserted before RPC call (between chat-files cleanup and supabase.rpc):
+
+  if (auth.profile?.role === 'trainer') {
+    try {
+      const { data: manualsList } = await supabase
+        .from('manuals').select('id').eq('trainer_id', auth.user.id)
+      if (manualsList && manualsList.length > 0) {
+        for (const manual of manualsList) {
+          const { data: mediaList } = await supabase
+            .from('manual_media').select('file_url').eq('manual_id', manual.id)
+          if (mediaList && mediaList.length > 0) {
+            const paths = mediaList
+              .map((m) => { ... extract after '/manual-media/' ... })
+              .filter(Boolean)
+            if (paths.length > 0) {
+              await supabase.storage.from('manual-media').remove(paths)
+            }
+          }
+        }
+      }
+    } catch (storageErr) {
+      console.warn('manual-media 파일 삭제 실패 (무시):', storageErr)
+    }
+  }
+
+### Issue 2 Fixed: notification body text uses user name
+- Added: const userName = auth.profile?.name || '사용자'
+- Changed body: '연결된 사용자가 탈퇴하여 연결이 해제되었습니다.' → `${userName}님이 탈퇴했습니다.`
+
+### Test update: useProfile.test.js line 114
+- Old: '연결된 사용자가 탈퇴하여 연결이 해제되었습니다.'
+- New: '사용자님이 탈퇴했습니다.'
+  (mock authStore has no profile, so auth.profile?.name = undefined → userName = '사용자')
+
+### Build result
+npm run build → EXIT 0 ✅
+✓ 206 modules transformed, built in 1.46s
+useProfile chunk: 5.11 kB (gzip: 1.82 kB)
+
+### Test result
+npx vitest run → 15 test files, 85 tests PASSED ✅
+useProfile.test.js: 5 tests passed

@@ -1,0 +1,40 @@
+TASK: MemberScheduleView 운동 아이콘 교체 + 완료 아이템 스타일링 + CSS 버그 수정
+
+COMPLETED CHANGES:
+
+1. Icon Replacement (src/views/member/MemberScheduleView.vue, lines 202-208)
+   - Replaced barbell SVG with checkmark circle icon for completed sessions
+   - Conditional rendering: checkmark icon shows when session.status === 'completed'
+   - Barbell icon shows for other statuses (approved, pending, etc.)
+   - Checkmark icon uses CSS custom properties: --color-blue-primary
+
+2. CSS Bug Fix (src/views/member/MemberScheduleView.css, line 275)
+   - Changed: .scard--done → .scard--completed
+   - Reason: Template uses :class="`scard--${session.status}`" where status from DB is 'completed'
+   - The old .scard--done selector was never applied (dead CSS)
+
+3. Enhanced Completed Styling (src/views/member/MemberScheduleView.css, lines 279-287)
+   - Added opacity: 0.55 to .scard--completed
+   - Added color: var(--color-gray-600) to title, time, and status text
+   - Creates visual distinction for completed sessions (faded appearance)
+
+BUILD VERIFICATION:
+✓ npm run build succeeded
+✓ All 209 modules transformed
+✓ No errors or warnings
+✓ MemberScheduleView-vZq5HoXD.css included in dist (8.89 kB)
+✓ MemberScheduleView-BqtpLlWd.js included in dist (10.72 kB)
+
+PATTERN COMPLIANCE:
+✓ CSS Custom Properties used (--color-blue-primary, --color-gray-600)
+✓ BEM naming maintained (.scard--completed, .scard__title, etc.)
+✓ No hard-coded hex values in new code
+✓ No code comments added
+✓ Scoped styles in companion CSS file
+✓ Mobile-first layout preserved
+
+TESTING NOTES:
+- Completed sessions will now display checkmark icon instead of barbell
+- Completed sessions will appear faded (opacity 0.55) with gray text
+- Other statuses (approved, pending, cancelled, rejected) unchanged
+- CSS selector now correctly targets completed sessions

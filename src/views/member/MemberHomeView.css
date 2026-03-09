@@ -185,7 +185,7 @@
 }
 
 .member-home__pt-countdown {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--color-gray-900);
   letter-spacing: -0.5px;
@@ -203,10 +203,29 @@
 .member-home__pt-trainer {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   color: var(--color-gray-600);
   font-size: var(--fs-body2);
   margin-bottom: 16px;
+}
+
+.member-home__pt-trainer-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-gray-600);
+}
+
+.member-home__pt-trainer-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* 루틴 카드 */

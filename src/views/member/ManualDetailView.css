@@ -378,3 +378,54 @@
   background-color: var(--color-red);
   color: var(--color-white);
 }
+
+/* ── Hero back button (원형 배경 + 그림자) ── */
+.manual-detail__back-btn {
+  position: absolute;
+  top: 16px;
+  left: var(--side-margin);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+  color: var(--color-gray-900);
+  transition: background-color 0.15s;
+}
+
+.manual-detail__back-btn:active {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* ── Trainer info (한 줄) ── */
+.manual-detail__trainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manual-detail__trainer-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.manual-detail__trainer-avatar--placeholder {
+  background-color: var(--color-gray-100);
+  padding: 6px;
+}
+
+.manual-detail__trainer-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}

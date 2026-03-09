@@ -33,6 +33,19 @@
   color: var(--color-gray-900);
 }
 
+.trainer-profile-ro__edit-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--color-gray-900);
+}
+
 /* ── 콘텐츠 ── */
 .trainer-profile-ro__content {
   flex: 1;

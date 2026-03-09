@@ -1,0 +1,36 @@
+TASK: Remove edit/delete buttons from TrainerManualView card items
+
+COMPLETED CHANGES:
+
+1. TrainerManualView.vue (src/views/trainer/TrainerManualView.vue):
+   ✓ Removed delete confirmation dialog (AppBottomSheet) - lines 5-16
+   ✓ Removed edit/delete button block from card body - lines 112-125
+   ✓ Removed showDeleteDialog ref
+   ✓ Removed deleteTarget ref
+   ✓ Removed handleDelete() function
+   ✓ Removed confirmDelete() function
+   ✓ Removed deleteManual from useManuals() destructuring
+   ✓ Removed AppBottomSheet import
+
+2. TrainerManualView.css (src/views/trainer/TrainerManualView.css):
+   ✓ Removed .manual-list__card-actions CSS class
+   ✓ Removed .manual-list__card-action-btn CSS class
+   ✓ Removed .manual-list__card-action-btn:active CSS class
+   ✓ Removed .manual-list__card-action-btn--danger CSS class
+   ✓ Removed .manual-list__card-action-btn--danger:active CSS class
+   ✓ Removed .delete-dialog CSS class
+   ✓ Removed .delete-dialog__text CSS class
+   ✓ Removed .delete-dialog__actions CSS class
+   ✓ Removed .delete-dialog__btn CSS class
+   ✓ Removed .delete-dialog__btn:active CSS class
+   ✓ Removed .delete-dialog__btn--cancel CSS class
+   ✓ Removed .delete-dialog__btn--confirm CSS class
+
+3. Verification:
+   ✓ Card click → detail view navigation still works (goToDetail function preserved)
+   ✓ ManualDetailView.vue edit/delete buttons remain intact (not modified)
+   ✓ npm run build succeeded with no errors
+   ✓ All CSS classes properly removed
+
+RESULT: Task completed successfully. Edit/delete buttons removed from TrainerManualView cards.
+Users must now navigate to ManualDetailView to edit or delete manuals.

@@ -10,7 +10,12 @@
         </svg>
       </button>
       <h2 class="trainer-profile-ro__nav-title">내 프로필</h2>
-      <div style="width: 40px" />
+      <button class="trainer-profile-ro__edit-btn" @click="router.push({ name: 'trainer-profile-edit' })">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </button>
     </div>
 
     <div class="trainer-profile-ro__content">

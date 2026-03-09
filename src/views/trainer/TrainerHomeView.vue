@@ -69,7 +69,7 @@
             <span v-if="reservLoading">-</span>
             <span v-else>{{ todaySessionCount }}</span>
           </div>
-          <div class="stat-label">총 세션</div>
+          <div class="stat-label">오늘 일정</div>
         </div>
       </div>
       <div class="stat-card">
@@ -92,7 +92,7 @@
     <section class="home-section">
       <div class="section-header">
         <h2 class="section-title">오늘의 일정</h2>
-        <a href="#" class="section-link" @click.prevent="router.push('/trainer/reservations')">전체보기</a>
+        <!-- <a href="#" class="section-link" @click.prevent="router.push('/trainer/reservations')">전체보기</a> -->
       </div>
 
       <div class="date-tabs">

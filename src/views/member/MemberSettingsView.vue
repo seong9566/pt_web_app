@@ -238,7 +238,7 @@ function handleNav(target) {
   if (target === 'profile-edit') {
     router.push({ name: 'member-profile-edit' })
   } else if (target === 'account') {
-    router.push({ name: 'member-profile-edit' })
+    router.push({ name: 'account-manage' })
   }
 }
 

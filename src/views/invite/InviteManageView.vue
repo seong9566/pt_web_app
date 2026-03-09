@@ -50,16 +50,28 @@
             <p class="invite-manage__empty-sub">초대 코드를 공유하여 회원을 초대해보세요</p>
           </div>
           <div v-for="member in recentMembers" :key="member.member_id" class="member-item">
-            <div class="member-item__avatar">
-              <img src="@/assets/icons/person.svg" alt="member" width="24" height="24" />
-            </div>
+             <div class="member-item__avatar">
+               <img
+                 v-if="member.profiles?.photo_url"
+                 :src="member.profiles.photo_url"
+                 alt="member"
+                 class="member-item__avatar-img"
+               />
+               <img
+                 v-else
+                 :src="personIcon"
+                 alt="member"
+                 width="24"
+                 height="24"
+               />
+             </div>
             <div class="member-item__info">
               <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
               <p class="member-item__date">{{ formatDate(member.connected_at) }} 가입</p>
             </div>
-            <button class="member-item__more">
+            <!-- <button class="member-item__more">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="#666666"/><circle cx="12" cy="12" r="1.5" fill="#666666"/><circle cx="12" cy="19" r="1.5" fill="#666666"/></svg>
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
@@ -74,6 +86,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
 import AppToast from '@/components/AppToast.vue'
+import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
 const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
