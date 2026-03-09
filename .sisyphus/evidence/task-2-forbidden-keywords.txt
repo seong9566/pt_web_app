@@ -1,2 +1,0 @@
-=== Part 2 Forbidden Keywords ===
-ERD|endpoint|API 설계|테이블 설계|스키마|DbContext|Repository: 0

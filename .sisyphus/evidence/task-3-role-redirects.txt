@@ -1,2 +1,0 @@
-48:    if (!auth.role) {
-50:    } else if (auth.role === 'trainer') {

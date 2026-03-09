@@ -1,5 +1,0 @@
-  z-index: 9999;
-  pointer-events: none;
-  white-space: normal;
-  max-width: calc(var(--app-max-width, 480px) - 40px);
-  text-align: center;

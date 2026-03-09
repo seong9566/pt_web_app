@@ -1,5 +1,0 @@
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
-import { useToast } from '@/composables/useToast'
-import AppToast from '@/components/AppToast.vue'
-const { showToast, toastMessage, toastType, showError } = useToast()
-  if (val) showError(val)
