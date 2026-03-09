@@ -142,17 +142,17 @@
             <div class="res-card__divider" />
 
             <div class="res-card__actions">
-              <button class="res-card__btn res-card__btn--reject" @click="handleReject(item)">
+              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleReject(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
-                거절
+                {{ processingId === item.id ? '처리 중...' : '거절' }}
               </button>
-              <button class="res-card__btn res-card__btn--approve" @click="handleApprove(item)">
+              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleApprove(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                승인
+                {{ processingId === item.id ? '처리 중...' : '승인' }}
               </button>
             </div>
           </div>
@@ -206,17 +206,17 @@
             <div class="res-card__divider" />
 
             <div class="res-card__actions">
-              <button class="res-card__btn res-card__btn--approve" @click="handleComplete(item)">
+              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleComplete(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                완료
+                {{ processingId === item.id ? '처리 중...' : '완료' }}
               </button>
-              <button class="res-card__btn res-card__btn--reject" @click="handleCancel(item)">
+              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleCancel(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
-                취소
+                {{ processingId === item.id ? '처리 중...' : '취소' }}
               </button>
             </div>
 
@@ -262,6 +262,9 @@ const filterChips = [
   { id: 'completed', label: '완료', icon: 'history' },
 ]
 const activeFilter = ref('all')
+
+// ── Processing state ──
+const processingId = ref(null)
 
 // ── Initialize ──
 onMounted(async () => {
@@ -310,13 +313,18 @@ function handleReject(item) {
 
 async function confirmReject() {
   if (!rejectTarget.value) return
-  const success = await rejectReservation(rejectTarget.value.id, rejectReason.value.trim())
-  showRejectDialog.value = false
-  rejectTarget.value = null
-  rejectReason.value = ''
-  if (success) {
-    reservationsStore.invalidate()
-    await fetchMyReservations('trainer')
+  processingId.value = rejectTarget.value.id
+  try {
+    const success = await rejectReservation(rejectTarget.value.id, rejectReason.value.trim())
+    showRejectDialog.value = false
+    rejectTarget.value = null
+    rejectReason.value = ''
+    if (success) {
+      reservationsStore.invalidate()
+      await fetchMyReservations('trainer')
+    }
+  } finally {
+    processingId.value = null
   }
 }
 
@@ -332,30 +340,45 @@ function handleCancel(item) {
 
 async function confirmCancel() {
   if (!cancelTarget.value) return
-  const success = await updateReservationStatus(cancelTarget.value.id, 'cancelled')
-  showCancelDialog.value = false
-  cancelTarget.value = null
-  cancelReason.value = ''
-  if (success) {
-    reservationsStore.invalidate()
-    await fetchMyReservations('trainer')
+  processingId.value = cancelTarget.value.id
+  try {
+    const success = await updateReservationStatus(cancelTarget.value.id, 'cancelled')
+    showCancelDialog.value = false
+    cancelTarget.value = null
+    cancelReason.value = ''
+    if (success) {
+      reservationsStore.invalidate()
+      await fetchMyReservations('trainer')
+    }
+  } finally {
+    processingId.value = null
   }
 }
 
 async function handleApprove(item) {
-  const success = await updateReservationStatus(item.id, 'approved')
-  if (success) {
-    reservationsStore.invalidate()
-    await fetchMyReservations('trainer')
+  processingId.value = item.id
+  try {
+    const success = await updateReservationStatus(item.id, 'approved')
+    if (success) {
+      reservationsStore.invalidate()
+      await fetchMyReservations('trainer')
+    }
+  } finally {
+    processingId.value = null
   }
 }
 
 async function handleComplete(item) {
-  const success = await updateReservationStatus(item.id, 'completed')
-  if (success) {
-    reservationsStore.invalidate()
-    ptSessionsStore.invalidate()
-    await fetchMyReservations('trainer')
+  processingId.value = item.id
+  try {
+    const success = await updateReservationStatus(item.id, 'completed')
+    if (success) {
+      reservationsStore.invalidate()
+      ptSessionsStore.invalidate()
+      await fetchMyReservations('trainer')
+    }
+  } finally {
+    processingId.value = null
   }
 }
 

@@ -58,7 +58,7 @@ watch(() => props.modelValue, (val) => {
   font-weight: var(--fw-body1-bold);
   z-index: 9999;
   pointer-events: none;
-  white-space: nowrap;
+  white-space: normal;
   max-width: calc(var(--app-max-width, 480px) - 40px);
   text-align: center;
 }

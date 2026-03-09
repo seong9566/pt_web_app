@@ -1,0 +1,21 @@
+import { ref } from 'vue'
+
+export function useToast() {
+  const showToast = ref(false)
+  const toastMessage = ref('')
+  const toastType = ref('default')
+
+  function showError(msg) {
+    toastMessage.value = msg
+    toastType.value = 'error'
+    showToast.value = true
+  }
+
+  function showSuccess(msg) {
+    toastMessage.value = msg
+    toastType.value = 'success'
+    showToast.value = true
+  }
+
+  return { showToast, toastMessage, toastType, showError, showSuccess }
+}

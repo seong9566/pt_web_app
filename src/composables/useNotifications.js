@@ -97,6 +97,7 @@ export function useNotifications() {
    * @param {string|null} targetType - 연관 리소스 타입 (예: 'reservation')
    */
   async function createNotification(userId, type, title, body, targetId = null, targetType = null) {
+    error.value = null
     try {
       const { error: err } = await supabase
         .from('notifications')
@@ -109,8 +110,10 @@ export function useNotifications() {
           target_type: targetType,
         })
       if (err) throw err
+      return true
     } catch (e) {
-      console.error('알림 생성 실패:', e.message)
+      error.value = '알림 생성에 실패했습니다'
+      return false
     }
   }
 
