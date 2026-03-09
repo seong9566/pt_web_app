@@ -1,0 +1,15 @@
+{
+  "scenario": "pg_cron schedule registered",
+  "query": "SELECT jobname, schedule FROM cron.job WHERE jobname = 'purge-deleted-accounts';",
+  "result": [
+    {
+      "jobname": "purge-deleted-accounts",
+      "schedule": "0 3 * * *"
+    }
+  ],
+  "assertion": {
+    "row_count": 1,
+    "schedule": "0 3 * * *",
+    "passed": true
+  }
+}

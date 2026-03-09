@@ -188,7 +188,7 @@ Max Concurrent: 4 (Wave 1)
 
 ## TODOs
 
-- [ ] 1. DB 마이그레이션: 소프트 삭제 인프라
+- [x] 1. DB 마이그레이션: 부드러운 삭제 인프라
 
   **What to do**:
   - `profiles` 테이블에 `deleted_at timestamptz DEFAULT NULL` 컬럼 추가
@@ -303,7 +303,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `supabase/schema.sql`
   - Pre-commit: `npm run build`
 
-- [ ] 2. useProfile.js 소프트 삭제 전환 + cancelAccountDeletion
+- [x] 2. useProfile.js 소프트 삭제 전환 + cancelAccountDeletion
 
   **What to do**:
   - `softDeleteAccount()` 함수 수정:
@@ -401,7 +401,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/composables/useProfile.js`
   - Pre-commit: `npm run build`
 
-- [ ] 3. Auth store + Router guard: 삭제 예정 사용자 감지
+- [x] 3. Auth store + Router guard: 삭제 예정 사용자 감지
 
   **What to do**:
   - `src/stores/auth.js` — `fetchProfile()` 수정:
@@ -483,7 +483,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/stores/auth.js`, `src/router/index.js`
   - Pre-commit: `npm run build`
 
-- [ ] 4. AccountDeletePendingView 생성
+- [x] 4. AccountDeletePendingView 생성
 
   **What to do**:
   - `src/views/common/AccountDeletePendingView.vue` 생성:
@@ -567,7 +567,7 @@ Max Concurrent: 4 (Wave 1)
 
 ---
 
-- [ ] 5. Settings views 안내 문구 변경
+- [x] 5. Settings views 안내 문구 변경
 
   **What to do**:
   - `src/views/trainer/SettingsView.vue` 수정:
@@ -623,7 +623,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/views/trainer/SettingsView.vue`, `src/views/member/MemberSettingsView.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 6. 운동 개별 복사 UI (TodayWorkoutView template + script)
+- [x] 6. 운동 개별 복사 UI (TodayWorkoutView template + script)
 
   **What to do**:
   - TodayWorkoutView.vue 히스토리 섹션(lines 173-197) 수정:
@@ -723,7 +723,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/views/trainer/TodayWorkoutView.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 7. TodayWorkoutView 히스토리 아코디언 CSS 스타일링
+- [x] 7. TodayWorkoutView 히스토리 아코디언 CSS 스타일링
 
   **What to do**:
   - `src/views/trainer/TodayWorkoutView.css` 수정:
@@ -790,7 +790,7 @@ Max Concurrent: 4 (Wave 1)
 
 ---
 
-- [ ] 8. TrainerHomeView 전체 리디자인 + 애니메이션
+- [x] 8. TrainerHomeView 전체 리디자인 + 애니메이션
 
   **What to do**:
   - `src/views/trainer/TrainerHomeView.vue` 전체 template 리디자인:
@@ -913,7 +913,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/views/trainer/TrainerHomeView.vue`, `src/views/trainer/TrainerHomeView.css`
   - Pre-commit: `npm run build`
 
-- [ ] 9. MemberHomeView 전체 리디자인 + 애니메이션
+- [x] 9. MemberHomeView 전체 리디자인 + 애니메이션
 
   **What to do**:
   - `src/views/member/MemberHomeView.vue` 전체 template 리디자인:
@@ -1015,7 +1015,7 @@ Max Concurrent: 4 (Wave 1)
 
 ---
 
-- [ ] 10. 애니메이션 디자인 토큰 (global.css)
+- [x] 10. 애니메이션 디자인 토큰 (global.css)
 
   **What to do**:
   - `src/assets/css/global.css`에 애니메이션 관련 CSS Custom Properties 추가:
@@ -1090,7 +1090,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/assets/css/global.css`
   - Pre-commit: `npm run build`
 
-- [ ] 11. Composable 테스트: softDeleteAccount + cancelAccountDeletion
+- [x] 11. Composable 테스트: softDeleteAccount + cancelAccountDeletion
 
   **What to do**:
   - 새 테스트 파일 `src/composables/__tests__/useProfileSoftDelete.test.js` 생성:

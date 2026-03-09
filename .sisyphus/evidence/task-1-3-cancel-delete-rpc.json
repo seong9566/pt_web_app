@@ -1,0 +1,13 @@
+{
+  "scenario": "cancel_account_deletion RPC exists",
+  "query": "SELECT routine_name FROM information_schema.routines WHERE routine_name = 'cancel_account_deletion' AND routine_schema = 'public';",
+  "result": [
+    {
+      "routine_name": "cancel_account_deletion"
+    }
+  ],
+  "assertion": {
+    "row_count": 1,
+    "passed": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "scenario": "deleted_at column exists",
+  "query": "SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'deleted_at';",
+  "result": [
+    {
+      "column_name": "deleted_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    }
+  ],
+  "assertion": {
+    "row_count": 1,
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "passed": true
+  }
+}

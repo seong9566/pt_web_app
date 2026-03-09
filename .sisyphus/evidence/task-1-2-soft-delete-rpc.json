@@ -1,0 +1,13 @@
+{
+  "scenario": "soft_delete_user_account RPC exists",
+  "query": "SELECT routine_name FROM information_schema.routines WHERE routine_name = 'soft_delete_user_account' AND routine_schema = 'public';",
+  "result": [
+    {
+      "routine_name": "soft_delete_user_account"
+    }
+  ],
+  "assertion": {
+    "row_count": 1,
+    "passed": true
+  }
+}
