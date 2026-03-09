@@ -189,11 +189,12 @@
       </template>
     </div>
     </AppPullToRefresh>
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed, onMounted, onActivated, watch } from 'vue'
 
 defineOptions({ name: 'MemberHomeView' })
 import { useRouter } from 'vue-router'
@@ -202,8 +203,10 @@ import { useReservations } from '@/composables/useReservations'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { useNotifications } from '@/composables/useNotifications'
+import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -213,6 +216,7 @@ const {
   fetchMyReservations,
   checkTrainerConnection,
   getConnectedTrainerId,
+  error: reservError,
 } = useReservations()
 const {
   currentPlan,
@@ -222,6 +226,7 @@ const {
 } = useWorkoutPlans()
 const { fetchRemainingByPair } = usePtSessions()
 const { unreadCount, getUnreadCount } = useNotifications()
+const { showToast, toastMessage, toastType, showError } = useToast()
 
 const hasTrainer = ref(null)
 const ptRemaining = ref(null)
@@ -254,6 +259,9 @@ async function handleRefresh() {
 
 onMounted(() => { if (!loaded.value) loadData() })
 onActivated(() => { if (loaded.value && reservationsStore.isStale()) loadData() })
+
+watch(reservError, (val) => { if (val) showError(val) })
+watch(workoutError, (val) => { if (val) showError(val) })
 
 const userName = computed(() => auth.profile?.name || '회원')
 

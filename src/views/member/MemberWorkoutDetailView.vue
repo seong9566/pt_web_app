@@ -71,20 +71,29 @@
       <!-- 하단 스페이서 -->
       <div style="height: 32px;" />
     </div>
+
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const { workoutPlans, currentPlan, loading, fetchWorkoutPlan, fetchWorkoutPlans } = useWorkoutPlans()
+const { workoutPlans, currentPlan, loading, fetchWorkoutPlan, fetchWorkoutPlans, error } = useWorkoutPlans()
+const { showToast, toastMessage, toastType, showError } = useToast()
+
+watch(error, (val) => {
+  if (val) showError(val)
+})
 
 const selectedDate = ref(route.query.date || new Date().toISOString().split('T')[0])
 

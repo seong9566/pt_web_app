@@ -139,6 +139,7 @@
       </div>
     </div>
 
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -146,12 +147,15 @@
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
+import { useToast } from '@/composables/useToast'
+import AppToast from '@/components/AppToast.vue'
 
 const auth = useAuthStore()
 const {
   conversations,
   messages,
   loading,
+  error,
   fetchConversations,
   fetchMessages,
   sendMessage,
@@ -159,6 +163,8 @@ const {
   subscribeToMessages,
   unsubscribe,
 } = useChat()
+
+const { showToast, toastMessage, toastType, showError } = useToast()
 
 // ── 상태 ──
 const selectedPartnerId = ref(null)
@@ -242,6 +248,10 @@ async function handleFileChange(e) {
 watch(messages, () => {
   if (selectedPartnerId.value) scrollToBottom()
 }, { deep: true })
+
+watch(error, (val) => {
+  if (val) showError(val)
+})
 
 onMounted(() => {
   fetchConversations()

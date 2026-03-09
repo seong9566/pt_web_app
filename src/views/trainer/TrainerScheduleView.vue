@@ -187,16 +187,18 @@
       <button 
         v-if="!isHolidaySelected" 
         class="holiday-toggle__btn holiday-toggle__btn--set"
+        :disabled="holidayProcessing"
         @click="handleSetHoliday"
       >
-        휴무 설정
+        {{ holidayProcessing ? '처리 중...' : '휴무 설정' }}
       </button>
       <button 
         v-else 
         class="holiday-toggle__btn holiday-toggle__btn--remove"
+        :disabled="holidayProcessing"
         @click="handleRemoveHoliday"
       >
-        휴무 해제
+        {{ holidayProcessing ? '처리 중...' : '휴무 해제' }}
       </button>
     </div>
 
@@ -278,6 +280,7 @@ const { fetchWorkingDays } = useWorkHours()
 
 const loaded = ref(false)
 const workingDays = ref(new Set())
+const holidayProcessing = ref(false)
 
 async function loadData() {
   await fetchMyReservations('trainer')
@@ -386,11 +389,21 @@ const selectedDateStr = computed(() => {
 const isHolidaySelected = computed(() => isHoliday(selectedDateStr.value))
 
 async function handleSetHoliday() {
-  await setHoliday(selectedDateStr.value)
+  holidayProcessing.value = true
+  try {
+    await setHoliday(selectedDateStr.value)
+  } finally {
+    holidayProcessing.value = false
+  }
 }
 
 async function handleRemoveHoliday() {
-  await removeHoliday(selectedDateStr.value)
+  holidayProcessing.value = true
+  try {
+    await removeHoliday(selectedDateStr.value)
+  } finally {
+    holidayProcessing.value = false
+  }
 }
 
 // Build calendar cells (including leading empty cells for day-of-week offset)

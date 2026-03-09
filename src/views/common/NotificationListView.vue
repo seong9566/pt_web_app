@@ -64,18 +64,26 @@
       </div>
     </div>
 
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotifications } from '@/composables/useNotifications'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications()
+const { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead, error } = useNotifications()
+const { showToast, toastMessage, toastType, showError } = useToast()
+
+watch(error, (val) => {
+  if (val) showError(val)
+})
 
 // ── Lifecycle ──
 onMounted(() => {

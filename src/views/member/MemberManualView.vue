@@ -101,16 +101,21 @@
     <!-- ── Bottom nav spacer ── -->
     <div style="height: calc(var(--nav-height) + 16px);" />
 
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
+import { useToast } from '@/composables/useToast'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
-const { manuals, loading, fetchManuals } = useManuals()
+const { manuals, loading, fetchManuals, error } = useManuals()
+const { showToast, toastMessage, toastType, showError } = useToast()
 
 const searchQuery = ref('')
 const selectedCategory = ref('전체')
@@ -141,6 +146,10 @@ const filteredManuals = computed(() => {
     result = result.filter(m => m.title.toLowerCase().includes(q))
   }
   return result
+})
+
+watch(error, (val) => {
+  if (val) showError(val)
 })
 
 onMounted(() => {

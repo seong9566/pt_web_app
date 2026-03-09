@@ -1,0 +1,9 @@
+        :disabled="holidayProcessing"
+        {{ holidayProcessing ? '처리 중...' : '휴무 설정' }}
+        :disabled="holidayProcessing"
+        {{ holidayProcessing ? '처리 중...' : '휴무 해제' }}
+const holidayProcessing = ref(false)
+  holidayProcessing.value = true
+    holidayProcessing.value = false
+  holidayProcessing.value = true
+    holidayProcessing.value = false

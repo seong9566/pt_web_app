@@ -142,19 +142,24 @@
       <span>등록하기</span>
     </button>
 
+    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useManuals } from '@/composables/useManuals'
+import { useToast } from '@/composables/useToast'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
-const { manuals, loading, fetchManuals, deleteManual } = useManuals()
+const { manuals, loading, fetchManuals, deleteManual, error } = useManuals()
+const { showToast, toastMessage, toastType, showError } = useToast()
 
 const CATEGORIES = ['전체', '재활', '근력', '다이어트', '스포츠', '코어', '유연성']
 
@@ -205,6 +210,10 @@ async function confirmDelete() {
   await deleteManual(deleteTarget.value.id)
   deleteTarget.value = null
 }
+
+watch(error, (val) => {
+  if (val) showError(val)
+})
 
 onMounted(() => {
   fetchManuals()

@@ -1,0 +1,50 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app[39m
+
+ [32m✓[39m src/composables/__tests__/useHolidays.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+[90mstderr[2m | src/composables/__tests__/useProfile.test.js[2m > [22m[2museProfile[2m > [22m[2msoftDeleteAccount에서 Storage 삭제 실패 시에도 RPC가 호출된다
+[22m[39mavatars 파일 삭제 실패 (무시): Error: Storage error
+    at [90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39msrc/composables/__tests__/useProfile.test.js:126:41
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1653:12[90m)[39m
+
+ [32m✓[39m src/composables/__tests__/useInvite.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMemos.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useProfile.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+[90mstderr[2m | src/composables/__tests__/useManuals.test.js[2m > [22m[2museManuals[2m > [22m[2mdeleteManual은 Storage 삭제 실패 시에도 DB 삭제를 진행한다
+[22m[39mStorage 파일 삭제 실패 (무시): Error: Storage error
+    at [90m/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39msrc/composables/__tests__/useManuals.test.js:189:56
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///Users/stecdev/Desktop/workspace/vue_project/pt_web_app/[39mnode_modules/[4m@vitest[24m/runner/dist/index.js:1653:12[90m)[39m
+
+ [32m✓[39m src/composables/__tests__/useManuals.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkoutPlans.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useNotifications.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useTrainerSearch.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePayments.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useMembers.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useChat.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/__tests__/example.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useWorkHours.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/usePtSessions.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m src/composables/__tests__/useReservations.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m15 passed[39m[22m[90m (15)[39m
+[2m      Tests [22m [1m[32m85 passed[39m[22m[90m (85)[39m
+[2m   Start at [22m 08:34:37
+[2m   Duration [22m 1.28s[2m (transform 713ms, setup 181ms, import 1.69s, tests 99ms, environment 7.00s)[22m
+
