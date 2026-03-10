@@ -50,3 +50,37 @@
 - 최신 50개를 안정적으로 가져오려면 `.order('created_at', { ascending: false }).limit(50)` 후 결과를 `.reverse()`해서 UI 시간순으로 맞춘다.
 - 테스트는 DB 반환값을 의도적으로 내림차순(mock)으로 만들고, 반환 배열이 오름차순으로 뒤집히는지까지 같이 검증해야 회귀를 막을 수 있다.
 - Realtime UPDATE old/new payload 보장을 위해 `public.messages`에 `REPLICA IDENTITY FULL`을 명시하고, 검증은 `pg_class + pg_namespace` 조인으로 `public` 스키마만 확인하는 쿼리가 안전하다.
+
+## Task 10: Chat Button Implementation (2026-03-10)
+
+### Changes Made
+1. **TrainerMemberDetailView.vue**:
+   - Added "채팅하기" button in quick-actions section (between "수납 기록" and "PT 횟수 관리")
+   - Button uses chat bubble SVG icon with `stroke="currentColor"`
+   - `goChat()` function navigates to `trainer-chat` route with `?partnerId=` query param
+   - `useRouter` already imported, no new imports needed
+
+2. **MemberSettingsView.vue**:
+   - Added "채팅하기" button in "연결 관리" section (above disconnect button)
+   - Button only shows when `trainerName` is set (trainer connected)
+   - Added `settings__divider` between chat and disconnect buttons
+   - `goChat()` function navigates to `member-chat` route (no params needed)
+   - `useRouter` already imported, no new imports needed
+
+### Key Implementation Details
+- Both buttons reuse existing CSS classes (no new styles added)
+- Chat bubble SVG icon: `<path d="M21 15C21 15.5304...">` with `stroke="currentColor"`
+- TrainerChatView already handles `?partnerId=` query param in onMounted (lines 286-306)
+- MemberChatView doesn't need query params (already knows trainer context)
+- Build passes with no errors (✓ npm run build)
+- LSP diagnostics clean on both files
+
+### Evidence
+- `.sisyphus/evidence/task-10-trainer-chat-btn.png` — Trainer member detail with chat button
+- `.sisyphus/evidence/task-10-member-chat-btn.png` — Member settings with chat button (connected)
+- `.sisyphus/evidence/task-10-no-btn-disconnected.png` — Member settings without chat button (disconnected)
+
+### Testing Notes
+- Screenshots taken at 480px viewport (mobile size)
+- Both views render correctly without errors
+- Chat buttons are positioned correctly in their respective sections

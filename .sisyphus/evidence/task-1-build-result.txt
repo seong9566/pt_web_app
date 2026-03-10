@@ -1,0 +1,6 @@
+=== Build Result ===
+dist/assets/SettingsView-sc-6TGUN.js                  12.02 kB │ gzip:  3.88 kB
+dist/assets/ReservationManageView-CC9xOKNF.js         12.23 kB │ gzip:  3.36 kB
+dist/assets/TrainerMemberDetailView-BVq-DzVR.js       14.55 kB │ gzip:  4.32 kB
+dist/assets/index-BUuxGZMg.js                        313.23 kB │ gzip: 98.20 kB
+✓ built in 1.30s

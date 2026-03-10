@@ -978,7 +978,7 @@ end $$;
 
 -- T9: Storage buckets
 insert into storage.buckets (id, name, public, file_size_limit)
-values ('chat-files', 'chat-files', false, 52428800)
+values ('chat-files', 'chat-files', true, 52428800)
 on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public, file_size_limit)
@@ -987,10 +987,24 @@ on conflict (id) do nothing;
 
 -- chat-files bucket storage policies
 drop policy if exists "Users can list own chat files" on storage.objects;
-create policy "Users can list own chat files"
+drop policy if exists "Chat files are readable by participants" on storage.objects;
+create policy "Chat files are readable by participants"
 on storage.objects
 for select
-using (bucket_id = 'chat-files' and (storage.foldername(name))[1] = auth.uid()::text);
+to authenticated
+using (
+  bucket_id = 'chat-files'
+  and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or exists (
+      select 1
+      from public.messages m
+      where (m.sender_id = auth.uid() or m.receiver_id = auth.uid())
+        and m.file_url is not null
+        and strpos(m.file_url, '/chat-files/' || name) > 0
+    )
+  )
+);
 
 -- manual-media bucket storage policies
 drop policy if exists "Manual media files are publicly readable" on storage.objects;

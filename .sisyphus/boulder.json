@@ -1,11 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/member-home-workout-renewal.md",
-  "started_at": "2026-03-09T14:25:25.902Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/chat-enhancements.md",
+  "started_at": "2026-03-10T01:48:31.189Z",
   "session_ids": [
-    "ses_32d549228ffeSn9sfxQyyb6Ghx",
-    "ses_32b02bfeaffeGRTGhk1Bhusg9q"
+    "ses_32aa8fe6fffeGYbbiPlx3FnPx5"
   ],
-  "plan_name": "member-home-workout-renewal",
+  "plan_name": "chat-enhancements",
   "agent": "atlas",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app"
 }

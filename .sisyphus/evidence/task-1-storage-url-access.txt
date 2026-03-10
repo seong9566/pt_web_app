@@ -1,0 +1,19 @@
+Task: Storage 접근 버그 수정 (chat-files public + participant read policy)
+Date: 2026-03-10
+Project: ajafzzmojhtpczjvovmm (FitLink)
+
+Applied migration:
+- name: make_chat_files_public_and_participant_read_policy
+- result: success=true
+
+Verification SQL #1:
+select id, name, public, file_size_limit from storage.buckets where id = 'chat-files';
+
+Result:
+[{"id":"chat-files","name":"chat-files","public":true,"file_size_limit":52428800}]
+
+Verification SQL #2:
+select policyname, permissive, roles, cmd from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'Chat files are readable by participants';
+
+Result:
+[{"policyname":"Chat files are readable by participants","permissive":"PERMISSIVE","roles":"{authenticated}","cmd":"SELECT"}]

@@ -101,6 +101,18 @@
       <section v-if="hasActiveConnection === true" class="settings__group">
         <h2 class="settings__group-title">연결 관리</h2>
         <div class="settings__card">
+          <button v-if="trainerName" class="settings__row" @click="goChat">
+            <span class="settings__row-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="settings__row-label">채팅하기</span>
+            <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div v-if="trainerName" class="settings__divider" />
           <button v-if="trainerName" class="settings__row" @click="showDisconnectSheet = true">
             <span class="settings__row-icon settings__row-icon--danger">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -240,6 +252,10 @@ function handleNav(target) {
   } else if (target === 'account') {
     router.push({ name: 'account-manage' })
   }
+}
+
+function goChat() {
+  router.push({ name: 'member-chat' })
 }
 
 async function handleDisconnect() {

@@ -32,6 +32,14 @@
     </div>
 
     <div class="member-home__body">
+      <button @click="isViewerOpen = true" data-testid="open-viewer-btn" style="margin-bottom: 16px; padding: 8px; background: #007AFF; color: white; border-radius: 8px;">
+        이미지 뷰어 테스트
+      </button>
+      <AppImageViewer
+        v-model="isViewerOpen"
+        src="https://picsum.photos/800/600"
+        alt="테스트 이미지"
+      />
 
       <div v-if="hasTrainer === false" class="member-home__unconnected">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
@@ -204,6 +212,7 @@ import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppToast from '@/components/AppToast.vue'
+import AppImageViewer from '@/components/AppImageViewer.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -227,6 +236,7 @@ const { showToast, toastMessage, toastType, showError } = useToast()
 
 const hasTrainer = ref(null)
 const ptRemaining = ref(null)
+const isViewerOpen = ref(false)
 
 const loaded = ref(false)
 
