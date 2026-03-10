@@ -148,7 +148,7 @@
             첫 메시지를 보내보세요
           </div>
           <div v-else class="trainer-chat__load-more">
-            <div v-if="loadingOlder" class="trainer-chat__load-spinner" />
+            <div v-if="loadingOlder" class="trainer-chat__load-spinner">불러오는 중...</div>
             <p v-else-if="hasMore === false" class="trainer-chat__load-end">모든 메시지를 불러왔습니다</p>
           </div>
           <div
