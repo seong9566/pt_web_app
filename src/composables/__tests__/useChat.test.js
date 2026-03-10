@@ -39,6 +39,7 @@ function createBuilder() {
   const builder = {
     select: vi.fn(() => builder),
     or: vi.fn(() => builder),
+    ilike: vi.fn(() => builder),
     order: vi.fn(() => builder),
     lt: vi.fn(() => builder),
     limit: vi.fn(),
@@ -260,6 +261,72 @@ describe('useChat', () => {
     await fetchOlderMessages('partner-1')
 
     expect(hasMore.value).toBe(false)
+  })
+
+  it('searchMessages는 ilike 기반으로 대화 상대 메시지를 최신순 조회한다', async () => {
+    const query = createBuilder()
+    query.limit.mockResolvedValue({
+      data: [
+        {
+          id: 101,
+          sender_id: 'partner-1',
+          receiver_id: 'user-me',
+          content: '하체 루틴 수정',
+          created_at: '2026-03-05T13:00:00Z',
+        },
+      ],
+      error: null,
+    })
+
+    mockEnv.supabase.from.mockReturnValue(query)
+
+    const { searchMessages, searchResults } = useChat()
+    const result = await searchMessages('partner-1', '루틴')
+
+    expect(mockEnv.supabase.from).toHaveBeenCalledWith('messages')
+    expect(query.or).toHaveBeenNthCalledWith(1, 'sender_id.eq.user-me,receiver_id.eq.user-me')
+    expect(query.or).toHaveBeenNthCalledWith(
+      2,
+      'and(sender_id.eq.user-me,receiver_id.eq.partner-1),and(sender_id.eq.partner-1,receiver_id.eq.user-me)'
+    )
+    expect(query.ilike).toHaveBeenCalledWith('content', '%루틴%')
+    expect(query.order).toHaveBeenCalledWith('created_at', { ascending: false })
+    expect(query.limit).toHaveBeenCalledWith(50)
+    expect(result).toEqual(searchResults.value)
+    expect(result).toHaveLength(1)
+  })
+
+  it('searchMessages는 2자 미만 입력 시 빈 배열을 반환하고 API를 호출하지 않는다', async () => {
+    const { searchMessages, searchResults } = useChat()
+    searchResults.value = [{ id: 1 }]
+
+    const result = await searchMessages('partner-1', 'ㄱ')
+
+    expect(result).toEqual([])
+    expect(searchResults.value).toEqual([])
+    expect(mockEnv.supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('searchMessages는 결과를 최대 50개로 제한한다', async () => {
+    const query = createBuilder()
+    query.limit.mockResolvedValue({
+      data: Array.from({ length: 50 }, (_, index) => ({
+        id: index + 1,
+        sender_id: 'partner-1',
+        receiver_id: 'user-me',
+        content: `${index + 1}번째 검색 결과`,
+        created_at: `2026-03-05T13:${String(index).padStart(2, '0')}:00Z`,
+      })),
+      error: null,
+    })
+
+    mockEnv.supabase.from.mockReturnValue(query)
+
+    const { searchMessages } = useChat()
+    const result = await searchMessages('partner-1', '검색어')
+
+    expect(query.limit).toHaveBeenCalledWith(50)
+    expect(result).toHaveLength(50)
   })
 
   it('읽음 처리 시 상대방이 보낸 미읽은 메시지만 update한다', async () => {

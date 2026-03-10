@@ -87,46 +87,97 @@
           </svg>
         </button>
         <h2 class="trainer-chat__room-title">{{ partnerName }}</h2>
+        <button v-if="!isSearchMode" class="trainer-chat__search-btn" @click="openSearchMode">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button v-else class="trainer-chat__search-close-btn" @click="closeSearchMode">X</button>
+      </div>
+
+      <div v-if="isSearchMode" class="trainer-chat__search-bar">
+        <input
+          v-model="searchQuery"
+          class="trainer-chat__search-input"
+          type="text"
+          placeholder="메시지 검색"
+          @input="handleSearchInput"
+        />
       </div>
 
       <!-- 메시지 목록 -->
       <div ref="messageListRef" class="trainer-chat__messages">
-        <div v-if="loading && messages.length === 0" class="trainer-chat__msg-loading">
-          메시지를 불러오는 중...
-        </div>
-        <div v-else-if="messages.length === 0" class="trainer-chat__msg-empty">
-          첫 메시지를 보내보세요
-        </div>
-        <div v-else class="trainer-chat__load-more">
-          <div v-if="loadingOlder" class="trainer-chat__load-spinner" />
-          <p v-else-if="hasMore === false" class="trainer-chat__load-end">모든 메시지를 불러왔습니다</p>
-        </div>
-        <div
-          v-for="msg in messages"
-          :key="msg.id"
-          class="trainer-chat__message"
-          :class="msg.sender_id === auth.user?.id ? 'trainer-chat__message--mine' : 'trainer-chat__message--theirs'"
-        >
-          <div class="trainer-chat__bubble">
-            <!-- 파일 메시지 -->
-            <template v-if="msg.file_url">
-              <img
-                v-if="msg.file_type?.startsWith('image/')"
-                :src="msg.file_url"
-                :alt="msg.file_name"
-                class="trainer-chat__file-img"
-                @click="openImageViewer(msg.file_url)"
-              />
-              <a v-else :href="msg.file_url" target="_blank" class="trainer-chat__file-link">
-                {{ msg.file_name ?? '파일 보기' }}
-              </a>
-            </template>
-            <!-- 텍스트 메시지 -->
-            <span v-if="msg.content">{{ msg.content }}</span>
+        <template v-if="isSearchMode">
+          <div class="trainer-chat__search-meta">
+            <span v-if="searchLoading">검색 중...</span>
+            <span v-else>{{ searchResults.length }}개 결과</span>
           </div>
-          <span v-if="msg.sender_id === auth.user?.id && !msg.is_read" class="trainer-chat__read-indicator">1</span>
-          <span class="trainer-chat__msg-time">{{ formatMsgTime(msg.created_at) }}</span>
-        </div>
+          <div v-if="searchLoading" class="trainer-chat__msg-loading">메시지를 검색하는 중...</div>
+          <div v-else-if="searchResults.length === 0" class="trainer-chat__msg-empty">검색 결과가 없습니다</div>
+          <div
+            v-for="msg in searchResults"
+            :key="msg.id"
+            class="trainer-chat__message"
+            :class="msg.sender_id === auth.user?.id ? 'trainer-chat__message--mine' : 'trainer-chat__message--theirs'"
+          >
+            <div class="trainer-chat__bubble">
+              <template v-if="msg.file_url">
+                <img
+                  v-if="msg.file_type?.startsWith('image/')"
+                  :src="msg.file_url"
+                  :alt="msg.file_name"
+                  class="trainer-chat__file-img"
+                  @click="openImageViewer(msg.file_url)"
+                />
+                <a v-else :href="msg.file_url" target="_blank" class="trainer-chat__file-link">
+                  {{ msg.file_name ?? '파일 보기' }}
+                </a>
+              </template>
+              <span v-if="msg.content">{{ msg.content }}</span>
+            </div>
+            <span v-if="msg.sender_id === auth.user?.id && !msg.is_read" class="trainer-chat__read-indicator">1</span>
+            <span class="trainer-chat__msg-time">{{ formatMsgTime(msg.created_at) }}</span>
+          </div>
+        </template>
+        <template v-else>
+          <div v-if="loading && messages.length === 0" class="trainer-chat__msg-loading">
+            메시지를 불러오는 중...
+          </div>
+          <div v-else-if="messages.length === 0" class="trainer-chat__msg-empty">
+            첫 메시지를 보내보세요
+          </div>
+          <div v-else class="trainer-chat__load-more">
+            <div v-if="loadingOlder" class="trainer-chat__load-spinner" />
+            <p v-else-if="hasMore === false" class="trainer-chat__load-end">모든 메시지를 불러왔습니다</p>
+          </div>
+          <div
+            v-for="msg in messages"
+            :key="msg.id"
+            class="trainer-chat__message"
+            :class="msg.sender_id === auth.user?.id ? 'trainer-chat__message--mine' : 'trainer-chat__message--theirs'"
+          >
+            <div class="trainer-chat__bubble">
+              <!-- 파일 메시지 -->
+              <template v-if="msg.file_url">
+                <img
+                  v-if="msg.file_type?.startsWith('image/')"
+                  :src="msg.file_url"
+                  :alt="msg.file_name"
+                  class="trainer-chat__file-img"
+                  @click="openImageViewer(msg.file_url)"
+                />
+                <a v-else :href="msg.file_url" target="_blank" class="trainer-chat__file-link">
+                  {{ msg.file_name ?? '파일 보기' }}
+                </a>
+              </template>
+              <!-- 텍스트 메시지 -->
+              <span v-if="msg.content">{{ msg.content }}</span>
+            </div>
+            <span v-if="msg.sender_id === auth.user?.id && !msg.is_read" class="trainer-chat__read-indicator">1</span>
+            <span class="trainer-chat__msg-time">{{ formatMsgTime(msg.created_at) }}</span>
+          </div>
+        </template>
       </div>
 
       <!-- 입력 영역 -->
@@ -184,11 +235,14 @@ const {
   conversations,
   messages,
   loading,
+  searchLoading,
   error,
   hasMore,
   fetchConversations,
   fetchMessages,
   fetchOlderMessages,
+  searchResults,
+  searchMessages,
   sendMessage,
   markAsRead,
   subscribeToMessages,
@@ -209,6 +263,9 @@ const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
 const showImageViewer = ref(false)
 const viewerImageSrc = ref('')
+const isSearchMode = ref(false)
+const searchQuery = ref('')
+let searchDebounceTimer = null
 
 function openImageViewer(src) {
   viewerImageSrc.value = src
@@ -247,6 +304,7 @@ async function scrollToBottom() {
 
 // ── 채팅방 열기 ──
 async function openChat(conv) {
+  closeSearchMode()
   hasActiveConnection.value = null
   hasActiveConnection.value = await isActiveConnection(auth.user?.id, conv.partnerId)
   if (!hasActiveConnection.value) {
@@ -261,6 +319,30 @@ async function openChat(conv) {
   subscribeToMessages(conv.partnerId)
   subscribeToReadReceipts(conv.partnerId)
   scrollToBottom()
+}
+
+function openSearchMode() {
+  isSearchMode.value = true
+  searchQuery.value = ''
+  searchResults.value = []
+}
+
+function closeSearchMode() {
+  isSearchMode.value = false
+  searchQuery.value = ''
+  searchResults.value = []
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = null
+  }
+}
+
+function handleSearchInput() {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => {
+    if (!selectedPartnerId.value) return
+    searchMessages(selectedPartnerId.value, searchQuery.value)
+  }, 300)
 }
 
 function addMessageScrollListener() {
@@ -293,6 +375,7 @@ async function handleScroll() {
 // ── 채팅방 닫기 ──
 function closeChat() {
   unsubscribe()
+  closeSearchMode()
   selectedPartnerId.value = null
   partnerName.value = ''
   inputText.value = ''
@@ -353,6 +436,7 @@ onMounted(async () => {
     return
   }
   selectedPartnerId.value = partnerId
+  closeSearchMode()
   partnerName.value = '채팅'
   await fetchMessages(partnerId)
   await markAsRead(partnerId)
@@ -363,6 +447,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   removeMessageScrollListener()
   unsubscribe()
 })

@@ -142,3 +142,20 @@
 ### Testing Pattern
 - `fetchOlderMessages` 테스트에서 초기 메시지는 반드시 PAGE_SIZE(30)개로 세팅해야 `hasMore=true` 상태에서 실제 older query가 실행된다.
 - 테스트 안정성을 위해 `beforeEach`에서 `supabase.from`, `channel`, `createNotification` mock을 `mockReset()` 후 기본 구현을 재설정해야 이전 테스트의 once-queue 오염을 막을 수 있다.
+
+## Task 7: 이미지 뷰어 연동 (2026-03-10)
+
+### 패턴
+- AppImageViewer 연동 시 ref 2개(showImageViewer, viewerImageSrc) + openImageViewer 함수 패턴
+- `<AppImageViewer v-model="showImageViewer" :src="viewerImageSrc" />` 는 AppToast 바로 다음에 배치 (template 최하단)
+- TrainerChatView에서 AppImageViewer는 `</template>` 닫기 태그 **앞**에 배치해야 함 (v-else template 구조 때문)
+- 이미지 전용: `msg.file_type?.startsWith('image/')` 조건으로 이미 필터된 img 태그에만 @click 추가
+- cursor: pointer는 기존 CSS 블록에 속성 추가 방식 (별도 선언 불필요)
+
+## 2026-03-10 Task 8 — 채팅방 인라인 검색
+
+- `useChat`에 검색 전용 상태(`searchResults`, `searchLoading`)를 분리하면 기존 `messages`/페이지네이션 흐름과 충돌 없이 채팅방 내 검색 UI를 붙일 수 있다.
+- `searchMessages(partnerId, query)`는 `query.trim().length < 2`에서 즉시 빈 배열 반환하면 불필요한 API 호출을 차단할 수 있다.
+- 채팅방 검색 UI는 헤더 우측 검색 버튼 + 입력 바 + 결과 리스트를 같은 패널에 두고, `isSearchMode`로 기존 메시지 리스트와 상호 배타 렌더링하는 패턴이 단순하다.
+- 디바운스는 `setTimeout` + `clearTimeout` 300ms 조합으로 충분하며, 채팅방 종료/컴포넌트 언마운트 시 타이머 정리가 필요하다.
+- Member/Trainer 채팅 뷰는 구조가 거의 동일하므로 검색 관련 클래스/로직을 같은 네이밍으로 맞추면 유지보수 부담이 줄어든다.

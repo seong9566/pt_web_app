@@ -20,9 +20,11 @@ export function useChat() {
   const conversations = ref([])
   const messages = ref([])
   const loading = ref(false)
+  const searchLoading = ref(false)
   const error = ref(null)
   const unreadCount = ref(0)
   const hasMore = ref(true)
+  const searchResults = ref([])
   let channel = null
   let readReceiptChannel = null
 
@@ -172,6 +174,41 @@ export function useChat() {
       return []
     } finally {
       loading.value = false
+    }
+  }
+
+  async function searchMessages(partnerId, query) {
+    searchLoading.value = true
+    error.value = null
+
+    try {
+      const me = auth.user?.id
+      const keyword = query?.trim() ?? ''
+
+      if (!me || !partnerId || keyword.length < 2) {
+        searchResults.value = []
+        return []
+      }
+
+      const { data, error: searchError } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${me},receiver_id.eq.${me}`)
+        .or(`and(sender_id.eq.${me},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me})`)
+        .ilike('content', `%${keyword}%`)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (searchError) throw searchError
+
+      searchResults.value = data ?? []
+      return searchResults.value
+    } catch (e) {
+      error.value = e?.message ?? '메시지 검색에 실패했습니다'
+      searchResults.value = []
+      return []
+    } finally {
+      searchLoading.value = false
     }
   }
 
@@ -395,13 +432,16 @@ export function useChat() {
   return {
     conversations,
     messages,
+    searchResults,
     loading,
+    searchLoading,
     error,
     unreadCount,
     hasMore,
     fetchConversations,
     fetchMessages,
     fetchOlderMessages,
+    searchMessages,
     sendMessage,
     markAsRead,
     subscribeToMessages,
