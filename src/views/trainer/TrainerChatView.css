@@ -348,6 +348,33 @@
   display: block;
 }
 
+.trainer-chat__video-thumb {
+  position: relative;
+  max-width: 240px;
+  border-radius: var(--radius-small);
+  overflow: hidden;
+  cursor: pointer;
+  display: block;
+}
+
+.trainer-chat__video-thumb-el {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.trainer-chat__video-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .trainer-chat__file-link {
   color: inherit;
   text-decoration: underline;

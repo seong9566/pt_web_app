@@ -1,26 +1,29 @@
 <template>
-  <!-- 전체화면 이미지 뷰어 -->
+  <!-- 전체화면 영상 뷰어 -->
   <Teleport to="body">
-    <Transition name="image-viewer">
+    <Transition name="video-viewer">
       <div
         v-if="modelValue"
-        class="app-image-viewer__overlay"
+        class="app-video-viewer__overlay"
         :style="overlayStyle"
         @click.self="close"
         @touchstart.passive="onTouchStart"
         @touchmove.passive="onTouchMove"
         @touchend="onTouchEnd"
       >
-        <button class="app-image-viewer__close" @click="close" aria-label="닫기">
+        <button class="app-video-viewer__close" @click="close" aria-label="닫기">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
-        <img
+        <video
+          ref="videoRef"
           :src="src"
-          :alt="alt"
-          class="app-image-viewer__image"
+          controls
+          autoplay
+          playsinline
+          class="app-video-viewer__video"
           :style="contentStyle"
           @click.stop
         />
@@ -35,10 +38,10 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   src: { type: String, required: true },
-  alt: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:modelValue'])
+const videoRef = ref(null)
 
 // ── 스와이프 다운 닫기 ──
 const touchStartY = ref(0)
@@ -55,7 +58,6 @@ function onTouchStart(e) {
 function onTouchMove(e) {
   if (!isDragging.value) return
   const deltaY = e.touches[0].clientY - touchStartY.value
-  // 아래로만 드래그 허용
   dragOffsetY.value = Math.max(0, deltaY)
 }
 
@@ -71,7 +73,7 @@ function onTouchEnd() {
 const overlayStyle = computed(() => {
   if (dragOffsetY.value <= 0) return {}
   const opacity = Math.max(0.2, 1 - dragOffsetY.value / 400)
-  return { background: `rgba(0, 0, 0, ${opacity * 0.9})` }
+  return { background: `rgba(0, 0, 0, ${opacity * 0.95})` }
 })
 
 const contentStyle = computed(() => {
@@ -84,6 +86,10 @@ const contentStyle = computed(() => {
 })
 
 function close() {
+  if (videoRef.value) {
+    videoRef.value.pause()
+    videoRef.value.currentTime = 0
+  }
   emit('update:modelValue', false)
 }
 
@@ -100,6 +106,10 @@ watch(() => props.modelValue, (isOpen) => {
     document.removeEventListener('keydown', handleKeydown)
     dragOffsetY.value = 0
     isDragging.value = false
+    if (videoRef.value) {
+      videoRef.value.pause()
+      videoRef.value.currentTime = 0
+    }
   }
 })
 
@@ -115,10 +125,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.app-image-viewer__overlay {
+.app-video-viewer__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.95);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -126,7 +136,7 @@ onUnmounted(() => {
   touch-action: none;
 }
 
-.app-image-viewer__close {
+.app-video-viewer__close {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -141,7 +151,7 @@ onUnmounted(() => {
   z-index: 10000;
 }
 
-.app-image-viewer__image {
+.app-video-viewer__video {
   max-width: 100vw;
   max-height: 100vh;
   object-fit: contain;
@@ -150,13 +160,13 @@ onUnmounted(() => {
 }
 
 /* ── Transition ── */
-.image-viewer-enter-active,
-.image-viewer-leave-active {
+.video-viewer-enter-active,
+.video-viewer-leave-active {
   transition: opacity 0.25s ease;
 }
 
-.image-viewer-enter-from,
-.image-viewer-leave-to {
+.video-viewer-enter-from,
+.video-viewer-leave-to {
   opacity: 0;
 }
 </style>

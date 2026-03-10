@@ -79,6 +79,16 @@ export function useInvite() {
     loading.value = false
   }
 
+  /** RPC 에러 메시지 → 한국어 변환 */
+  const _rpcErrorMap = {
+    'Authentication required': '로그인이 필요합니다. 다시 로그인해주세요.',
+    'Invalid invite code': '유효하지 않은 초대 코드입니다.',
+    'Trainer and member cannot be the same user': '트레이너 본인의 코드는 사용할 수 없습니다.',
+    'Only member accounts can use invite codes': '회원 계정만 초대 코드를 사용할 수 있습니다.',
+    'Invite code owner is not a trainer': '초대 코드 소유자가 트레이너가 아닙니다.',
+    'Member already has an active trainer connection': '이미 연결된 트레이너가 있습니다.',
+  }
+
   /** 초대 코드로 트레이너-회원 연결 (RPC 호출) */
   async function redeemInviteCode(code) {
     loading.value = true
@@ -92,7 +102,8 @@ export function useInvite() {
       if (rpcError) throw rpcError
       return data
     } catch (e) {
-      error.value = e?.message ?? '초대 코드 인증에 실패했습니다'
+      const rawMsg = e?.message ?? ''
+      error.value = _rpcErrorMap[rawMsg] ?? '초대 코드 인증에 실패했습니다'
       return null
     } finally {
       loading.value = false

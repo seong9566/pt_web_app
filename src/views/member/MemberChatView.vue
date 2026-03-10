@@ -82,13 +82,13 @@
           </svg>
         </button>
         <h2 class="member-chat__room-title">{{ partnerName }}</h2>
-        <button v-if="!isSearchMode" class="member-chat__search-btn" @click="openSearchMode">
+        <!-- <button v-if="!isSearchMode" class="member-chat__search-btn" @click="openSearchMode">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
             <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </button>
-        <button v-else class="member-chat__search-close-btn" @click="closeSearchMode">X</button>
+        <button v-else class="member-chat__search-close-btn" @click="closeSearchMode">X</button> -->
       </div>
 
       <div v-if="isSearchMode" class="member-chat__search-bar">
@@ -125,16 +125,19 @@
                   class="member-chat__file-img"
                   @click="openImageViewer(msg.file_url)"
                 />
-                <video
+                <div
                   v-else-if="msg.file_type?.startsWith('video/')"
-                  :src="msg.file_url"
-                  controls
-                  playsinline
-                  preload="metadata"
-                  class="member-chat__file-video"
+                  class="member-chat__video-thumb"
+                  @click="openVideoViewer(msg.file_url)"
                 >
-                  {{ msg.file_name ?? '영상' }}
-                </video>
+                  <video :src="msg.file_url" preload="metadata" class="member-chat__video-thumb-el" />
+                  <div class="member-chat__video-play-btn">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <circle cx="20" cy="20" r="20" fill="rgba(0,0,0,0.5)"/>
+                      <path d="M16 11L28 20L16 29V11Z" fill="white"/>
+                    </svg>
+                  </div>
+                </div>
                 <a v-else :href="msg.file_url" target="_blank" class="member-chat__file-link">
                   {{ msg.file_name ?? '파일 보기' }}
                 </a>
@@ -172,16 +175,19 @@
                   class="member-chat__file-img"
                   @click="openImageViewer(msg.file_url)"
                 />
-                <video
+                <div
                   v-else-if="msg.file_type?.startsWith('video/')"
-                  :src="msg.file_url"
-                  controls
-                  playsinline
-                  preload="metadata"
-                  class="member-chat__file-video"
+                  class="member-chat__video-thumb"
+                  @click="openVideoViewer(msg.file_url)"
                 >
-                  {{ msg.file_name ?? '영상' }}
-                </video>
+                  <video :src="msg.file_url" preload="metadata" class="member-chat__video-thumb-el" />
+                  <div class="member-chat__video-play-btn">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                      <circle cx="20" cy="20" r="20" fill="rgba(0,0,0,0.5)"/>
+                      <path d="M16 11L28 20L16 29V11Z" fill="white"/>
+                    </svg>
+                  </div>
+                </div>
                 <a v-else :href="msg.file_url" target="_blank" class="member-chat__file-link">
                   {{ msg.file_name ?? '파일 보기' }}
                 </a>
@@ -270,6 +276,7 @@
 
     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
     <AppImageViewer v-model="showImageViewer" :src="viewerImageSrc" />
+    <AppVideoViewer v-model="showVideoViewer" :src="viewerVideoSrc" />
   </div>
 </template>
 
@@ -281,6 +288,7 @@ import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
+import AppVideoViewer from '@/components/AppVideoViewer.vue'
 
 const auth = useAuthStore()
 const {
@@ -319,6 +327,8 @@ const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
 const showImageViewer = ref(false)
 const viewerImageSrc = ref('')
+const showVideoViewer = ref(false)
+const viewerVideoSrc = ref('')
 const isSearchMode = ref(false)
 const searchQuery = ref('')
 let searchDebounceTimer = null
@@ -326,6 +336,11 @@ let searchDebounceTimer = null
 function openImageViewer(src) {
   viewerImageSrc.value = src
   showImageViewer.value = true
+}
+
+function openVideoViewer(src) {
+  viewerVideoSrc.value = src
+  showVideoViewer.value = true
 }
 
 function formatRelativeTime(isoString) {
