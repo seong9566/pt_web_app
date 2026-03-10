@@ -186,13 +186,30 @@
           ref="fileInputRef"
           type="file"
           class="trainer-chat__file-input"
+          :accept="fileAccept"
           @change="handleFileChange"
         />
-        <button class="trainer-chat__file-btn" @click="triggerFileInput">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          </svg>
-        </button>
+        <div class="trainer-chat__file-wrapper">
+          <button class="trainer-chat__file-btn" @click="showFileMenu = !showFileMenu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div v-if="showFileMenu" class="trainer-chat__file-menu">
+            <button class="trainer-chat__file-menu-item" @click="selectFileType('image')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>사진</span>
+            </button>
+            <button class="trainer-chat__file-menu-item" @click="selectFileType('video')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="15" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M17 9L22 6V18L17 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>영상</span>
+            </button>
+            <button class="trainer-chat__file-menu-item" @click="selectFileType('file')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>파일</span>
+            </button>
+          </div>
+        </div>
         <input
           v-model="inputText"
           class="trainer-chat__text-input"
@@ -259,6 +276,8 @@ const partnerName = ref('')
 const inputText = ref('')
 const messageListRef = ref(null)
 const fileInputRef = ref(null)
+const showFileMenu = ref(false)
+const fileAccept = ref('')
 const hasActiveConnection = ref(null)
 const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
@@ -394,18 +413,36 @@ async function handleSend() {
   scrollToBottom()
 }
 
-// ── 파일 선택 트리거 ──
-function triggerFileInput() {
-  fileInputRef.value?.click()
+// ── 파일 유형 선택 ──
+function selectFileType(type) {
+  if (type === 'image') {
+    fileAccept.value = 'image/*'
+  } else if (type === 'video') {
+    fileAccept.value = 'video/*'
+  } else {
+    fileAccept.value = ''
+  }
+  showFileMenu.value = false
+  nextTick(() => {
+    fileInputRef.value?.click()
+  })
 }
 
 // ── 파일 선택 → 바로 전송 ──
 async function handleFileChange(e) {
+  showFileMenu.value = false
   const file = e.target.files?.[0]
   if (!file || !selectedPartnerId.value) return
   if (fileInputRef.value) fileInputRef.value.value = ''
   await sendMessage(selectedPartnerId.value, '', file)
   scrollToBottom()
+}
+
+// ── 파일 메뉴 외부 클릭 닫기 ──
+function handleFileMenuOutsideClick(e) {
+  if (showFileMenu.value && !e.target.closest('.trainer-chat__file-wrapper')) {
+    showFileMenu.value = false
+  }
 }
 
 // ── 새 메시지 수신 시 자동 스크롤 ──
@@ -425,6 +462,7 @@ watch(error, (val) => {
 })
 
 onMounted(async () => {
+  document.addEventListener('click', handleFileMenuOutsideClick)
   await fetchConversations()
   subscribeToConversations()
   const partnerId = route.query.partnerId || route.params.partnerId || route.params.memberId
@@ -451,6 +489,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  document.removeEventListener('click', handleFileMenuOutsideClick)
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   removeMessageScrollListener()
   unsubscribe()
