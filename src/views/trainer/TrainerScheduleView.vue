@@ -199,9 +199,12 @@ async function handleRefresh() {
 }
 
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => {
-  if (loaded.value && reservationsStore.isStale()) {
+onActivated(async () => {
+  if (!loaded.value) return
+  if (reservationsStore.isStale()) {
     loadData()
+  } else {
+    workingDays.value = await fetchWorkingDays(auth.user?.id)
   }
 })
 
