@@ -60,7 +60,7 @@ const navItems = [
 // 현재 route path 기반으로 active 탭 자동 판단
 const activeId = computed(() => {
   const path = route.path
-  if (path === '/home') return 'home' // 예외 처리용
+  if (path === '/member/home') return 'home' // 예외 처리용
   
   for (let i = navItems.length - 1; i >= 0; i--) {
     if (path.startsWith(navItems[i].to)) return navItems[i].id
