@@ -47,24 +47,17 @@
       </section>
 
       <!-- ② 날짜 선택 (칩 버튼) -->
-      <section class="today-workout__section">
+      <section v-if="reservationDates.length > 0" class="today-workout__section">
         <h2 class="today-workout__section-title">예약된 PT</h2>
         <div class="today-workout__date-chips">
           <button
-            class="today-workout__date-chip"
-            :class="{ 'today-workout__date-chip--active': selectedDate === todayStr }"
-            @click="selectDate(todayStr)"
-          >
-            오늘
-          </button>
-          <button
-            v-for="date in filteredReservationDates"
+            v-for="date in reservationDates"
             :key="date"
             class="today-workout__date-chip"
             :class="{ 'today-workout__date-chip--active': selectedDate === date }"
             @click="selectDate(date)"
           >
-            {{ formatChipDate(date) }}
+            {{ date === todayStr ? '오늘' : formatChipDate(date) }}
           </button>
         </div>
       </section>
@@ -243,7 +236,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
@@ -277,9 +270,7 @@ const historyLoading = ref(false)
 const expandedHistoryId = ref(null)
 const hasActiveConnection = ref(null)
 
-const filteredReservationDates = computed(() =>
-  reservationDates.value.filter(d => d !== todayStr)
-)
+
 
 onMounted(async () => {
   const memberId = route.query.memberId

@@ -1,9 +1,11 @@
 {
-  "active_plan": "C:\\Users\\PC\\OneDrive\\바탕 화면\\workspace\\pt_web_app\\.sisyphus\\plans\\member-home-workout-renewal.md",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/member-home-workout-renewal.md",
   "started_at": "2026-03-09T14:25:25.902Z",
   "session_ids": [
-    "ses_32d549228ffeSn9sfxQyyb6Ghx"
+    "ses_32d549228ffeSn9sfxQyyb6Ghx",
+    "ses_32b02bfeaffeGRTGhk1Bhusg9q"
   ],
   "plan_name": "member-home-workout-renewal",
-  "agent": "atlas"
+  "agent": "atlas",
+  "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app"
 }

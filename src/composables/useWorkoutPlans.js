@@ -187,7 +187,8 @@ export function useWorkoutPlans() {
    */
   async function fetchMemberReservationDates(memberId) {
     try {
-      const today = new Date().toISOString().split('T')[0]
+      const now = new Date()
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
       const { data, error: rErr } = await supabase
         .from('reservations')
         .select('date')

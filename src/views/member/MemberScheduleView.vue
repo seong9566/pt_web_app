@@ -72,12 +72,16 @@
             <div
               v-if="cell.date"
               class="cal-cell__inner"
-              :class="{ 'cal-cell__inner--selected': isSelected(cell.date) }"
+              :class="{ 
+                'cal-cell__inner--selected': isSelected(cell.date),
+                'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date),
+              }"
             >
               <span
                 class="cal-cell__num"
                 :class="{
                   'cal-cell__num--selected': isSelected(cell.date),
+                  'cal-cell__num--today': !isSelected(cell.date) && isToday(cell.date),
                   'cal-cell__num--sun': cell.isSun,
                   'cal-cell__num--sat': cell.isSat,
                   'cal-cell__num--off': isNonWorkingDay(cell.date),
@@ -417,6 +421,12 @@ function isNonWorkingDay(date) {
 
 function isSelected(date) {
   return date === selectedDate.value;
+}
+
+function isToday(date) {
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return dateStr === todayStr;
 }
 
 function selectDate(date) {

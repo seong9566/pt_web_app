@@ -133,6 +133,10 @@
   background-color: var(--color-blue-primary);
 }
 
+.cal-cell__inner--today {
+  background-color: var(--color-blue-50, rgba(0, 122, 255, 0.08));
+}
+
 .cal-cell__num {
   font-size: 15px;
   font-weight: var(--fw-body1-reg);
@@ -147,6 +151,11 @@
 
 .cal-cell__num--selected {
   color: var(--color-white);
+  font-weight: var(--fw-body1-bold);
+}
+
+.cal-cell__num--today {
+  color: var(--color-blue-primary);
   font-weight: var(--fw-body1-bold);
 }
 
@@ -498,10 +507,7 @@
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
   cursor: pointer;
   z-index: 90;
-  transition:
-    transform 0.1s,
-    box-shadow 0.15s,
-    opacity 0.15s;
+  transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
 }
 
 .member-schedule__fab:active {

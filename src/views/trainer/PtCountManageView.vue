@@ -96,14 +96,20 @@
       <div class="pt-count-manage__sheet-form">
         <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">추가할 횟수</label>
-          <input
-            class="pt-count-manage__sheet-input"
-            type="number"
-            v-model.number="addAmount"
-            min="1"
-            placeholder="횟수를 입력하세요"
-            @input="addError = ''"
-          />
+          <div class="pt-count-manage__stepper">
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="addAmount > 1 && (addAmount--, addError = '')"
+              :disabled="addAmount <= 1"
+            >−</button>
+            <span class="pt-count-manage__stepper-value">{{ addAmount }}</span>
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="addAmount < 99 && (addAmount++, addError = '')"
+            >+</button>
+          </div>
         </div>
         <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">날짜</label>
@@ -151,13 +157,20 @@
           <label class="pt-count-manage__sheet-label">
             {{ editIsPositive ? '추가 횟수' : '차감 횟수' }}
           </label>
-          <input
-            class="pt-count-manage__sheet-input"
-            type="number"
-            v-model.number="editAmount"
-            min="1"
-            @input="editError = ''"
-          />
+          <div class="pt-count-manage__stepper">
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="editAmount > 1 && (editAmount--, editError = '')"
+              :disabled="editAmount <= 1"
+            >−</button>
+            <span class="pt-count-manage__stepper-value">{{ editAmount }}</span>
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="editAmount < 99 && (editAmount++, editError = '')"
+            >+</button>
+          </div>
         </div>
         <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">날짜</label>
@@ -190,14 +203,21 @@
       <div class="pt-count-manage__sheet-form">
         <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">차감할 횟수</label>
-          <input
-            class="pt-count-manage__sheet-input"
-            type="number"
-            v-model.number="deductAmount"
-            min="1"
-            placeholder="횟수를 입력하세요"
-            @input="deductError = ''"
-          />
+          <div class="pt-count-manage__stepper">
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="deductAmount > 1 && (deductAmount--, deductError = '')"
+              :disabled="deductAmount <= 1"
+            >−</button>
+            <span class="pt-count-manage__stepper-value">{{ deductAmount }}</span>
+            <button
+              class="pt-count-manage__stepper-btn"
+              type="button"
+              @click="deductAmount < remainingCount && (deductAmount++, deductError = '')"
+              :disabled="deductAmount >= remainingCount"
+            >+</button>
+          </div>
         </div>
         <div class="pt-count-manage__sheet-field">
           <label class="pt-count-manage__sheet-label">메모 (선택)</label>
@@ -339,6 +359,7 @@ async function handleAdd() {
 
   ptSessionsStore.invalidate()
   membersStore.invalidate()
+  await fetchPtHistory(memberId)
 
   if (addPaymentAmount.value && addPaymentAmount.value > 0) {
     const payDate = addDate.value || todayStr()
@@ -369,6 +390,7 @@ async function handleDeduct() {
   if (success) {
     ptSessionsStore.invalidate()
     membersStore.invalidate()
+    await fetchPtHistory(memberId)
     showDeductSheet.value = false
   } else {
     deductError.value = error.value || '남은 횟수보다 많이 차감할 수 없습니다'

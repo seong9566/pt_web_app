@@ -135,7 +135,7 @@ Max Concurrent: 1
 
 ## TODOs
 
-- [ ] 1. 오늘의 운동 섹션 미니 카드 리뉴얼 + PT카드 루틴 제거
+- [x] 1. 오늘의 운동 섹션 미니 카드 리뉴얼 + PT카드 루틴 제거
 
   **What to do**:
 
@@ -462,7 +462,7 @@ Max Concurrent: 1
 
 ## Final Verification Wave (MANDATORY — after ALL implementation tasks)
 
-- [ ] F1. **Visual QA + Code Quality** — `unspecified-high` + `playwright` skill
+- [x] F1. **Visual QA + Code Quality** — `unspecified-high` + `playwright` skill
 
   **What to do**:
   1. 브라우저에서 `/member/home` 페이지를 열어 시각적 검증 수행

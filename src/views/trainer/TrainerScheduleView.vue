@@ -17,19 +17,8 @@
     <!-- 에러 메시지 -->
     <div v-if="error" class="error-message">{{ error }}</div>
 
-    <!-- ── View Toggle ── -->
-    <div class="view-toggle">
-      <button
-        v-for="tab in viewTabs"
-        :key="tab.id"
-        class="view-toggle__btn"
-        :class="{ 'view-toggle__btn--active': activeView === tab.id }"
-        @click="activeView = tab.id"
-      >{{ tab.label }}</button>
-    </div>
-
     <!-- ── Monthly Calendar ── -->
-    <div v-if="activeView === 'monthly'" class="calendar-card">
+    <div class="calendar-card">
       <!-- Month Nav -->
       <div class="calendar-card__nav">
         <button class="calendar-card__arrow" @click="prevMonth">
@@ -59,11 +48,12 @@
           :class="{ 'cal-cell--empty': !cell.date }"
           @click="cell.date && selectDate(cell.date)"
         >
-          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--holiday': isHolidayCell(cell.date) }">
+          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date), 'cal-cell__inner--holiday': isHolidayCell(cell.date) }">
             <span
               class="cal-cell__num"
               :class="{
                 'cal-cell__num--selected': isSelected(cell.date),
+                'cal-cell__num--today': !isSelected(cell.date) && isToday(cell.date),
                 'cal-cell__num--sun': cell.isSun,
                 'cal-cell__num--sat': cell.isSat,
                 'cal-cell__num--off': isNonWorkingDay(cell.date),
@@ -90,91 +80,6 @@
       </div>
     </div>
 
-    <!-- ── Weekly Calendar ── -->
-    <div v-if="activeView === 'weekly'" class="weekly-wrap">
-
-      <!-- Week Nav -->
-      <div class="weekly-nav">
-        <button class="weekly-nav__arrow" @click="prevWeek">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <span class="weekly-nav__label">{{ weekRangeLabel }}</span>
-        <button class="weekly-nav__arrow" @click="nextWeek">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M9 6L15 12L9 18" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Day Header Row -->
-      <div class="weekly-days">
-        <div class="weekly-days__gutter" />
-        <button
-          v-for="day in weekDays"
-          :key="day.key"
-          class="weekly-days__col"
-          :class="{ 'weekly-days__col--selected': day.isSelected }"
-          @click="selectWeekDay(day)"
-        >
-          <span class="weekly-days__dow" :class="{ 'weekly-days__dow--sun': day.isSun, 'weekly-days__dow--sat': day.isSat }">{{ day.dow }}</span>
-          <span
-            class="weekly-days__num"
-            :class="{
-              'weekly-days__num--selected': day.isSelected,
-              'weekly-days__num--sun': day.isSun,
-              'weekly-days__num--sat': day.isSat,
-            }"
-          >{{ day.date }}</span>
-          <span v-if="day.dots.length" class="weekly-days__dot-row">
-            <span
-              v-for="(d, i) in day.dots.slice(0, 3)"
-              :key="i"
-              class="weekly-days__dot"
-              :class="`weekly-days__dot--${d}`"
-            />
-          </span>
-        </button>
-      </div>
-
-      <!-- Time Grid -->
-      <div class="weekly-grid-wrap">
-        <div class="weekly-grid">
-          <!-- Left time labels -->
-          <div class="weekly-grid__times">
-            <div v-for="hour in timeSlots" :key="hour" class="weekly-grid__time-label">
-              {{ hour < 10 ? '0' + hour : hour }}:00
-            </div>
-          </div>
-          <!-- Day columns -->
-          <div class="weekly-grid__cols">
-            <!-- Hour grid lines -->
-            <div class="weekly-grid__lines">
-              <div v-for="hour in timeSlots" :key="hour" class="weekly-grid__line" />
-            </div>
-            <!-- Per-day columns -->
-            <div
-              v-for="day in weekDays"
-              :key="day.key"
-              class="weekly-grid__col"
-              :class="{ 'weekly-grid__col--selected': day.isSelected }"
-            >
-              <div
-                v-for="session in getSessionsForDay(day.fullDate)"
-                :key="session.id"
-                class="weekly-block"
-                :class="`weekly-block--${session.status}`"
-                :style="blockStyle(session)"
-              >
-                <span class="weekly-block__title">{{ session.title }}</span>
-                <span class="weekly-block__time">{{ session.time }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- ── Selected Date Header ── -->
     <div class="schedule-date-header">
@@ -305,15 +210,6 @@ const pendingCount = computed(() => {
   return reservations.value.filter(res => res.status === 'pending').length
 })
 
-
-// ── View toggle ──
-const viewTabs = [
-  { id: 'monthly', label: '월간' },
-  { id: 'weekly',  label: '주간' },
-  { id: 'daily',   label: '일간' },
-]
-const activeView = ref('monthly')
-
 // ── Calendar state ──
 const now = new Date()
 const currentYear  = ref(now.getFullYear())
@@ -364,6 +260,12 @@ function getDots(date) {
 
 function isSelected(date) {
   return date === selectedDate.value
+}
+
+function isToday(date) {
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return dateStr === todayStr
 }
 
 function selectDate(date) {
@@ -465,100 +367,6 @@ const sessions = computed(() => {
       member_id: res.member_id,
     }))
 })
-
-// ── Weekly state ──
-// weekStart: first day (Sun) of the displayed week
-const today = new Date()
-const dayOfWeek = today.getDay()
-const weekStart = ref(new Date(today.getFullYear(), today.getMonth(), today.getDate() - dayOfWeek))
-
-const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-
-const weekDays = computed(() => {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart.value)
-    d.setDate(d.getDate() + i)
-    const dow = d.getDay()
-    const dateNum = d.getDate()
-    const m = d.getMonth() + 1
-    const y = d.getFullYear()
-    const fullDate = `${y}-${String(m).padStart(2, '0')}-${String(dateNum).padStart(2, '0')}`
-    return {
-      key: fullDate,
-      fullDate,
-      dow: DOW_LABELS[dow],
-      date: dateNum,
-      month: m,
-      isSun: dow === 0,
-      isSat: dow === 6,
-      isSelected: y === currentYear.value && m === currentMonth.value && dateNum === selectedDate.value,
-      dots: dotsData.value[fullDate] || [],
-    }
-  })
-})
-
-const weekRangeLabel = computed(() => {
-  const first = weekDays.value[0]
-  const last = weekDays.value[6]
-  if (first.month === last.month) {
-    return `${first.month}월 ${first.date}일 - ${last.date}일`
-  }
-  return `${first.month}월 ${first.date}일 - ${last.month}월 ${last.date}일`
-})
-
-function prevWeek() {
-  const d = new Date(weekStart.value)
-  d.setDate(d.getDate() - 7)
-  weekStart.value = d
-}
-
-function nextWeek() {
-  const d = new Date(weekStart.value)
-  d.setDate(d.getDate() + 7)
-  weekStart.value = d
-}
-
-function selectWeekDay(day) {
-  const [y, m, dt] = day.fullDate.split('-').map(Number)
-  currentYear.value = y
-  currentMonth.value = m
-  selectedDate.value = dt
-}
-
-// Time grid: 06:00 – 20:00 (15 rows)
-const timeSlots = Array.from({ length: 15 }, (_, i) => i + 6)
-const GRID_START_HOUR = 6
-const CELL_HEIGHT = 48  // px per hour row
-
-// ── Get sessions for weekly view ──
-function getSessionsForDay(fullDate) {
-  const [y, m, d] = fullDate.split('-').map(Number)
-  const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-  return reservations.value.filter((res) => res.date === dateStr).map((res) => {
-    const [startH, startM] = res.start_time.split(':').map(Number)
-    const [endH, endM] = res.end_time.split(':').map(Number)
-    return {
-      id: res.id,
-      title: res.session_type || '운동 세션',
-      time: res.start_time,
-      status: res.status,
-      startH,
-      startM,
-      endH,
-      endM,
-    }
-  })
-}
-
-function blockStyle(session) {
-  const top = ((session.startH - GRID_START_HOUR) + session.startM / 60) * CELL_HEIGHT
-  const height = Math.max(
-    ((session.endH - session.startH) + (session.endM - session.startM) / 60) * CELL_HEIGHT - 3,
-    20
-  )
-  return { top: `${top}px`, height: `${height}px` }
-}
-
 
 function handleAdd() {
   router.push({ name: 'trainer-reservations' })

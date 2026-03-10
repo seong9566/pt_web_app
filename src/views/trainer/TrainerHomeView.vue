@@ -207,19 +207,28 @@ const pendingConnectionCount = ref(0)
 
 const WEEK_DAYS = ['일', '월', '화', '수', '목', '금', '토']
 
+/** 로컬 타임존 기준 Date 객체를 YYYY-MM-DD 문자열로 변환 */
+function formatLocalDate(date) {
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+/** 오늘 날짜를 로컬 타임존 기준 YYYY-MM-DD 문자열로 반환 */
 function getTodayDate() {
-  const today = new Date()
-  return today.toISOString().split('T')[0]
+  return formatLocalDate(new Date())
 }
 
 const selectedDate = ref(getTodayDate())
 
+/** 오늘부터 3일 후까지의 날짜 탭 목록 생성 (오늘/내일/요일 표시) */
 const dateTabs = computed(() => {
   const tabs = []
   for (let i = 0; i < 4; i++) {
     const d = new Date()
     d.setDate(d.getDate() + i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = formatLocalDate(d)
     const label = i === 0
       ? '오늘'
       : i === 1
@@ -230,10 +239,12 @@ const dateTabs = computed(() => {
   return tabs
 })
 
+/** 선택된 날짜의 예약 목록 필터링 (취소/거절 제외) */
 const filteredReservations = computed(() => {
   return reservations.value.filter(r => r.date === selectedDate.value && r.status !== 'cancelled' && r.status !== 'rejected')
 })
 
+/** 회원별 운동 계획 맵 생성 (member_id → exercises 배열) */
 const workoutMap = computed(() => {
   const map = {}
   for (const plan of dayWorkoutPlans.value) {
@@ -242,6 +253,7 @@ const workoutMap = computed(() => {
   return map
 })
 
+/** 운동 계획 배열을 요약 문자열로 변환 (예: "벤치프레스 3x10, 스쿼트 4x8") */
 function formatWorkoutSummary(exercises) {
   if (!exercises || exercises.length === 0) return null
   return exercises
@@ -250,19 +262,24 @@ function formatWorkoutSummary(exercises) {
     .join(', ')
 }
 
+/** 오늘 예정된 세션 수 (취소/거절 제외) */
 const todaySessionCount = computed(() => {
   const today = getTodayDate()
   return reservations.value.filter(r => r.date === today && r.status !== 'cancelled' && r.status !== 'rejected').length
 })
 
+/** 승인 대기 중인 예약 수 */
 const pendingReservationCount = computed(() => {
   return reservations.value.filter(r => r.status === 'pending').length
 })
 
+/** 연결된 회원 수 */
 const memberCount = computed(() => members.value.length)
 
+/** 최근 대화 목록 (최대 3건) */
 const recentConversations = computed(() => conversations.value.slice(0, 3))
 
+/** 메시지 시간을 상대적 표현으로 변환 (방금, N분 전, N시간 전, N일 전) */
 function formatMessageTime(dateStr) {
   if (!dateStr) return ''
   const now = new Date()
@@ -279,6 +296,7 @@ function formatMessageTime(dateStr) {
 
 const loaded = ref(false)
 
+/** 홈 화면 초기 데이터 로드 (예약, 회원, 채팅, 연결 요청, 운동 계획) */
 async function loadData() {
   const [, , , pending] = await Promise.all([
     fetchMyReservations('trainer'),
@@ -291,6 +309,7 @@ async function loadData() {
   loaded.value = true
 }
 
+/** 풀-투-리프레시 시 예약 및 회원 데이터 강제 재로드 */
 async function handleRefresh() {
   await Promise.all([
     reservationsStore.loadReservations('trainer', true),

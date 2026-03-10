@@ -40,6 +40,7 @@
           class="app-calendar__inner"
           :class="{
             'app-calendar__inner--selected': isSelected(cell.date),
+            'app-calendar__inner--today': !isSelected(cell.date) && isToday(cell.date),
             'app-calendar__inner--past': isPast(cell.date),
             'app-calendar__inner--disabled': !isPast(cell.date) && isDisabled(cell.date),
           }"
@@ -48,6 +49,7 @@
             class="app-calendar__num"
             :class="{
               'app-calendar__num--selected': isSelected(cell.date),
+              'app-calendar__num--today': !isSelected(cell.date) && isToday(cell.date),
               'app-calendar__num--past': isPast(cell.date),
               'app-calendar__num--disabled': !isPast(cell.date) && isDisabled(cell.date),
               'app-calendar__num--sun': !isPast(cell.date) && !isDisabled(cell.date) && cell.isSun,
@@ -131,6 +133,11 @@ function isSelected(day) {
 }
 
 const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+
+function isToday(day) {
+  const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
+  return dateStr === todayStr
+}
 
 function isPast(day) {
   const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
@@ -258,6 +265,10 @@ function nextMonth() {
   background-color: var(--color-blue-primary);
 }
 
+.app-calendar__inner--today {
+  background-color: var(--color-blue-50, rgba(0, 122, 255, 0.08));
+}
+
 .app-calendar__num {
   font-size: 15px;
   font-weight: var(--fw-body1-reg);
@@ -272,6 +283,11 @@ function nextMonth() {
 
 .app-calendar__num--selected {
   color: var(--color-white);
+  font-weight: var(--fw-body1-bold);
+}
+
+.app-calendar__num--today {
+  color: var(--color-blue-primary);
   font-weight: var(--fw-body1-bold);
 }
 

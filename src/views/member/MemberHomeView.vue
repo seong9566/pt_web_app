@@ -90,7 +90,7 @@
 
       <section class="member-home__section" :style="{ '--stagger-index': 1 }">
         <div class="member-home__section-row">
-          <h2 class="member-home__section-title">오늘의 운동</h2>
+          <h2 class="member-home__section-title">다음 예정 운동</h2>
           <button
             v-if="displayExercises.length > 0"
             class="member-home__see-all"
