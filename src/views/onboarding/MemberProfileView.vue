@@ -121,17 +121,18 @@
 </template>
 <script setup>
 import { ref } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import AppInput from "@/components/AppInput.vue";
 import AppButton from "@/components/AppButton.vue";
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
+import { useInvite } from '@/composables/useInvite'
 import personIcon from '@/assets/icons/person.svg'
 const router = useRouter();
-const route = useRoute();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, updateProfilePhoto } = useProfile()
+const { redeemInviteCode } = useInvite()
 const fileInput = ref(null)
 const avatarPreview = ref(null)
 const avatarUrl = ref(null)
@@ -220,8 +221,11 @@ async function handleComplete() {
   await auth.fetchProfile()
   isLoading.value = false
 
-  if (route.query.fromInvite === 'true') {
-    router.push('/home')
+  const pendingCode = localStorage.getItem('pending_invite_code')
+  if (pendingCode) {
+    const result = await redeemInviteCode(pendingCode)
+    if (result) localStorage.removeItem('pending_invite_code')
+    router.push('/member/home')
   } else {
     router.push('/search')
   }

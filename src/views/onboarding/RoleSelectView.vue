@@ -60,7 +60,7 @@
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import ProgressBar from "@/components/ProgressBar.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -73,6 +73,16 @@ const { saveRole, error: roleError, uploading } = useProfile();
 const selectedRole = ref(null);
 const isLoading = ref(false)
 const errorMsg = ref('')
+
+/** 초대 코드 감지 → 자동 member 역할 설정 */
+onMounted(async () => {
+  const pendingCode = localStorage.getItem('pending_invite_code')
+  if (pendingCode) {
+    await saveRole(auth.user.id, 'member')
+    auth.setRole('member')
+    router.replace('/onboarding/member-profile')
+  }
+})
 
 /** 역할 선택 후 다음 단계로 진행 */
 async function handleNext() {
