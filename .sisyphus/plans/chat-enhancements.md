@@ -331,7 +331,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/composables/useChat.js`, `supabase/schema.sql`, `src/composables/__tests__/useChat.test.js`
   - Pre-commit: `npx vitest run src/composables/__tests__/useChat.test.js`
 
-- [ ] 3. 읽음 표시 UI — 미읽은 메시지에 "1" 숫자 표시
+- [x] 3. 읽음 표시 UI — 미읽은 메시지에 "1" 숫자 표시
 
   **What to do**:
   - **RED (테스트 먼저)**: 읽음 상태 변경을 감지하기 위한 Realtime UPDATE 구독 테스트 작성 (useChat.test.js)
@@ -424,7 +424,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/composables/useChat.js`, `src/views/member/MemberChatView.vue`, `src/views/trainer/TrainerChatView.vue`, `src/views/member/MemberChatView.css`, `src/views/trainer/TrainerChatView.css`, `src/composables/__tests__/useChat.test.js`
   - Pre-commit: `npx vitest run`
 
-- [ ] 4. 새 메시지 인앱 알림 — notifications 테이블 연동
+- [x] 4. 새 메시지 인앱 알림 — notifications 테이블 연동
 
   **What to do**:
   - **RED (테스트 먼저)**: `useChat.test.js`에 `sendMessage()` 호출 후 `createNotification()`이 호출되는지 검증하는 테스트 작성
@@ -507,7 +507,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/composables/useChat.js`, `src/composables/__tests__/useChat.test.js`
   - Pre-commit: `npx vitest run src/composables/__tests__/useChat.test.js`
 
-- [ ] 5. 메시지 페이지네이션 — 스크롤 업 시 과거 메시지 로드
+- [x] 5. 메시지 페이지네이션 — 스크롤 업 시 과거 메시지 로드
 
   **What to do**:
   - **RED (테스트 먼저)**: `useChat.test.js`에 `fetchOlderMessages()` 테스트 작성 — cursor 기반 쿼리, 결과 prepend, hasMore 플래그
@@ -605,7 +605,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/composables/useChat.js`, `src/views/member/MemberChatView.vue`, `src/views/trainer/TrainerChatView.vue`, `src/views/member/MemberChatView.css`, `src/views/trainer/TrainerChatView.css`, `src/composables/__tests__/useChat.test.js`
   - Pre-commit: `npx vitest run`
 
-- [ ] 6. AppImageViewer 공유 컴포넌트 생성
+- [x] 6. AppImageViewer 공유 컴포넌트 생성
 
   **What to do**:
   - `src/components/AppImageViewer.vue` 신규 생성
@@ -686,7 +686,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/components/AppImageViewer.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 7. 이미지 미리보기 뷰 연동 — 채팅 이미지 클릭 시 뷰어 열기
+- [x] 7. 이미지 미리보기 뷰 연동 — 채팅 이미지 클릭 시 뷰어 열기
 
   **What to do**:
   - `MemberChatView.vue` 수정:
@@ -762,7 +762,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/views/member/MemberChatView.vue`, `src/views/trainer/TrainerChatView.vue`, `src/views/member/MemberChatView.css`, `src/views/trainer/TrainerChatView.css`
   - Pre-commit: `npm run build`
 
-- [ ] 8. 메시지 검색 기능 — 서버 사이드 ilike 검색
+- [x] 8. 메시지 검색 기능 — 서버 사이드 ilike 검색
 
   **What to do**:
   - **RED (테스트 먼저)**: `useChat.test.js`에 `searchMessages()` 테스트 작성 — ilike 쿼리 구성, 빈 쿼리 처리, 결과 제한
@@ -874,7 +874,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/composables/useChat.js`, `src/views/member/MemberChatView.vue`, `src/views/trainer/TrainerChatView.vue`, `src/views/member/MemberChatView.css`, `src/views/trainer/TrainerChatView.css`, `src/composables/__tests__/useChat.test.js`
   - Pre-commit: `npx vitest run`
 
-- [ ] 10. 채팅하기 버튼 추가 — TrainerMemberDetailView + MemberSettingsView
+- [x] 10. 채팅하기 버튼 추가 — TrainerMemberDetailView + MemberSettingsView
 
   **What to do**:
   - `src/views/trainer/TrainerMemberDetailView.vue` 수정:
@@ -977,7 +977,7 @@ Max Concurrent: 5 (Wave 2)
   - Files: `src/views/trainer/TrainerMemberDetailView.vue`, `src/views/member/MemberSettingsView.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 9. 통합 테스트 + 빌드 검증
+- [x] 9. 통합 테스트 + 빌드 검증
 
   **What to do**:
   - 전체 테스트 실행: `npx vitest run` — 모든 테스트 PASS 확인
@@ -1058,11 +1058,11 @@ Max Concurrent: 5 (Wave 2)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Rejection → fix → re-run.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `npm run build` + `npx vitest run`. Review all changed files for: `as any`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp). Verify CSS follows BEM naming. Verify all imports use `@/` alias.
   Output: `Build [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 

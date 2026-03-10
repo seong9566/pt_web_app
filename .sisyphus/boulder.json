@@ -1,10 +1,10 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/chat-enhancements.md",
-  "started_at": "2026-03-10T01:48:31.189Z",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/invite-flow.md",
+  "started_at": "2026-03-10T06:27:02.546Z",
   "session_ids": [
-    "ses_32aa8fe6fffeGYbbiPlx3FnPx5"
+    "ses_329928efcffeY7wf2dZAaCvRXU"
   ],
-  "plan_name": "chat-enhancements",
+  "plan_name": "invite-flow",
   "agent": "atlas",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app"
 }
