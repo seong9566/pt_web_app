@@ -133,6 +133,39 @@ export function useInvite() {
     }
   }
 
+  /** 초대 코드 유효성 검증 + 트레이너 정보 조회 */
+  async function validateInviteCode(code) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('invite_codes')
+        .select('id, code, trainer_id, is_active, profiles!invite_codes_trainer_id_fkey(name, photo_url)')
+        .eq('code', code)
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (fetchError) throw fetchError
+
+      if (!data) {
+        error.value = '유효하지 않은 초대 코드입니다.'
+        return null
+      }
+
+      return {
+        trainerId: data.trainer_id,
+        trainerName: data.profiles?.name || '트레이너',
+        trainerPhoto: data.profiles?.photo_url || null,
+      }
+    } catch (e) {
+      error.value = e?.message ?? '코드 확인에 실패했습니다'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     inviteCode,
     recentMembers,
@@ -140,6 +173,7 @@ export function useInvite() {
     error,
     fetchInviteCode,
     generateInviteCode,
+    validateInviteCode,
     redeemInviteCode,
     fetchRecentMembers,
   }
