@@ -98,7 +98,7 @@
       </section>
 
       <!-- ── 연결 관리 ── -->
-      <section v-if="hasActiveConnection === true" class="settings__group">
+      <section v-if="hasActiveConnection !== null" class="settings__group">
         <h2 class="settings__group-title">연결 관리</h2>
         <div class="settings__card">
           <button v-if="trainerName" class="settings__row" @click="goChat">
@@ -229,8 +229,7 @@ async function loadData() {
 }
 
 async function handleRefresh() {
-  if (hasActiveConnection.value !== true) return
-  await ptSessionsStore.loadMemberOwnPtCount(true)
+  await loadData()
 }
 
 onMounted(() => { if (!loaded.value) loadData() })
@@ -262,7 +261,7 @@ async function handleDisconnect() {
   const ok = await disconnectTrainer()
   if (ok) {
     showDisconnectSheet.value = false
-    router.push('/home')
+    await loadData()
   }
 }
 
