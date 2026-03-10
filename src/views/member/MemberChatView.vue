@@ -125,6 +125,16 @@
                   class="member-chat__file-img"
                   @click="openImageViewer(msg.file_url)"
                 />
+                <video
+                  v-else-if="msg.file_type?.startsWith('video/')"
+                  :src="msg.file_url"
+                  controls
+                  playsinline
+                  preload="metadata"
+                  class="member-chat__file-video"
+                >
+                  {{ msg.file_name ?? '영상' }}
+                </video>
                 <a v-else :href="msg.file_url" target="_blank" class="member-chat__file-link">
                   {{ msg.file_name ?? '파일 보기' }}
                 </a>
@@ -162,6 +172,16 @@
                   class="member-chat__file-img"
                   @click="openImageViewer(msg.file_url)"
                 />
+                <video
+                  v-else-if="msg.file_type?.startsWith('video/')"
+                  :src="msg.file_url"
+                  controls
+                  playsinline
+                  preload="metadata"
+                  class="member-chat__file-video"
+                >
+                  {{ msg.file_name ?? '영상' }}
+                </video>
                 <a v-else :href="msg.file_url" target="_blank" class="member-chat__file-link">
                   {{ msg.file_name ?? '파일 보기' }}
                 </a>
@@ -175,17 +195,21 @@
         </template>
       </div>
 
-      <div v-if="pendingFile" class="member-chat__file-preview">
-        <img
-          v-if="pendingFile.type.startsWith('image/')"
-          :src="pendingFile.previewUrl"
-          class="member-chat__file-preview-thumb"
-        />
-        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="member-chat__file-preview-name">{{ pendingFile.file.name }}</span>
-        <button class="member-chat__file-preview-remove" @click="clearPendingFile">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
+      <div v-if="pendingFiles.length > 0" class="member-chat__file-preview">
+        <div v-for="(pf, idx) in pendingFiles" :key="idx" class="member-chat__file-preview-item">
+          <img
+            v-if="pf.type.startsWith('image/')"
+            :src="pf.previewUrl"
+            class="member-chat__file-preview-thumb"
+          />
+          <div v-else class="member-chat__file-preview-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="member-chat__file-preview-name">{{ pf.file.name }}</span>
+          </div>
+          <button class="member-chat__file-preview-remove" @click="removePendingFile(idx)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- 입력 영역 -->
@@ -195,6 +219,7 @@
           type="file"
           class="member-chat__file-input"
           :accept="fileAccept"
+          :multiple="fileAccept === 'image/*'"
           @change="handleFileChange"
         />
         <button class="member-chat__file-btn" @click="showFileMenu = !showFileMenu">
@@ -211,7 +236,7 @@
         />
         <button
           class="member-chat__send-btn"
-          :disabled="!inputText.trim() && !pendingFile"
+          :disabled="!inputText.trim() && pendingFiles.length === 0"
           @click="handleSend"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -288,7 +313,7 @@ const messageListRef = ref(null)
 const fileInputRef = ref(null)
 const showFileMenu = ref(false)
 const fileAccept = ref('')
-const pendingFile = ref(null)
+const pendingFiles = ref([])
 const hasActiveConnection = ref(null)
 const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
@@ -398,21 +423,24 @@ function closeChat() {
   selectedPartnerId.value = null
   partnerName.value = ''
   inputText.value = ''
-  clearPendingFile()
+  clearPendingFiles()
   fetchConversations()
   subscribeToConversations()
 }
 
 async function handleSend() {
   const text = inputText.value.trim()
-  const file = pendingFile.value?.file || null
-  if ((!text && !file) || !selectedPartnerId.value) return
+  const files = [...pendingFiles.value]
+  if ((!text && files.length === 0) || !selectedPartnerId.value) return
   inputText.value = ''
-  if (pendingFile.value?.previewUrl) {
-    URL.revokeObjectURL(pendingFile.value.previewUrl)
+  clearPendingFiles()
+
+  if (text) {
+    await sendMessage(selectedPartnerId.value, text, null)
   }
-  pendingFile.value = null
-  await sendMessage(selectedPartnerId.value, text, file)
+  for (const pf of files) {
+    await sendMessage(selectedPartnerId.value, '', pf.file)
+  }
   scrollToBottom()
 }
 
@@ -432,18 +460,43 @@ function selectFileType(type) {
 
 function handleFileChange(e) {
   showFileMenu.value = false
-  const file = e.target.files?.[0]
-  if (!file) return
+  const files = Array.from(e.target.files || [])
+  if (files.length === 0) return
   if (fileInputRef.value) fileInputRef.value.value = ''
-  const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null
-  pendingFile.value = { file, previewUrl, type: file.type }
+
+  const isImage = fileAccept.value === 'image/*'
+  if (isImage) {
+    const remaining = 5 - pendingFiles.value.length
+    const toAdd = files.slice(0, remaining)
+    for (const file of toAdd) {
+      pendingFiles.value.push({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        type: file.type,
+      })
+    }
+  } else {
+    clearPendingFiles()
+    const file = files[0]
+    pendingFiles.value.push({
+      file,
+      previewUrl: null,
+      type: file.type,
+    })
+  }
 }
 
-function clearPendingFile() {
-  if (pendingFile.value?.previewUrl) {
-    URL.revokeObjectURL(pendingFile.value.previewUrl)
+function clearPendingFiles() {
+  for (const pf of pendingFiles.value) {
+    if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl)
   }
-  pendingFile.value = null
+  pendingFiles.value = []
+}
+
+function removePendingFile(idx) {
+  const pf = pendingFiles.value[idx]
+  if (pf?.previewUrl) URL.revokeObjectURL(pf.previewUrl)
+  pendingFiles.value.splice(idx, 1)
 }
 
 watch(messages, () => {
