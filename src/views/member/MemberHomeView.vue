@@ -85,28 +85,18 @@
             <span>{{ nextSession.trainer }} 담당</span>
           </div>
 
-          <div v-if="nextSession.routine.length > 0" class="member-home__pt-routine">
-            <p class="member-home__pt-routine-label">배정된 운동 루틴</p>
-            <ul class="member-home__pt-routine-list">
-              <li v-for="item in nextSession.routine" :key="item" class="member-home__pt-routine-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="9" fill="rgba(0,122,255,0.08)"
-                    stroke="var(--color-blue-primary)" stroke-width="1.4"/>
-                  <path d="M8 12L11 15L16 9" stroke="var(--color-blue-primary)" stroke-width="1.8"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>{{ item }}</span>
-              </li>
-            </ul>
-          </div>
-          <div v-else-if="nextSession.hasReservation" class="member-home__pt-routine">
-            <p class="member-home__pt-routine-empty">아직 운동이 배정되지 않았습니다</p>
-          </div>
         </div>
       </section>
 
       <section class="member-home__section" :style="{ '--stagger-index': 1 }">
-        <h2 class="member-home__section-title">오늘의 운동</h2>
+        <div class="member-home__section-row">
+          <h2 class="member-home__section-title">오늘의 운동</h2>
+          <button
+            v-if="displayExercises.length > 0"
+            class="member-home__see-all"
+            @click="goWorkoutDetail"
+          >전체보기</button>
+        </div>
 
         <div v-if="workoutLoading" class="member-home__workout-stub">
           <p class="member-home__workout-stub-text">로딩 중...</p>
@@ -116,7 +106,7 @@
           <p class="member-home__workout-stub-text member-home__workout-stub-text--error">{{ workoutError }}</p>
         </div>
 
-        <div v-else-if="!currentPlan" class="member-home__workout-stub">
+        <div v-else-if="!currentPlan || !currentPlan.exercises || currentPlan.exercises.length === 0" class="member-home__workout-stub">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="4" width="18" height="18" rx="3" stroke="var(--color-gray-600)" stroke-width="1.6"/>
             <path d="M3 9H21" stroke="var(--color-gray-600)" stroke-width="1.6"/>
@@ -126,9 +116,33 @@
           <p class="member-home__workout-stub-text">오늘 운동 계획이 없습니다</p>
         </div>
 
-        <div v-else class="member-home__workout-card" @click="goWorkoutDetail">
-          <p class="member-home__workout-content">{{ workoutPreview }}</p>
-        </div>
+        <template v-else>
+          <div class="member-home__exercise-list">
+            <div
+              v-for="(exercise, idx) in displayExercises"
+              :key="idx"
+              class="member-home__exercise-card"
+              :style="{ '--stagger-index': idx }"
+            >
+              <div class="member-home__exercise-header">
+                <span class="member-home__exercise-number">{{ idx + 1 }}</span>
+                <h3 class="member-home__exercise-name">{{ exercise.name }}</h3>
+              </div>
+              <p v-if="exercise.sets > 0 && exercise.reps > 0" class="member-home__exercise-detail">
+                {{ exercise.sets }}세트 × {{ exercise.reps }}회
+              </p>
+              <p v-if="exercise.memo" class="member-home__exercise-memo">{{ exercise.memo }}</p>
+            </div>
+          </div>
+
+          <button
+            v-if="remainingExerciseCount > 0"
+            class="member-home__exercise-more"
+            @click="goWorkoutDetail"
+          >
+            외 {{ remainingExerciseCount }}개 더 보기
+          </button>
+        </template>
       </section>
 
       <section class="member-home__section" :style="{ '--stagger-index': 2 }">
@@ -284,8 +298,6 @@ const nextSession = computed(() => {
       title: '예정된 세션 없음',
       trainer: '-',
       trainerPhoto: null,
-      routine: [],
-      hasReservation: false,
     }
   }
 
@@ -296,16 +308,12 @@ const nextSession = computed(() => {
   const endTime = (next.end_time || '').slice(0, 5)
   const countdown = endTime ? `${startTime} ~ ${endTime}` : startTime
 
-  const routine = currentPlan.value?.exercises?.map(e => e.name).filter(Boolean) || []
-
   return {
     dateLabel,
     countdown,
     title: next.session_type || 'PT 세션',
     trainer: next.partner_name || '트레이너',
     trainerPhoto: next.partner_photo || null,
-    routine,
-    hasReservation: true,
   }
 })
 
@@ -336,11 +344,15 @@ const circleOffset = computed(() =>
   circumference * (1 - weekGoal.value.pct / 100)
 )
 
-const workoutPreview = computed(() => {
+const displayExercises = computed(() => {
   const ex = currentPlan.value?.exercises
-  if (!ex || ex.length === 0) return ''
-  const names = ex.slice(0, 2).map(e => e.name).join(', ')
-  return ex.length > 2 ? `${names} 외 ${ex.length - 2}개` : names
+  if (!ex || ex.length === 0) return []
+  return ex.slice(0, 4)
+})
+
+const remainingExerciseCount = computed(() => {
+  const total = currentPlan.value?.exercises?.length || 0
+  return Math.max(0, total - 4)
 })
 
 function handleNotification() { router.push({ name: 'notifications' }) }
