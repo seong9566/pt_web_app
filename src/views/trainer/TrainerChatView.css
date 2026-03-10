@@ -170,6 +170,11 @@
   flex-direction: column;
   height: 100vh;
   background-color: var(--color-white);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
 }
 
 /* 채팅방 헤더 */

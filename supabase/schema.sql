@@ -1217,4 +1217,14 @@ select cron.schedule(
   $$select public.purge_deleted_accounts()$$
 );
 
+-- ═══════════════════════════════════════════
+-- Realtime 설정
+-- ═══════════════════════════════════════════
+
+-- messages 테이블에 REPLICA IDENTITY FULL 설정 (Realtime UPDATE 이벤트에 필요)
+alter table public.messages replica identity full;
+
+-- messages 테이블을 Supabase Realtime publication에 등록
+alter publication supabase_realtime add table messages;
+
 commit;
