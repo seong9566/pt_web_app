@@ -184,27 +184,11 @@
           :accept="fileAccept"
           @change="handleFileChange"
         />
-        <div class="member-chat__file-wrapper">
-          <button class="member-chat__file-btn" @click="showFileMenu = !showFileMenu">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <div v-if="showFileMenu" class="member-chat__file-menu">
-            <button class="member-chat__file-menu-item" @click="selectFileType('image')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>사진</span>
-            </button>
-            <button class="member-chat__file-menu-item" @click="selectFileType('video')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="15" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M17 9L22 6V18L17 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>영상</span>
-            </button>
-            <button class="member-chat__file-menu-item" @click="selectFileType('file')">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>파일</span>
-            </button>
-          </div>
-        </div>
+        <button class="member-chat__file-btn" @click="showFileMenu = !showFileMenu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </button>
         <input
           v-model="inputText"
           class="member-chat__text-input"
@@ -220,6 +204,27 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
+        </button>
+      </div>
+
+      <div v-if="showFileMenu" class="member-chat__file-panel">
+        <button class="member-chat__file-panel-item" @click="selectFileType('image')">
+          <div class="member-chat__file-panel-icon member-chat__file-panel-icon--image">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span>사진</span>
+        </button>
+        <button class="member-chat__file-panel-item" @click="selectFileType('video')">
+          <div class="member-chat__file-panel-icon member-chat__file-panel-icon--video">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="15" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M17 9L22 6V18L17 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span>영상</span>
+        </button>
+        <button class="member-chat__file-panel-item" @click="selectFileType('file')">
+          <div class="member-chat__file-panel-icon member-chat__file-panel-icon--file">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span>파일</span>
         </button>
       </div>
     </div>
@@ -414,13 +419,6 @@ async function handleFileChange(e) {
   scrollToBottom()
 }
 
-// ── 파일 메뉴 외부 클릭 닫기 ──
-function handleFileMenuOutsideClick(e) {
-  if (showFileMenu.value && !e.target.closest('.member-chat__file-wrapper')) {
-    showFileMenu.value = false
-  }
-}
-
 watch(messages, () => {
   if (selectedPartnerId.value && !skipAutoScroll.value) scrollToBottom()
 }, { deep: true })
@@ -437,7 +435,6 @@ watch(error, (val) => {
 })
 
 onMounted(async () => {
-  document.addEventListener('click', handleFileMenuOutsideClick)
   const connected = await checkTrainerConnection()
   hasActiveConnection.value = connected
   if (!connected) return
@@ -447,7 +444,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleFileMenuOutsideClick)
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   removeMessageScrollListener()
   unsubscribe()

@@ -416,42 +416,51 @@
   cursor: not-allowed;
 }
 
-.trainer-chat__file-wrapper {
-  position: relative;
+.trainer-chat__file-panel {
+  display: flex;
+  justify-content: flex-start;
+  gap: 24px;
+  padding: 20px var(--side-margin);
+  background-color: var(--color-gray-100);
+  border-top: 1px solid var(--color-gray-200);
   flex-shrink: 0;
 }
 
-.trainer-chat__file-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  background-color: var(--color-white);
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--color-gray-200);
-  overflow: hidden;
-  z-index: 10;
-  min-width: 120px;
-}
-
-.trainer-chat__file-menu-item {
+.trainer-chat__file-panel-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 16px;
+  gap: 8px;
   border: none;
   background: none;
-  font-size: var(--fs-body2);
-  color: var(--color-gray-900);
   cursor: pointer;
-  white-space: nowrap;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  padding: 0;
 }
 
-.trainer-chat__file-menu-item:active {
-  background-color: var(--color-gray-100);
+.trainer-chat__file-panel-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
 }
 
-.trainer-chat__file-menu-item + .trainer-chat__file-menu-item {
-  border-top: 1px solid var(--color-gray-200);
+.trainer-chat__file-panel-icon--image {
+  background-color: var(--color-green);
+}
+
+.trainer-chat__file-panel-icon--video {
+  background-color: var(--color-blue-primary);
+}
+
+.trainer-chat__file-panel-icon--file {
+  background-color: var(--color-yellow);
+}
+
+.trainer-chat__file-panel-item:active .trainer-chat__file-panel-icon {
+  opacity: 0.8;
 }

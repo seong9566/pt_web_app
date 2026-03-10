@@ -465,7 +465,8 @@ export function useChat() {
       }
 
       const me = auth.user?.id
-      const filePath = `${me}/${Date.now()}-${file.name}`
+      const ext = file.name.split('.').pop() || 'bin'
+      const filePath = `${me}/${Date.now()}-${crypto.randomUUID()}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from('chat-files')
