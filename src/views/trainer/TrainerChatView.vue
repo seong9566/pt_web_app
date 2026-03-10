@@ -115,6 +115,7 @@
                 :src="msg.file_url"
                 :alt="msg.file_name"
                 class="trainer-chat__file-img"
+                @click="openImageViewer(msg.file_url)"
               />
               <a v-else :href="msg.file_url" target="_blank" class="trainer-chat__file-link">
                 {{ msg.file_name ?? '파일 보기' }}
@@ -161,6 +162,7 @@
     </div>
 
     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+    <AppImageViewer v-model="showImageViewer" :src="viewerImageSrc" />
     </template>
   </div>
 </template>
@@ -173,6 +175,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
 import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
+import AppImageViewer from '@/components/AppImageViewer.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -204,6 +207,13 @@ const fileInputRef = ref(null)
 const hasActiveConnection = ref(null)
 const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
+const showImageViewer = ref(false)
+const viewerImageSrc = ref('')
+
+function openImageViewer(src) {
+  viewerImageSrc.value = src
+  showImageViewer.value = true
+}
 
 // ── 시간 포맷: 상대 시간 (대화 목록용) ──
 function formatRelativeTime(isoString) {
