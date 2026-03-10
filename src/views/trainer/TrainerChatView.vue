@@ -247,6 +247,7 @@ const {
   markAsRead,
   subscribeToMessages,
   subscribeToReadReceipts,
+  subscribeToConversations,
   unsubscribe,
 } = useChat()
 
@@ -380,6 +381,8 @@ function closeChat() {
   partnerName.value = ''
   inputText.value = ''
   hasActiveConnection.value = true
+  fetchConversations()
+  subscribeToConversations()
 }
 
 // ── 메시지 전송 ──
@@ -423,6 +426,7 @@ watch(error, (val) => {
 
 onMounted(async () => {
   await fetchConversations()
+  subscribeToConversations()
   const partnerId = route.query.partnerId || route.params.partnerId || route.params.memberId
   if (!partnerId || !auth.user?.id) {
     hasActiveConnection.value = true

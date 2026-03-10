@@ -239,6 +239,7 @@ const {
   markAsRead,
   subscribeToMessages,
   subscribeToReadReceipts,
+  subscribeToConversations,
   unsubscribe,
 } = useChat()
 
@@ -359,6 +360,8 @@ function closeChat() {
   selectedPartnerId.value = null
   partnerName.value = ''
   inputText.value = ''
+  fetchConversations()
+  subscribeToConversations()
 }
 
 async function handleSend() {
@@ -401,6 +404,7 @@ onMounted(async () => {
   hasActiveConnection.value = connected
   if (!connected) return
   fetchConversations()
+  subscribeToConversations()
   addMessageScrollListener()
 })
 

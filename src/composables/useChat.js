@@ -27,6 +27,7 @@ export function useChat() {
   const searchResults = ref([])
   let channel = null
   let readReceiptChannel = null
+  let conversationChannel = null
 
   /**
    * 대화 목록 조회 — 나와 관련된 모든 메시지를 불러와
@@ -350,6 +351,10 @@ export function useChat() {
       supabase.removeChannel(readReceiptChannel)
       readReceiptChannel = null
     }
+    if (conversationChannel) {
+      supabase.removeChannel(conversationChannel)
+      conversationChannel = null
+    }
   }
 
   /**
@@ -381,6 +386,64 @@ export function useChat() {
             if (idx !== -1) {
               messages.value[idx] = { ...messages.value[idx], is_read: true }
             }
+          }
+        }
+      )
+      .subscribe()
+  }
+
+  /**
+   * 대화 목록용 Realtime 구독 — 나에게 오는 모든 새 메시지 감지
+   * 대화 목록 화면에서 호출하여 실시간으로 미리보기/뱃지 업데이트
+   */
+  function subscribeToConversations() {
+    const me = auth.user?.id
+    if (!me) return
+
+    if (conversationChannel) {
+      supabase.removeChannel(conversationChannel)
+      conversationChannel = null
+    }
+
+    conversationChannel = supabase
+      .channel(`conversations-${me}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${me}`,
+        },
+        (payload) => {
+          const newMsg = payload.new
+          const partnerId = newMsg.sender_id
+
+          const idx = conversations.value.findIndex(c => c.partnerId === partnerId)
+
+          if (idx !== -1) {
+            const conv = conversations.value[idx]
+            conv.lastMessage = newMsg.file_url && !newMsg.content ? '파일을 보냈습니다' : (newMsg.content ?? '')
+            conv.lastMessageTime = newMsg.created_at
+            conv.unreadCount += 1
+            conversations.value.splice(idx, 1)
+            conversations.value.unshift(conv)
+          } else {
+            conversations.value.unshift({
+              partnerId,
+              partnerName: '새 대화',
+              partnerPhoto: null,
+              lastMessage: newMsg.file_url && !newMsg.content ? '파일을 보냈습니다' : (newMsg.content ?? ''),
+              lastMessageTime: newMsg.created_at,
+              unreadCount: 1,
+            })
+          }
+
+          try {
+            const chatBadgeStore = useChatBadgeStore()
+            chatBadgeStore.unreadCount += 1
+          } catch {
+            // 무시
           }
         }
       )
@@ -448,6 +511,7 @@ export function useChat() {
     markAsRead,
     subscribeToMessages,
     subscribeToReadReceipts,
+    subscribeToConversations,
     unsubscribe,
     uploadChatFile,
     getUnreadCount,
