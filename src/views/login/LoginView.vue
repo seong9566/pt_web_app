@@ -18,14 +18,6 @@
         <p class="login-view__subtitle">체계적인 PT 일정 및<br />회원 관리 솔루션</p>
       </div>
       <div class="login-view__actions">
-        <button class="login-view__btn" @click="isViewerOpen = true" data-testid="open-viewer-btn">
-          이미지 뷰어 테스트
-        </button>
-        <AppImageViewer
-          v-model="isViewerOpen"
-          src="https://picsum.photos/800/600"
-          alt="테스트 이미지"
-        />
         <p v-if="error" class="login-view__error">{{ error }}</p>
         <button class="login-view__btn login-view__btn--kakao" :disabled="isLoading" @click="handleKakao">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -60,12 +52,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
-import AppImageViewer from '@/components/AppImageViewer.vue'
 
 const router = useRouter()
 const isLoading = ref(false)
 const error = ref(null)
-const isViewerOpen = ref(false)
 
 /** 카카오 OAuth 로그인 처리 */
 async function handleKakao() {

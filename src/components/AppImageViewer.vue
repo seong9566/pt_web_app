@@ -1,4 +1,5 @@
 <template>
+  <!-- 전체화면 이미지 뷰어 -->
   <Teleport to="body">
     <Transition name="image-viewer">
       <div v-if="modelValue" class="app-image-viewer__overlay" @click.self="close">
