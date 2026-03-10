@@ -91,9 +91,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useProfile } from '@/composables/useProfile'
+import { useInvite } from '@/composables/useInvite'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { saveRole } = useProfile()
+const { redeemInviteCode } = useInvite()
 
 const activeTab = ref('login')
 const email = ref('')
@@ -155,9 +159,15 @@ async function handleSubmit() {
 
       await auth.initialize()
 
+      const pendingCode = localStorage.getItem('pending_invite_code')
+
       if (auth.role === 'trainer') {
         router.replace('/trainer/home')
       } else if (auth.role === 'member') {
+        if (pendingCode) {
+          const result = await redeemInviteCode(pendingCode)
+          if (result) localStorage.removeItem('pending_invite_code')
+        }
         router.replace('/member/home')
       } else {
         router.replace('/onboarding/role')
@@ -175,7 +185,14 @@ async function handleSubmit() {
 
       if (data?.session) {
         await auth.initialize()
-        router.replace('/onboarding/role')
+        const pendingCode = localStorage.getItem('pending_invite_code')
+        if (pendingCode) {
+          await saveRole(auth.user.id, 'member')
+          auth.setRole('member')
+          router.replace('/onboarding/member-profile')
+        } else {
+          router.replace('/onboarding/role')
+        }
         return
       }
 

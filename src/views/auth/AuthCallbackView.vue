@@ -19,9 +19,13 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
+import { useProfile } from '@/composables/useProfile'
+import { useInvite } from '@/composables/useInvite'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { saveRole } = useProfile()
+const { redeemInviteCode } = useInvite()
 
 const loading = ref(true)
 const error = ref(null)
@@ -47,11 +51,23 @@ async function handleRedirect(session) {
     return
   }
 
+  const pendingCode = localStorage.getItem('pending_invite_code')
+
   if (!auth.role) {
-    router.replace('/onboarding/role')
+    if (pendingCode) {
+      await saveRole(auth.user.id, 'member')
+      auth.setRole('member')
+      router.replace('/onboarding/member-profile')
+    } else {
+      router.replace('/onboarding/role')
+    }
   } else if (auth.role === 'trainer') {
     router.replace('/trainer/home')
   } else {
+    if (pendingCode) {
+      const result = await redeemInviteCode(pendingCode)
+      if (result) localStorage.removeItem('pending_invite_code')
+    }
     router.replace('/member/home')
   }
 }
