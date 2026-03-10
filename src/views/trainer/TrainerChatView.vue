@@ -180,6 +180,19 @@
         </template>
       </div>
 
+      <div v-if="pendingFile" class="trainer-chat__file-preview">
+        <img
+          v-if="pendingFile.type.startsWith('image/')"
+          :src="pendingFile.previewUrl"
+          class="trainer-chat__file-preview-thumb"
+        />
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2V8H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="trainer-chat__file-preview-name">{{ pendingFile.file.name }}</span>
+        <button class="trainer-chat__file-preview-remove" @click="clearPendingFile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
       <!-- 입력 영역 -->
       <div class="trainer-chat__input-area">
         <input
@@ -203,7 +216,7 @@
         />
         <button
           class="trainer-chat__send-btn"
-          :disabled="!inputText.trim()"
+          :disabled="!inputText.trim() && !pendingFile"
           @click="handleSend"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -283,6 +296,7 @@ const messageListRef = ref(null)
 const fileInputRef = ref(null)
 const showFileMenu = ref(false)
 const fileAccept = ref('')
+const pendingFile = ref(null)
 const hasActiveConnection = ref(null)
 const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
@@ -404,6 +418,7 @@ function closeChat() {
   selectedPartnerId.value = null
   partnerName.value = ''
   inputText.value = ''
+  clearPendingFile()
   hasActiveConnection.value = true
   fetchConversations()
   subscribeToConversations()
@@ -412,9 +427,14 @@ function closeChat() {
 // ── 메시지 전송 ──
 async function handleSend() {
   const text = inputText.value.trim()
-  if (!text || !selectedPartnerId.value) return
+  const file = pendingFile.value?.file || null
+  if ((!text && !file) || !selectedPartnerId.value) return
   inputText.value = ''
-  await sendMessage(selectedPartnerId.value, text, null)
+  if (pendingFile.value?.previewUrl) {
+    URL.revokeObjectURL(pendingFile.value.previewUrl)
+  }
+  pendingFile.value = null
+  await sendMessage(selectedPartnerId.value, text, file)
   scrollToBottom()
 }
 
@@ -433,14 +453,21 @@ function selectFileType(type) {
   })
 }
 
-// ── 파일 선택 → 바로 전송 ──
-async function handleFileChange(e) {
+// ── 파일 선택 → 미리보기 저장 ──
+function handleFileChange(e) {
   showFileMenu.value = false
   const file = e.target.files?.[0]
-  if (!file || !selectedPartnerId.value) return
+  if (!file) return
   if (fileInputRef.value) fileInputRef.value.value = ''
-  await sendMessage(selectedPartnerId.value, '', file)
-  scrollToBottom()
+  const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+  pendingFile.value = { file, previewUrl, type: file.type }
+}
+
+function clearPendingFile() {
+  if (pendingFile.value?.previewUrl) {
+    URL.revokeObjectURL(pendingFile.value.previewUrl)
+  }
+  pendingFile.value = null
 }
 
 // ── 새 메시지 수신 시 자동 스크롤 ──

@@ -464,3 +464,46 @@
 .trainer-chat__file-panel-item:active .trainer-chat__file-panel-icon {
   opacity: 0.8;
 }
+
+/* 파일 미리보기 바 */
+.trainer-chat__file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--side-margin);
+  background-color: var(--color-gray-100);
+  border-top: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+  color: var(--color-gray-600);
+}
+
+.trainer-chat__file-preview-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-small);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.trainer-chat__file-preview-name {
+  flex: 1;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trainer-chat__file-preview-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  flex-shrink: 0;
+}

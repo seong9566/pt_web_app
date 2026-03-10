@@ -1006,6 +1006,16 @@ using (
   )
 );
 
+drop policy if exists "Chat files are uploadable by authenticated users" on storage.objects;
+create policy "Chat files are uploadable by authenticated users"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'chat-files'
+    and auth.uid() is not null
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 -- manual-media bucket storage policies
 drop policy if exists "Manual media files are publicly readable" on storage.objects;
 create policy "Manual media files are publicly readable"
