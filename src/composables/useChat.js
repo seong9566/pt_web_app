@@ -20,6 +20,7 @@ export function useChat() {
   const error = ref(null)
   const unreadCount = ref(0)
   let channel = null
+  let readReceiptChannel = null
 
   /**
    * 대화 목록 조회 — 나와 관련된 모든 메시지를 불러와
@@ -249,6 +250,45 @@ export function useChat() {
       supabase.removeChannel(channel)
       channel = null
     }
+    if (readReceiptChannel) {
+      supabase.removeChannel(readReceiptChannel)
+      readReceiptChannel = null
+    }
+  }
+
+  /**
+   * Supabase Realtime 구독 — 내가 보낸 메시지의 읽음 상태 변경 감지
+   * 상대방이 읽으면 is_read=true UPDATE → 로컬 messages 배열 업데이트
+   */
+  function subscribeToReadReceipts(partnerId) {
+    const me = auth.user?.id
+    if (!me || !partnerId) return
+
+    if (readReceiptChannel) {
+      supabase.removeChannel(readReceiptChannel)
+      readReceiptChannel = null
+    }
+
+    readReceiptChannel = supabase
+      .channel(`read-receipts-${partnerId}-${me}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${me}`,
+        },
+        (payload) => {
+          if (payload.new.is_read === true) {
+            const idx = messages.value.findIndex((m) => m.id === payload.new.id)
+            if (idx !== -1) {
+              messages.value[idx] = { ...messages.value[idx], is_read: true }
+            }
+          }
+        }
+      )
+      .subscribe()
   }
 
   /**
@@ -306,6 +346,7 @@ export function useChat() {
     sendMessage,
     markAsRead,
     subscribeToMessages,
+    subscribeToReadReceipts,
     unsubscribe,
     uploadChatFile,
     getUnreadCount,

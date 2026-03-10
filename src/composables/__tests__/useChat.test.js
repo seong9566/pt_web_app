@@ -176,6 +176,56 @@ describe('useChat', () => {
     expect(query.eq).toHaveBeenNthCalledWith(3, 'is_read', false)
   })
 
+  it('subscribeToReadReceipts — 내가 보낸 메시지의 is_read가 true로 변경될 때 로컬 메시지를 업데이트한다', async () => {
+    // 1. sendMessage 모킹: messages에 미읽은 메시지 추가
+    const sendQuery = createBuilder()
+    sendQuery.single.mockResolvedValue({
+      data: { id: 42, sender_id: 'user-me', receiver_id: 'partner-1', content: '안녕', is_read: false },
+      error: null,
+    })
+    mockEnv.supabase.from.mockReturnValue(sendQuery)
+
+    // 2. channel 모킹 — on() 콜백 캡처
+    let capturedCallback = null
+    const mockChannel = {
+      on: vi.fn((type, filter, cb) => {
+        capturedCallback = cb
+        return mockChannel
+      }),
+      subscribe: vi.fn(() => mockChannel),
+    }
+    mockEnv.supabase.channel.mockReturnValue(mockChannel)
+
+    const { sendMessage, messages, subscribeToReadReceipts } = useChat()
+
+    // 3. 메시지 전송 → messages.value에 { id: 42, is_read: false } 추가
+    await sendMessage('partner-1', '안녕')
+    expect(messages.value).toHaveLength(1)
+    expect(messages.value[0].is_read).toBe(false)
+
+    // 4. read receipt 구독 시작
+    subscribeToReadReceipts('partner-1')
+
+    expect(mockEnv.supabase.channel).toHaveBeenCalledWith('read-receipts-partner-1-user-me')
+    expect(mockChannel.on).toHaveBeenCalledWith(
+      'postgres_changes',
+      expect.objectContaining({
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: 'sender_id=eq.user-me',
+      }),
+      expect.any(Function)
+    )
+    expect(mockChannel.subscribe).toHaveBeenCalled()
+
+    // 5. 상대방이 읽음 처리 → 콜백 시뮬레이션
+    capturedCallback({ new: { id: 42, is_read: true } })
+
+    // 6. 로컬 메시지 is_read 업데이트 확인
+    expect(messages.value[0].is_read).toBe(true)
+  })
+
   it('파일 업로드 성공 시 chat-files public URL을 반환한다', async () => {
     const upload = vi.fn().mockResolvedValue({ error: null })
     const getPublicUrl = vi.fn().mockReturnValue({

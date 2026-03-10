@@ -114,6 +114,7 @@
             <!-- 텍스트 메시지 -->
             <span v-if="msg.content">{{ msg.content }}</span>
           </div>
+          <span v-if="msg.sender_id === auth.user?.id && !msg.is_read" class="member-chat__read-indicator">1</span>
           <span class="member-chat__msg-time">{{ formatMsgTime(msg.created_at) }}</span>
         </div>
       </div>
@@ -174,6 +175,7 @@ const {
   sendMessage,
   markAsRead,
   subscribeToMessages,
+  subscribeToReadReceipts,
   unsubscribe,
 } = useChat()
 
@@ -220,6 +222,7 @@ async function openChat(conv) {
   await fetchMessages(conv.partnerId)
   await markAsRead(conv.partnerId)
   subscribeToMessages(conv.partnerId)
+  subscribeToReadReceipts(conv.partnerId)
   scrollToBottom()
 }
 

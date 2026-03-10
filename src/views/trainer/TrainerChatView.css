@@ -252,6 +252,12 @@
   color: var(--color-gray-900);
 }
 
+.trainer-chat__read-indicator {
+  color: var(--color-blue-primary);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
 /* 메시지 시간 */
 .trainer-chat__msg-time {
   font-size: var(--fs-caption);
