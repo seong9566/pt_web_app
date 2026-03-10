@@ -40,6 +40,7 @@ function createBuilder() {
     select: vi.fn(() => builder),
     or: vi.fn(() => builder),
     order: vi.fn(() => builder),
+    lt: vi.fn(() => builder),
     limit: vi.fn(),
     insert: vi.fn(() => builder),
     single: vi.fn(),
@@ -49,9 +50,30 @@ function createBuilder() {
   return builder
 }
 
+function buildDescendingMessages(count) {
+  return Array.from({ length: count }, (_, index) => {
+    const minute = String(59 - index).padStart(2, '0')
+    const id = count - index
+    return {
+      id,
+      sender_id: index % 2 === 0 ? 'partner-1' : 'user-me',
+      receiver_id: index % 2 === 0 ? 'user-me' : 'partner-1',
+      content: `${id}번 메시지`,
+      created_at: `2026-03-05T10:${minute}:00Z`,
+    }
+  })
+}
+
 describe('useChat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockEnv.authStore.user = { id: 'user-me' }
+    mockEnv.mockCreateNotification.mockReset()
+    mockEnv.mockCreateNotification.mockResolvedValue(true)
+    mockEnv.supabase.from.mockReset()
+    mockEnv.supabase.storage.from.mockReset()
+    mockEnv.supabase.channel.mockReset()
+    mockEnv.supabase.removeChannel.mockReset()
   })
 
   it('메시지를 상대방별로 그룹핑하고 안읽은 개수를 계산한다', async () => {
@@ -165,6 +187,81 @@ describe('useChat', () => {
     expect(messages.value.map((item) => item.id)).toEqual([1, 2, 3])
   })
 
+  it('fetchOlderMessages는 첫 메시지 created_at 커서로 이전 메시지를 조회해 앞에 붙인다', async () => {
+    const initialQuery = createBuilder()
+    initialQuery.limit.mockResolvedValue({
+      data: buildDescendingMessages(30),
+      error: null,
+    })
+
+    const olderQuery = createBuilder()
+    olderQuery.limit.mockResolvedValue({
+      data: [
+        {
+          id: -1,
+          sender_id: 'partner-1',
+          receiver_id: 'user-me',
+          content: '더 과거 2',
+          created_at: '2026-03-05T08:00:00Z',
+        },
+        {
+          id: -2,
+          sender_id: 'user-me',
+          receiver_id: 'partner-1',
+          content: '더 과거 1',
+          created_at: '2026-03-05T07:00:00Z',
+        },
+      ],
+      error: null,
+    })
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(initialQuery)
+      .mockReturnValueOnce(olderQuery)
+
+    const { fetchMessages, fetchOlderMessages, messages } = useChat()
+    await fetchMessages('partner-1')
+    await fetchOlderMessages('partner-1')
+
+    expect(olderQuery.lt).toHaveBeenCalledWith('created_at', '2026-03-05T10:30:00Z')
+    expect(olderQuery.order).toHaveBeenCalledWith('created_at', { ascending: false })
+    expect(messages.value[0].id).toBe(-2)
+    expect(messages.value[1].id).toBe(-1)
+    expect(messages.value).toHaveLength(32)
+  })
+
+  it('fetchOlderMessages는 PAGE_SIZE 미만 반환 시 hasMore를 false로 설정한다', async () => {
+    const initialQuery = createBuilder()
+    initialQuery.limit.mockResolvedValue({
+      data: buildDescendingMessages(30),
+      error: null,
+    })
+
+    const olderQuery = createBuilder()
+    olderQuery.limit.mockResolvedValue({
+      data: [
+        {
+          id: 0,
+          sender_id: 'user-me',
+          receiver_id: 'partner-1',
+          content: '더 과거',
+          created_at: '2026-03-05T09:00:00Z',
+        },
+      ],
+      error: null,
+    })
+
+    mockEnv.supabase.from
+      .mockReturnValueOnce(initialQuery)
+      .mockReturnValueOnce(olderQuery)
+
+    const { fetchMessages, fetchOlderMessages, hasMore } = useChat()
+    await fetchMessages('partner-1')
+    await fetchOlderMessages('partner-1')
+
+    expect(hasMore.value).toBe(false)
+  })
+
   it('읽음 처리 시 상대방이 보낸 미읽은 메시지만 update한다', async () => {
     const query = createBuilder()
     query.eq
@@ -195,7 +292,7 @@ describe('useChat', () => {
     // 2. channel 모킹 — on() 콜백 캡처
     let capturedCallback = null
     const mockChannel = {
-      on: vi.fn((type, filter, cb) => {
+      on: vi.fn((_type, _filter, cb) => {
         capturedCallback = cb
         return mockChannel
       }),

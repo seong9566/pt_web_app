@@ -84,3 +84,61 @@
 - Screenshots taken at 480px viewport (mobile size)
 - Both views render correctly without errors
 - Chat buttons are positioned correctly in their respective sections
+
+### Task 6: AppImageViewer Component
+- Created `AppImageViewer.vue` using `<Teleport to="body">` and `<Transition name="image-viewer">`.
+- Implemented `v-model` pattern for open/close state.
+- Added ESC key listener to close the viewer.
+- Used `object-fit: contain` and `max-width: 100vw`, `max-height: 100vh` for fullscreen image display.
+- Ensured overlay click closes the viewer, but image click stops propagation.
+
+## Task 3: 읽음 표시 "1" UI (2026-03-10)
+
+### subscribeToReadReceipts 패턴
+- 채널명: `read-receipts-${partnerId}-${me}`
+- `postgres_changes` UPDATE 이벤트, `filter: sender_id=eq.${me}`
+- callback: `payload.new.is_read === true`일 때 `messages.value[idx] = {..., is_read: true}`
+- `readReceiptChannel` ref를 `unsubscribe()`에서 함께 해제 (channel과 동일 패턴)
+
+### 테스트 패턴 (subscribeToReadReceipts)
+- `sendMessage` 먼저 호출 → messages 배열 populate
+- `channel.on()` 두 번째 인자의 `.on(type, filterObj, cb)` 시그니처 — cb를 캡처
+- `capturedCallback({ new: { id, is_read: true } })` 직접 호출로 검증
+
+### UI 위치
+- `.member-chat__msg-time` / `.trainer-chat__msg-time` 바로 앞에 span 추가
+- `v-if="msg.sender_id === auth.user?.id && !msg.is_read"` 조건 (내가 보낸 미읽은 것만)
+
+### CSS
+- `color: var(--color-blue-primary)`, `font-size: var(--fs-caption)`, `font-weight: 600`
+- flex-column 메시지 컨테이너에서 indicator와 time이 별도 줄로 표시됨 (의도적)
+
+## Task 4: sendMessage 후 인앱 알림 생성 (2026-03-10)
+
+### 패턴
+- `useChat.js` 내부에서 `useNotifications()` composable을 함수 스코프 안에서 호출
+- `sendMessage` 성공 후 notification try-catch 블록으로 격리 (실패가 메시지 반환 차단 안 함)
+- 알림 파라미터: `(receiverId, 'new_message', '새 메시지', content || '파일을 보냈습니다', data.id, 'message')`
+
+### 테스트 패턴
+- `vi.hoisted`에 `mockCreateNotification: vi.fn().mockResolvedValue(true)` 추가
+- `vi.mock('@/composables/useNotifications', ...)` 으로 모듈 전체 mock
+- `mockRejectedValueOnce`로 실패 시나리오 테스트
+- TDD: RED(구현 전 테스트 작성) → GREEN(구현) 순서 준수
+
+## Task 5: 메시지 페이지네이션 (2026-03-10)
+
+### Pagination Composable Pattern
+- `PAGE_SIZE = 30` 상수를 composable 상단에 두고 `fetchMessages`/`fetchOlderMessages`가 동일 상수를 공유하면 페이지 경계가 일관된다.
+- 초기 조회(`fetchMessages`)는 `descending + limit(PAGE_SIZE) + reverse()`로 UI 시간순을 유지하면서 최신 구간을 확보한다.
+- 과거 조회(`fetchOlderMessages`)는 `messages.value[0].created_at` 커서에 `.lt('created_at', cursor)`를 걸고, 응답을 `reverse()` 후 앞에 prepend하는 방식이 안정적이다.
+- `hasMore`는 `응답 길이 === PAGE_SIZE` 여부로 판단하면 서버 total count 조회 없이도 다음 페이지 가능 여부를 관리할 수 있다.
+
+### Chat View Scroll Pattern
+- `scrollTop < 50` 임계값 기반으로 상단 스크롤 감지하고, 로드 전후 `scrollHeight` 차이만큼 `scrollTop`을 보정하면 prepend 시 화면 점프를 막을 수 있다.
+- 기존 `watch(messages)` 자동 하단 스크롤은 prepend와 충돌하므로 `skipAutoScroll` 플래그로 과거 로드 구간만 예외 처리해야 한다.
+- `selectedPartnerId` watcher에서 메시지 리스트 scroll listener를 attach/detach하면 채팅방 진입/이탈 시 이벤트 누수를 방지할 수 있다.
+
+### Testing Pattern
+- `fetchOlderMessages` 테스트에서 초기 메시지는 반드시 PAGE_SIZE(30)개로 세팅해야 `hasMore=true` 상태에서 실제 older query가 실행된다.
+- 테스트 안정성을 위해 `beforeEach`에서 `supabase.from`, `channel`, `createNotification` mock을 `mockReset()` 후 기본 구현을 재설정해야 이전 테스트의 once-queue 오염을 막을 수 있다.

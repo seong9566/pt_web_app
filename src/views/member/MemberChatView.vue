@@ -92,6 +92,10 @@
         <div v-else-if="messages.length === 0" class="member-chat__msg-empty">
           첫 메시지를 보내보세요
         </div>
+        <div v-else class="member-chat__load-more">
+          <div v-if="loadingOlder" class="member-chat__load-spinner" />
+          <p v-else-if="hasMore === false" class="member-chat__load-end">모든 메시지를 불러왔습니다</p>
+        </div>
         <div
           v-for="msg in messages"
           :key="msg.id"
@@ -170,8 +174,10 @@ const {
   messages,
   loading,
   error,
+  hasMore,
   fetchConversations,
   fetchMessages,
+  fetchOlderMessages,
   sendMessage,
   markAsRead,
   subscribeToMessages,
@@ -188,6 +194,8 @@ const inputText = ref('')
 const messageListRef = ref(null)
 const fileInputRef = ref(null)
 const hasActiveConnection = ref(null)
+const loadingOlder = ref(false)
+const skipAutoScroll = ref(false)
 
 function formatRelativeTime(isoString) {
   if (!isoString) return ''
@@ -226,6 +234,33 @@ async function openChat(conv) {
   scrollToBottom()
 }
 
+function addMessageScrollListener() {
+  messageListRef.value?.addEventListener('scroll', handleScroll)
+}
+
+function removeMessageScrollListener() {
+  messageListRef.value?.removeEventListener('scroll', handleScroll)
+}
+
+async function handleScroll() {
+  const listEl = messageListRef.value
+  if (!listEl || !selectedPartnerId.value || loadingOlder.value || !hasMore.value) return
+  if (listEl.scrollTop >= 50) return
+
+  loadingOlder.value = true
+  skipAutoScroll.value = true
+
+  const previousHeight = listEl.scrollHeight
+  await fetchOlderMessages(selectedPartnerId.value)
+  await nextTick()
+
+  const currentHeight = listEl.scrollHeight
+  listEl.scrollTop += currentHeight - previousHeight
+
+  skipAutoScroll.value = false
+  loadingOlder.value = false
+}
+
 function closeChat() {
   unsubscribe()
   selectedPartnerId.value = null
@@ -254,8 +289,15 @@ async function handleFileChange(e) {
 }
 
 watch(messages, () => {
-  if (selectedPartnerId.value) scrollToBottom()
+  if (selectedPartnerId.value && !skipAutoScroll.value) scrollToBottom()
 }, { deep: true })
+
+watch(selectedPartnerId, async (value) => {
+  removeMessageScrollListener()
+  if (!value) return
+  await nextTick()
+  addMessageScrollListener()
+})
 
 watch(error, (val) => {
   if (val) showError(val)
@@ -266,9 +308,11 @@ onMounted(async () => {
   hasActiveConnection.value = connected
   if (!connected) return
   fetchConversations()
+  addMessageScrollListener()
 })
 
 onUnmounted(() => {
+  removeMessageScrollListener()
   unsubscribe()
 })
 </script>

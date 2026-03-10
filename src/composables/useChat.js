@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useNotifications } from '@/composables/useNotifications'
 
+const PAGE_SIZE = 30
+
 /** 실시간 채팅 관리 */
 export function useChat() {
   const auth = useAuthStore()
@@ -20,6 +22,7 @@ export function useChat() {
   const loading = ref(false)
   const error = ref(null)
   const unreadCount = ref(0)
+  const hasMore = ref(true)
   let channel = null
   let readReceiptChannel = null
 
@@ -98,9 +101,6 @@ export function useChat() {
     }
   }
 
-  /**
-   * 특정 상대와의 메시지 목록 조회 (최신 50개, 시간순)
-   */
   async function fetchMessages(partnerId) {
     loading.value = true
     error.value = null
@@ -109,6 +109,7 @@ export function useChat() {
       const me = auth.user?.id
       if (!me || !partnerId) {
         messages.value = []
+        hasMore.value = true
         return messages.value
       }
 
@@ -120,16 +121,55 @@ export function useChat() {
         `)
         .or(`and(sender_id.eq.${me},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me})`)
         .order('created_at', { ascending: false })
-        .limit(50)
+        .limit(PAGE_SIZE)
 
       if (fetchError) throw fetchError
 
       messages.value = (data ?? []).reverse()
+      hasMore.value = (data ?? []).length === PAGE_SIZE
       return messages.value
     } catch (e) {
       error.value = e?.message ?? '메시지를 불러오지 못했습니다'
       messages.value = []
+      hasMore.value = true
       return messages.value
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchOlderMessages(partnerId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const me = auth.user?.id
+      const cursor = messages.value[0]?.created_at
+
+      if (!me || !partnerId || !cursor || !hasMore.value) {
+        return []
+      }
+
+      const { data, error: fetchError } = await supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!sender_id(name, photo_url)
+        `)
+        .or(`and(sender_id.eq.${me},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me})`)
+        .lt('created_at', cursor)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE)
+
+      if (fetchError) throw fetchError
+
+      const olderMsgs = (data ?? []).reverse()
+      messages.value = [...olderMsgs, ...messages.value]
+      hasMore.value = olderMsgs.length === PAGE_SIZE
+      return olderMsgs
+    } catch (e) {
+      error.value = e?.message ?? '이전 메시지를 불러오지 못했습니다'
+      return []
     } finally {
       loading.value = false
     }
@@ -358,8 +398,10 @@ export function useChat() {
     loading,
     error,
     unreadCount,
+    hasMore,
     fetchConversations,
     fetchMessages,
+    fetchOlderMessages,
     sendMessage,
     markAsRead,
     subscribeToMessages,

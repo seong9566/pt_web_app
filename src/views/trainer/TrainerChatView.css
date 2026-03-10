@@ -216,6 +216,38 @@
   padding-top: 24px;
 }
 
+.trainer-chat__load-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 24px;
+  margin-bottom: 4px;
+}
+
+.trainer-chat__load-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--color-gray-200);
+  border-top-color: var(--color-blue-primary);
+  animation: trainer-chat-spin 0.8s linear infinite;
+}
+
+.trainer-chat__load-end {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+@keyframes trainer-chat-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* 메시지 행 */
 .trainer-chat__message {
   display: flex;
