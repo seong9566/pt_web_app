@@ -119,6 +119,45 @@ describe('useChat', () => {
     expect(messages.value).toHaveLength(1)
   })
 
+  it('메시지 조회 시 최신 50개를 내림차순으로 가져온 뒤 시간순으로 반환한다', async () => {
+    const query = createBuilder()
+    query.limit.mockResolvedValue({
+      data: [
+        {
+          id: 3,
+          sender_id: 'partner-1',
+          receiver_id: 'user-me',
+          content: '세 번째',
+          created_at: '2026-03-05T12:00:00Z',
+        },
+        {
+          id: 2,
+          sender_id: 'user-me',
+          receiver_id: 'partner-1',
+          content: '두 번째',
+          created_at: '2026-03-05T11:00:00Z',
+        },
+        {
+          id: 1,
+          sender_id: 'partner-1',
+          receiver_id: 'user-me',
+          content: '첫 번째',
+          created_at: '2026-03-05T10:00:00Z',
+        },
+      ],
+      error: null,
+    })
+
+    mockEnv.supabase.from.mockReturnValue(query)
+
+    const { fetchMessages, messages } = useChat()
+    const result = await fetchMessages('partner-1')
+
+    expect(query.order).toHaveBeenCalledWith('created_at', { ascending: false })
+    expect(result.map((item) => item.id)).toEqual([1, 2, 3])
+    expect(messages.value.map((item) => item.id)).toEqual([1, 2, 3])
+  })
+
   it('읽음 처리 시 상대방이 보낸 미읽은 메시지만 update한다', async () => {
     const query = createBuilder()
     query.eq
@@ -135,5 +174,34 @@ describe('useChat', () => {
     expect(query.eq).toHaveBeenNthCalledWith(1, 'sender_id', 'partner-1')
     expect(query.eq).toHaveBeenNthCalledWith(2, 'receiver_id', 'user-me')
     expect(query.eq).toHaveBeenNthCalledWith(3, 'is_read', false)
+  })
+
+  it('파일 업로드 성공 시 chat-files public URL을 반환한다', async () => {
+    const upload = vi.fn().mockResolvedValue({ error: null })
+    const getPublicUrl = vi.fn().mockReturnValue({
+      data: { publicUrl: 'https://example.supabase.co/storage/v1/object/public/chat-files/user-me/1234-photo.jpg' },
+    })
+
+    mockEnv.supabase.storage.from.mockReturnValue({
+      upload,
+      getPublicUrl,
+    })
+
+    const { uploadChatFile } = useChat()
+    const file = {
+      name: 'photo.jpg',
+      type: 'image/jpeg',
+      size: 1024,
+    }
+
+    const result = await uploadChatFile(file)
+
+    expect(upload).toHaveBeenCalledTimes(1)
+    expect(upload.mock.calls[0][0]).toMatch(/^user-me\/\d+-photo\.jpg$/)
+    expect(upload.mock.calls[0][1]).toBe(file)
+    expect(getPublicUrl).toHaveBeenCalledWith(upload.mock.calls[0][0])
+    expect(result).toEqual({
+      url: 'https://example.supabase.co/storage/v1/object/public/chat-files/user-me/1234-photo.jpg',
+    })
   })
 })

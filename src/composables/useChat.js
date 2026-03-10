@@ -117,12 +117,12 @@ export function useChat() {
           sender:profiles!sender_id(name, photo_url)
         `)
         .or(`and(sender_id.eq.${me},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me})`)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(50)
 
       if (fetchError) throw fetchError
 
-      messages.value = data ?? []
+      messages.value = (data ?? []).reverse()
       return messages.value
     } catch (e) {
       error.value = e?.message ?? '메시지를 불러오지 못했습니다'

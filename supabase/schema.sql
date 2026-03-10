@@ -698,6 +698,7 @@ create table if not exists public.messages (
 );
 create index if not exists idx_messages_participants on public.messages (sender_id, receiver_id, created_at desc);
 create index if not exists idx_messages_receiver_unread on public.messages (receiver_id) where is_read = false;
+alter table public.messages replica identity full;
 alter table public.messages enable row level security;
 create policy "Messages are readable by participants" on public.messages for select to authenticated
 using (

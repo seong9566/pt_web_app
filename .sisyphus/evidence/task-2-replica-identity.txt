@@ -1,0 +1,18 @@
+Migration applied via Supabase MCP:
+- project_id: ajafzzmojhtpczjvovmm (FitLink)
+- migration name: set_messages_replica_identity_full
+- SQL: alter table public.messages replica identity full;
+- result: success=true
+
+Verification SQL:
+select n.nspname as schema_name, c.relname, c.relreplident
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where c.relname = 'messages' and c.relkind = 'r';
+
+Result:
+- schema_name: public
+- relname: messages
+- relreplident: f
+
+판정: public.messages의 REPLICA IDENTITY FULL 적용 확인 (relreplident='f').
