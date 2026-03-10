@@ -35,7 +35,7 @@
             <rect x="2" y="4" width="16" height="12" rx="2" stroke="#666666" stroke-width="1.5"/>
             <path d="M2 7L10 12L18 7" stroke="#666666" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          이메일로 로그인
+          이메일로 시작하기
         </button>
       </div>
     </div>

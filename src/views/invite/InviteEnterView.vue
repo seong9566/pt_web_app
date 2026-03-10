@@ -63,7 +63,7 @@
     </div>
     <div class="invite-enter__footer">
       <button v-if="!auth.user" class="invite-enter__confirm-btn" @click="handleLoginRedirect">
-        로그인 / 회원가입
+        로그인 / 회원가입 하러 가기
       </button>
       <button v-else class="invite-enter__confirm-btn" :disabled="!verifiedTrainer || isLoading" @click="handleConfirm">
         {{ isLoading ? '연결 중...' : '연결 확정' }}
