@@ -330,6 +330,8 @@ export function useChat() {
           // 현재 채팅 상대가 보낸 메시지만 추가
           if (payload.new.sender_id === partnerId) {
             messages.value.push(payload.new)
+            // 채팅방에 있으므로 즉시 읽음 처리 → 상대방의 "1" 표시 제거
+            markAsRead(partnerId)
           }
         }
       )
