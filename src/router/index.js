@@ -9,7 +9,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login", "/email-login", "/password-reset", "/password-update", "/account-delete-pending"];
+const PUBLIC_ROUTES = ["/login", "/auth/callback", "/dev-login", "/email-login", "/password-reset", "/password-update", "/account-delete-pending", "/invite/enter"];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

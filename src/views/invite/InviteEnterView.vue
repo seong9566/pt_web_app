@@ -43,40 +43,51 @@
       <p v-if="errorMsg" class="invite-enter__error" style="color: var(--color-red); font-size: var(--fs-caption); text-align: center; margin-top: 8px;">{{ errorMsg }}</p>
     </div>
     <div class="invite-enter__footer">
-      <button class="invite-enter__confirm-btn" :disabled="isLoading" @click="handleConfirm">
+      <button v-if="!auth.user" class="invite-enter__confirm-btn" @click="handleLoginRedirect">
+        로그인 / 회원가입
+      </button>
+      <button v-else class="invite-enter__confirm-btn" :disabled="isLoading" @click="handleConfirm">
         {{ isLoading ? '연결 중...' : '연결 확정' }}
       </button>
     </div>
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
-const { redeemInviteCode } = useInvite()
+const { redeemInviteCode, error: inviteError } = useInvite()
 
 const codeDigits = ref(['', '', '', '', '', ''])
 const inputRefs = ref([])
 const errorMsg = ref('')
 const isLoading = ref(false)
 
-/** 코드 입력 필드 처리 */
+onMounted(() => {
+  const code = route.query.code
+  if (code) {
+    const chars = String(code).toUpperCase().slice(0, 6).split('')
+    chars.forEach((char, i) => {
+      codeDigits.value[i] = char
+    })
+  }
+})
+
 function handleInput(idx, event) {
   const val = event.target.value.slice(-1).toUpperCase()
   codeDigits.value[idx] = val
   if (val && idx < 5) inputRefs.value[idx + 1]?.focus()
 }
 
-/** 백스페이스 키 처리 */
 function handleBackspace(idx, event) {
   if (!codeDigits.value[idx] && idx > 0) inputRefs.value[idx - 1]?.focus()
 }
 
-/** 코드 입력 완료 여부 검사 */
 function handleCheckCode() {
   const code = codeDigits.value.join('')
   errorMsg.value = ''
@@ -86,7 +97,12 @@ function handleCheckCode() {
   }
 }
 
-/** 초대 코드 단축 및 트레이너 연결 실패 */
+function handleLoginRedirect() {
+  const code = codeDigits.value.join('')
+  if (code) localStorage.setItem('pending_invite_code', code)
+  router.push('/login')
+}
+
 async function handleConfirm() {
   const code = codeDigits.value.join('')
   errorMsg.value = ''
@@ -102,7 +118,7 @@ async function handleConfirm() {
     const result = await redeemInviteCode(code)
 
     if (!result) {
-      errorMsg.value = '유효하지 않은 코드입니다. 다시 확인해주세요.'
+      errorMsg.value = inviteError.value || '유효하지 않은 코드입니다. 다시 확인해주세요.'
       return
     }
 
