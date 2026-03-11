@@ -82,9 +82,10 @@
                 :class="{
                   'cal-cell__num--selected': isSelected(cell.date),
                   'cal-cell__num--today': !isSelected(cell.date) && isToday(cell.date),
-                  'cal-cell__num--sun': cell.isSun,
-                  'cal-cell__num--sat': cell.isSat,
-                  'cal-cell__num--off': isNonWorkingDay(cell.date),
+                  'cal-cell__num--past': isPast(cell.date) && !isSelected(cell.date),
+                  'cal-cell__num--sun': !isPast(cell.date) && cell.isSun,
+                  'cal-cell__num--sat': !isPast(cell.date) && cell.isSat,
+                  'cal-cell__num--off': !isPast(cell.date) && isNonWorkingDay(cell.date),
                 }"
                 >{{ cell.date }}</span
               >
@@ -419,6 +420,12 @@ function isNonWorkingDay(date) {
   return !workingDays.value.has(dow);
 }
 
+function isPast(date) {
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return dateStr < todayStr
+}
+
 function isSelected(date) {
   return date === selectedDate.value;
 }
@@ -536,7 +543,8 @@ function statusLabel(status) {
 
 // ── 핸들러 ──
 function handleReserve() {
-  router.push("/member/reservation");
+  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(selectedDate.value).padStart(2, "0")}`;
+  router.push({ path: "/member/reservation", query: { date: dateStr } });
 }
 
 function goWorkoutDetail() {

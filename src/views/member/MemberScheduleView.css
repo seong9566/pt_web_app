@@ -170,9 +170,18 @@
   opacity: 0.5;
 }
 
+.cal-cell__num--past {
+  color: var(--color-gray-200);
+}
+
 .cal-cell__inner--selected .cal-cell__num--sun,
 .cal-cell__inner--selected .cal-cell__num--sat,
 .cal-cell__inner--selected .cal-cell__num--off {
+  color: var(--color-white);
+  opacity: 1;
+}
+
+.cal-cell__inner--selected .cal-cell__num--past {
   color: var(--color-white);
   opacity: 1;
 }

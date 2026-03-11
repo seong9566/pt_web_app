@@ -196,7 +196,12 @@ export function useReservations() {
       if (rpcError) throw rpcError
       return data
     } catch (e) {
-      error.value = e?.message ?? '예약 생성에 실패했습니다'
+      const ERROR_MESSAGES = {
+        'Reservation time slot is already booked': '해당 시간은 이미 예약되었습니다. 다른 시간을 선택해주세요.',
+        'No active trainer-member connection': '트레이너와의 연결이 활성화되지 않았습니다.',
+        'End time must be later than start time': '예약 시간이 올바르지 않습니다.',
+      }
+      error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '예약 생성에 실패했습니다'
       return null
     } finally {
       loading.value = false

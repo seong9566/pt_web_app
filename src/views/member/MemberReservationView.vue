@@ -183,7 +183,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
@@ -192,6 +192,7 @@ import { useHolidays } from '@/composables/useHolidays'
 import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
@@ -201,12 +202,13 @@ const { holidays, fetchHolidays } = useHolidays()
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
 const workingDays = ref(new Set())
 
-// Date Selection
+// Date Selection — query.date가 있으면 사용, 없으면 오늘 날짜
 const today = new Date()
 const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
-const selectedDate = ref(todayStr)
+const initialDate = route.query.date && /^\d{4}-\d{2}-\d{2}$/.test(route.query.date) ? route.query.date : todayStr
+const selectedDate = ref(initialDate)
 // 캘린더에 현재 표시 중인 연-월 (YYYY-MM) — disabledDates 계산 기준
-const displayedMonth = ref(todayStr.slice(0, 7))
+const displayedMonth = ref(initialDate.slice(0, 7))
 
 // Time Selection
 const selectedTime = ref(null)
@@ -226,8 +228,8 @@ onMounted(async () => {
   const connectedTrainerId = await getConnectedTrainerId()
   if (connectedTrainerId) {
     trainerId.value = connectedTrainerId
-    // 근무 요일 + 이번 달 휴무일 + 오늘 슬롯 병렬 조회
-    const currentMonth = todayStr.slice(0, 7)
+    // 근무 요일 + 선택 날짜 달의 휴무일 + 선택 날짜 슬롯 병렬 조회
+    const currentMonth = initialDate.slice(0, 7)
     const [days] = await Promise.all([
       fetchWorkingDays(connectedTrainerId),
       fetchHolidays(connectedTrainerId, currentMonth),
@@ -323,12 +325,19 @@ async function submitReservation() {
   
   isSubmitting.value = true
   const result = await createReservation(trainerId.value, selectedDate.value, selectedTime.value, 'PT')
-  isSubmitting.value = false
   
   if (result) {
     reservationsStore.invalidate()
+    isSubmitting.value = false
     // Success: navigate back
     router.back()
+  } else {
+    // 슬롯 자동 갱신 — 충돌 시간 마감 반영
+    selectedTime.value = null
+    if (trainerId.value && selectedDate.value) {
+      await fetchAvailableSlots(trainerId.value, selectedDate.value)
+    }
+    isSubmitting.value = false
   }
   // Error message is displayed via error ref in template
 }
