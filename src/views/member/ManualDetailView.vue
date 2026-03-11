@@ -17,7 +17,13 @@
 
     <!-- Loading -->
     <div v-if="loading" class="manual-detail__loading">
-      <p class="manual-detail__loading-text">로딩 중...</p>
+      <AppSkeleton type="rect" width="100%" height="180px" />
+      <div style="display: flex; align-items: flex-start; gap: var(--spacing-item); width: 100%;">
+        <AppSkeleton type="circle" width="64px" height="64px" />
+        <div style="flex: 1;">
+          <AppSkeleton type="line" :count="3" />
+        </div>
+      </div>
     </div>
 
     <!-- Error -->
@@ -172,6 +178,7 @@ import { useManuals } from '@/composables/useManuals'
 import { useAuthStore } from '@/stores/auth'
 import { extractYoutubeVideoId } from '@/utils/youtube'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()

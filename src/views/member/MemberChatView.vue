@@ -7,8 +7,8 @@
       <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
-      불러오는 중...
+    <div v-else-if="hasActiveConnection === null" style="padding: 60px 20px;">
+      <AppSkeleton type="line" :count="5" />
     </div>
 
     <template v-else>
@@ -23,7 +23,7 @@
 
       <!-- 로딩 -->
       <div v-if="loading" class="member-chat__loading">
-        대화 목록을 불러오는 중...
+        <AppSkeleton type="line" :count="5" />
       </div>
 
       <!-- 빈 상태 -->
@@ -150,13 +150,15 @@
         </template>
         <template v-else>
           <div v-if="loading && messages.length === 0" class="member-chat__msg-loading">
-            메시지를 불러오는 중...
+            <AppSkeleton type="line" :count="5" />
           </div>
           <div v-else-if="messages.length === 0" class="member-chat__msg-empty">
             첫 메시지를 보내보세요
           </div>
           <div v-else class="member-chat__load-more">
-            <div v-if="loadingOlder" class="member-chat__load-spinner">불러오는 중...</div>
+            <div v-if="loadingOlder" class="member-chat__load-spinner">
+              <AppSkeleton type="line" :count="2" />
+            </div>
             <p v-else-if="hasMore === false" class="member-chat__load-end">모든 메시지를 불러왔습니다</p>
           </div>
           <div
@@ -287,6 +289,7 @@ import { useChat } from '@/composables/useChat'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
 import { useChatBadgeStore } from '@/stores/chatBadge'

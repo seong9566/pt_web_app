@@ -15,8 +15,8 @@
         <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
       </div>
 
-      <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
-        불러오는 중...
+      <div v-else-if="hasActiveConnection === null" style="padding: 60px 20px;">
+        <AppSkeleton type="rect" width="100%" height="80px" :count="3" />
       </div>
 
       <template v-else>
@@ -298,6 +298,7 @@ import { useWorkHours } from "@/composables/useWorkHours";
 import { useWorkoutPlans } from "@/composables/useWorkoutPlans";
 import { useReservationsStore } from "@/stores/reservations";
 import AppPullToRefresh from "@/components/AppPullToRefresh.vue";
+import AppSkeleton from "@/components/AppSkeleton.vue";
 
 const router = useRouter();
 const reservationsStore = useReservationsStore();

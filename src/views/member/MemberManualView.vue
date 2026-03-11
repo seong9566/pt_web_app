@@ -47,7 +47,7 @@
 
     <!-- ── Loading ── -->
     <div v-if="loading" class="manual-list__state">
-      <p>로딩 중...</p>
+      <AppSkeleton type="rect" width="100%" height="80px" :count="3" />
     </div>
 
     <!-- ── Card Grid ── -->
@@ -112,6 +112,7 @@ import { useRouter } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 import { getYoutubeThumbnailUrl } from '@/utils/youtube'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()

@@ -21,8 +21,8 @@
         <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
       </div>
 
-      <div v-else-if="hasActiveConnection === null" style="text-align: center; padding: 60px 20px; color: var(--color-gray-600);">
-        불러오는 중...
+      <div v-else-if="hasActiveConnection === null" style="padding: 60px 20px;">
+        <AppSkeleton type="rect" width="100%" height="80px" :count="3" />
       </div>
 
       <template v-else>
@@ -52,7 +52,7 @@
 
       <!-- 로딩 -->
       <div v-if="loading" class="workout-detail__loading">
-        <p>로딩 중...</p>
+        <AppSkeleton type="rect" width="100%" height="80px" :count="3" />
       </div>
 
       <!-- 빈 상태 -->
@@ -95,6 +95,7 @@ import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()

@@ -222,8 +222,10 @@
 .manual-detail__loading {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-section);
+  padding: 24px var(--side-margin);
 }
 
 .manual-detail__loading-text {

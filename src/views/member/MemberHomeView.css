@@ -423,11 +423,10 @@
 
 .member-home__loading {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-item);
   padding: 60px 20px;
-  color: var(--color-gray-600);
-  font-size: var(--fs-body2);
 }
 
 .member-home__exercise-list {

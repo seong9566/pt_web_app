@@ -47,7 +47,8 @@
       </div>
 
       <div v-else-if="hasTrainer === null" class="member-home__loading">
-        불러오는 중...
+        <AppSkeleton type="rect" width="100%" height="120px" />
+        <AppSkeleton type="line" :count="3" />
       </div>
 
       <template v-else>
@@ -99,7 +100,7 @@
         </div>
 
         <div v-if="workoutLoading" class="member-home__workout-stub">
-          <p class="member-home__workout-stub-text">로딩 중...</p>
+          <AppSkeleton type="rect" width="100%" height="80px" :count="2" />
         </div>
 
         <div v-else-if="workoutError" class="member-home__workout-stub">
@@ -203,6 +204,7 @@ import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
