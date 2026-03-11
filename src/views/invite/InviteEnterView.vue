@@ -43,7 +43,15 @@
       <p v-if="errorMsg" class="invite-enter__error" style="color: var(--color-red); font-size: var(--fs-caption); text-align: center; margin-top: 8px;">{{ errorMsg }}</p>
 
       <!-- 트레이너 정보 카드 (코드 검증 성공 시 표시) -->
-      <div v-if="verifiedTrainer" class="invite-enter__trainer-card">
+      <div v-if="isChecking" class="invite-enter__trainer-card">
+        <AppSkeleton type="circle" width="48px" height="48px" />
+        <div style="flex: 1; width: 100%;">
+          <AppSkeleton type="line" width="60%" />
+          <AppSkeleton type="line" width="40%" />
+        </div>
+        <AppSkeleton type="circle" width="24px" height="24px" />
+      </div>
+      <div v-else-if="verifiedTrainer" class="invite-enter__trainer-card">
         <div class="invite-enter__trainer-avatar">
           <img v-if="verifiedTrainer.trainerPhoto" :src="verifiedTrainer.trainerPhoto" alt="trainer" />
           <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -81,6 +89,7 @@ import { useReservationsStore } from '@/stores/reservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useToast } from '@/composables/useToast'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()

@@ -17,38 +17,40 @@
       </div>
     </div>
      <div class="trainer-search__list">
-       <div v-if="loading" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
-         로딩 중...
-       </div>
+       <template v-if="loading">
+         <AppSkeleton type="rect" height="170px" borderRadius="var(--radius-large)" :count="3" />
+       </template>
        <div v-else-if="trainers.length === 0" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
          검색 결과가 없습니다.
        </div>
-       <div v-for="trainer in trainers" v-else :key="trainer.id" class="trainer-card">
-         <div class="trainer-card__img">
-           <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
-         </div>
-         <div class="trainer-card__info">
-           <p class="trainer-card__name">{{ trainer.name }}</p>
-           <div class="trainer-card__tags">
-             <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
+       <template v-else>
+         <div v-for="trainer in trainers" :key="trainer.id" class="trainer-card">
+           <div class="trainer-card__img">
+             <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
            </div>
+           <div class="trainer-card__info">
+             <p class="trainer-card__name">{{ trainer.name }}</p>
+             <div class="trainer-card__tags">
+               <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
+             </div>
+           </div>
+            <div v-if="trainer.pending" class="trainer-card__badge trainer-card__badge--pending">
+              요청 중
+            </div>
+            <div v-else-if="trainer.connected" class="trainer-card__badge trainer-card__badge--connected">
+              연결됨
+            </div>
+            <button
+              v-else
+              class="trainer-card__btn trainer-card__btn--primary"
+              :disabled="requestingId === trainer.id"
+              @click="handleRequestConnection(trainer.id)"
+            >
+              {{ requestingId === trainer.id ? '요청 중...' : '연결 요청' }}
+              <svg v-if="requestingId !== trainer.id" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
          </div>
-          <div v-if="trainer.pending" class="trainer-card__badge trainer-card__badge--pending">
-            요청 중
-          </div>
-          <div v-else-if="trainer.connected" class="trainer-card__badge trainer-card__badge--connected">
-            연결됨
-          </div>
-          <button
-            v-else
-            class="trainer-card__btn trainer-card__btn--primary"
-            :disabled="requestingId === trainer.id"
-            @click="handleRequestConnection(trainer.id)"
-          >
-            {{ requestingId === trainer.id ? '요청 중...' : '연결 요청' }}
-            <svg v-if="requestingId !== trainer.id" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-       </div>
+       </template>
      </div>
      <div v-if="error" style="padding: 16px; margin: 16px; background-color: var(--color-red); color: var(--color-white); border-radius: var(--radius-medium); font-size: var(--fs-caption); text-align: center;">
        {{ error }}
@@ -60,6 +62,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const searchQuery = ref('')

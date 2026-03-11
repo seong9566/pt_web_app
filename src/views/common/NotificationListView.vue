@@ -22,7 +22,9 @@
 
     <!-- ── Loading State ── -->
     <div v-if="loading" class="notification-list__loading">
-      <p>로딩 중...</p>
+      <div style="width: 100%; padding: 0 var(--side-margin);">
+        <AppSkeleton type="rect" height="72px" borderRadius="var(--radius-medium)" :count="4" />
+      </div>
     </div>
 
     <!-- ── Empty State ── -->
@@ -74,6 +76,7 @@ import { useRouter } from 'vue-router'
 import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()

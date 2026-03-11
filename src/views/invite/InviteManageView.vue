@@ -17,19 +17,27 @@
         <p class="invite-manage__qr-sub">코드를 공유하면 회원이 가입 시 자동으로 연결됩니다.</p>
       </div>
       <div class="invite-manage__code-card">
-        <p class="invite-manage__code-label">나의 초대 코드</p>
-        <p class="invite-manage__code">{{ inviteCode?.code || '생성 중...' }}</p>
-        <div class="invite-manage__code-underline" />
-        <div class="invite-manage__code-btns">
-          <button class="invite-manage__btn invite-manage__btn--outline" @click="handleCopyCode">
-            <img src="@/assets/icons/code_copy.svg" alt="copy" width="16" height="16" />
-            코드 복사
-          </button>
-          <button class="invite-manage__btn invite-manage__btn--primary" @click="handleShareLink">
-            <img src="@/assets/icons/link_invite.svg" alt="share" width="16" height="16" />
-            링크 공유
-          </button>
-        </div>
+        <template v-if="loading && !inviteCode">
+          <AppSkeleton type="line" width="88px" />
+          <AppSkeleton type="line" width="180px" height="36px" />
+          <AppSkeleton type="line" width="64px" height="4px" borderRadius="2px" />
+          <AppSkeleton type="rect" height="44px" borderRadius="var(--radius-medium)" :count="2" />
+        </template>
+        <template v-else>
+          <p class="invite-manage__code-label">나의 초대 코드</p>
+          <p class="invite-manage__code">{{ inviteCode?.code || '생성 중...' }}</p>
+          <div class="invite-manage__code-underline" />
+          <div class="invite-manage__code-btns">
+            <button class="invite-manage__btn invite-manage__btn--outline" @click="handleCopyCode">
+              <img src="@/assets/icons/code_copy.svg" alt="copy" width="16" height="16" />
+              코드 복사
+            </button>
+            <button class="invite-manage__btn invite-manage__btn--primary" @click="handleShareLink">
+              <img src="@/assets/icons/link_invite.svg" alt="share" width="16" height="16" />
+              링크 공유
+            </button>
+          </div>
+        </template>
       </div>
       <button class="invite-manage__kakao-banner">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M14 4C8.477 4 4 7.806 4 12.5c0 3.03 1.85 5.69 4.65 7.24L7.6 23.5a.286.286 0 0 0 .424.31L13.2 21.1c.264.022.53.04.8.04 5.523 0 10-3.806 10-8.5S19.523 4 14 4z" fill="#3C1E1E"/></svg>
@@ -45,34 +53,39 @@
           <button class="invite-manage__view-all">전체보기</button>
         </div>
         <div class="invite-manage__member-list">
-          <div v-if="recentMembers.length === 0" class="invite-manage__empty">
+          <template v-if="loading && recentMembers.length === 0">
+            <AppSkeleton type="rect" height="68px" borderRadius="var(--radius-medium)" :count="3" />
+          </template>
+          <div v-else-if="recentMembers.length === 0" class="invite-manage__empty">
             <p class="invite-manage__empty-text">아직 연결된 회원이 없습니다</p>
             <p class="invite-manage__empty-sub">초대 코드를 공유하여 회원을 초대해보세요</p>
           </div>
-          <div v-for="member in recentMembers" :key="member.member_id" class="member-item">
-             <div class="member-item__avatar">
-               <img
-                 v-if="member.profiles?.photo_url"
-                 :src="member.profiles.photo_url"
-                 alt="member"
-                 class="member-item__avatar-img"
-               />
-               <img
-                 v-else
-                 :src="personIcon"
-                 alt="member"
-                 width="24"
-                 height="24"
-               />
-             </div>
-            <div class="member-item__info">
-              <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
-              <p class="member-item__date">{{ formatDate(member.connected_at) }} 가입</p>
+          <template v-else>
+            <div v-for="member in recentMembers" :key="member.member_id" class="member-item">
+              <div class="member-item__avatar">
+                <img
+                  v-if="member.profiles?.photo_url"
+                  :src="member.profiles.photo_url"
+                  alt="member"
+                  class="member-item__avatar-img"
+                />
+                <img
+                  v-else
+                  :src="personIcon"
+                  alt="member"
+                  width="24"
+                  height="24"
+                />
+              </div>
+              <div class="member-item__info">
+                <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
+                <p class="member-item__date">{{ formatDate(member.connected_at) }} 가입</p>
+              </div>
+              <!-- <button class="member-item__more">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="#666666"/><circle cx="12" cy="12" r="1.5" fill="#666666"/><circle cx="12" cy="19" r="1.5" fill="#666666"/></svg>
+              </button> -->
             </div>
-            <!-- <button class="member-item__more">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="#666666"/><circle cx="12" cy="12" r="1.5" fill="#666666"/><circle cx="12" cy="19" r="1.5" fill="#666666"/></svg>
-            </button> -->
-          </div>
+          </template>
         </div>
       </div>
       <div style="height: calc(var(--nav-height) + 16px);" />
@@ -85,6 +98,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppToast from '@/components/AppToast.vue'
 import personIcon from '@/assets/icons/person.svg'
 

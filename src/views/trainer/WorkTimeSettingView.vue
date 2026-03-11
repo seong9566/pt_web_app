@@ -17,96 +17,111 @@
 
     <!-- ── Body ── -->
     <div class="wt-setting__body">
+      <template v-if="isInitialLoading">
+        <section class="wt-section">
+          <AppSkeleton type="line" width="120px" />
+          <AppSkeleton type="rect" height="52px" borderRadius="var(--radius-medium)" :count="2" />
+        </section>
 
-      <!-- 예약 단위 -->
-      <section class="wt-section">
-        <h2 class="wt-section__title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="#007AFF" stroke-width="1.8"/>
-            <path d="M12 7V12L15 14" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          예약 단위
-        </h2>
-        <div class="wt-unit-grid">
-          <button
-            v-for="unit in unitOptions"
-            :key="unit.value"
-            class="wt-unit-btn"
-            :class="{ 'wt-unit-btn--active': selectedUnit === unit.value }"
-            @click="selectedUnit = unit.value"
-          >
-            {{ unit.label }}
-          </button>
-        </div>
-      </section>
+        <section class="wt-section">
+          <AppSkeleton type="line" width="120px" />
+          <AppSkeleton type="rect" height="84px" borderRadius="var(--radius-large)" :count="5" />
+        </section>
 
-      <!-- 근무 일정 -->
-      <section class="wt-section">
-        <h2 class="wt-section__title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="18" rx="3" stroke="#007AFF" stroke-width="1.8"/>
-            <path d="M3 9H21" stroke="#007AFF" stroke-width="1.8"/>
-            <path d="M8 2V6M16 2V6" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          근무 일정
-        </h2>
+        <div style="height: 120px;" />
+      </template>
 
-        <div class="wt-days">
-          <div
-            v-for="day in days"
-            :key="day.id"
-            class="wt-day-card"
-            :class="{ 'wt-day-card--disabled': !day.enabled }"
-          >
-            <!-- Day header row -->
-            <div class="wt-day-card__header">
-              <span class="wt-day-card__label">{{ day.label }}</span>
-              <span
-                class="wt-toggle"
-                :class="{ 'wt-toggle--on': day.enabled }"
-                @click="day.enabled = !day.enabled"
-              >
-                <span class="wt-toggle__knob" />
-              </span>
-            </div>
+      <template v-else>
+        <!-- 예약 단위 -->
+        <section class="wt-section">
+          <h2 class="wt-section__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#007AFF" stroke-width="1.8"/>
+              <path d="M12 7V12L15 14" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            예약 단위
+          </h2>
+          <div class="wt-unit-grid">
+            <button
+              v-for="unit in unitOptions"
+              :key="unit.value"
+              class="wt-unit-btn"
+              :class="{ 'wt-unit-btn--active': selectedUnit === unit.value }"
+              @click="selectedUnit = unit.value"
+            >
+              {{ unit.label }}
+            </button>
+          </div>
+        </section>
 
-            <!-- Time fields (only when enabled) -->
-            <div v-if="day.enabled" class="wt-day-card__times">
-              <div class="wt-time-field">
-                <span class="wt-time-field__label">시작</span>
-                <button
-                  class="wt-time-field__input"
-                  @click="openTimePicker(day, 'start')"
+        <!-- 근무 일정 -->
+        <section class="wt-section">
+          <h2 class="wt-section__title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="#007AFF" stroke-width="1.8"/>
+              <path d="M3 9H21" stroke="#007AFF" stroke-width="1.8"/>
+              <path d="M8 2V6M16 2V6" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            근무 일정
+          </h2>
+
+          <div class="wt-days">
+            <div
+              v-for="day in days"
+              :key="day.id"
+              class="wt-day-card"
+              :class="{ 'wt-day-card--disabled': !day.enabled }"
+            >
+              <!-- Day header row -->
+              <div class="wt-day-card__header">
+                <span class="wt-day-card__label">{{ day.label }}</span>
+                <span
+                  class="wt-toggle"
+                  :class="{ 'wt-toggle--on': day.enabled }"
+                  @click="day.enabled = !day.enabled"
                 >
-                  {{ formatTime(day.start) }}
-                </button>
+                  <span class="wt-toggle__knob" />
+                </span>
               </div>
-              <span class="wt-day-card__dash">-</span>
-              <div class="wt-time-field">
-                <span class="wt-time-field__label">종료</span>
-                <button
-                  class="wt-time-field__input"
-                  @click="openTimePicker(day, 'end')"
-                >
-                  {{ formatTime(day.end) }}
-                </button>
+
+              <!-- Time fields (only when enabled) -->
+              <div v-if="day.enabled" class="wt-day-card__times">
+                <div class="wt-time-field">
+                  <span class="wt-time-field__label">시작</span>
+                  <button
+                    class="wt-time-field__input"
+                    @click="openTimePicker(day, 'start')"
+                  >
+                    {{ formatTime(day.start) }}
+                  </button>
+                </div>
+                <span class="wt-day-card__dash">-</span>
+                <div class="wt-time-field">
+                  <span class="wt-time-field__label">종료</span>
+                  <button
+                    class="wt-time-field__input"
+                    @click="openTimePicker(day, 'end')"
+                  >
+                    {{ formatTime(day.end) }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div style="height: 120px;" />
+        <div style="height: 120px;" />
+      </template>
     </div>
 
     <!-- ── Footer ── -->
     <div class="wt-setting__footer">
-      <button class="wt-setting__submit" @click="handleSave" :disabled="loading">
+      <button class="wt-setting__submit" @click="handleSave" :disabled="loading || isInitialLoading">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M17 21V13H7V21M7 3V8H15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        {{ loading ? '저장 중...' : '일정 업데이트' }}
+        {{ loading && !isInitialLoading ? '저장 중...' : '일정 업데이트' }}
       </button>
     </div>
 
@@ -125,6 +140,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
 import AppToast from '@/components/AppToast.vue'
 import { useWorkHours } from '@/composables/useWorkHours'
@@ -143,6 +159,7 @@ const unitOptions = [
 // ── Toast ──
 const showToast = ref(false)
 const toastMessage = ref('')
+const isInitialLoading = ref(true)
 
 // ── 시간 포맷 (24h → 12h AM/PM) ──
 function formatTime(hhmm) {
@@ -174,6 +191,10 @@ function confirmTime() {
 
 // ── 저장 ──
 async function handleSave() {
+  if (isInitialLoading.value) {
+    return
+  }
+
   const success = await saveWorkHours(days.value, selectedUnit.value)
   if (success) {
     toastMessage.value = '근무시간이 저장되었습니다.'
@@ -186,7 +207,11 @@ async function handleSave() {
 
 // ── 초기화: 기존 근무시간 설정 로드 ──
 onMounted(async () => {
-  await fetchWorkHours()
+  try {
+    await fetchWorkHours()
+  } finally {
+    isInitialLoading.value = false
+  }
 })
 </script>
 
