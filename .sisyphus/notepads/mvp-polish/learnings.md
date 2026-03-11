@@ -404,3 +404,29 @@ SVG 내에 여러 색상이 있는 경우:
 - CSS 파일 21개 + Vue 파일 2개 = **23개 파일** 수정
 - `replaceAll: true` 사용 파일: TrainerHomeView, SettingsView, TrainerMemberDetailView, MemberHomeView
 - 빌드: exit code 0 ✓
+
+## [2026-03-11] Task 16: fetchConversations 페이지네이션 개선
+- `fetchConversations()`는 대화 목록 1회 로딩 시 `messages` 최신 500건을 조회한 뒤 클라이언트에서 `Map` 그룹화로 최근 메시지/unreadCount를 계산하고 있었다.
+- 스키마 인덱스(`idx_messages_participants`, `idx_messages_receiver_unread`) 기준에서 `sender_id OR receiver_id` 패턴은 데이터 증가 시 과조회 비용이 커질 수 있어, 네트워크/JS 처리량이 병목 지점이다.
+- 옵션 비교 결과: A(RPC 그룹화)는 구조적으로 가장 좋지만 스키마/RLS/검증 범위가 커서 이번 작업 범위를 초과, C(무한 스크롤)는 목록 요약 문제에 과한 복잡도였다.
+- 실용 최적안으로 B를 선택해 `src/composables/useChat.js`에서 대화 목록 조회 상한을 `500 -> 100`으로 축소하고 상수(`CONVERSATION_FETCH_LIMIT`)로 분리했다.
+- 트레이드오프: unreadCount는 원래도 제한된 샘플 기반이었고, 이번 변경으로 상한이 더 낮아진 대신 초기 로드 비용과 payload를 즉시 줄였다.
+
+## [2026-03-11] Task 15: 핵심 E2E 시나리오 5개 스펙 파일 작성
+
+### 생성 파일 (tests/e2e/)
+- `login-flow.spec.js` — 9개 테스트: 이메일 로그인 페이지 UI 검증 (public 라우트)
+- `trainer-home.spec.js` — 5개 테스트: 비인증 접근 시 /login 리다이렉트 검증
+- `member-home.spec.js` — 5개 테스트: 비인증 접근 시 /login 리다이렉트 검증
+- `navigation.spec.js` — 7개 테스트: 라우팅 동작 검증 (루트→로그인, /dev-login→/email-login 등)
+- `chat-flow.spec.js` — 5개 테스트: 채팅 페이지 비인증 접근 시 /login 리다이렉트 검증
+
+### 핵심 발견
+- `input[type="email"]`의 브라우저 네이티브 검증이 Vue의 `@submit.prevent` 이전에 동작
+  - "잘못된 이메일 형식" 테스트는 form submit 자체가 막혀 Vue 핸들러가 실행되지 않음
+  - 해결: 유효한 이메일 + 짧은 비밀번호로 Vue 커스텀 검증을 우회 없이 테스트
+- 보호된 라우트(`/trainer/home`, `/member/home`, etc.) 접근 시 `/login`으로 리다이렉트됨 (router beforeEach 가드)
+- `/dev-login` 경로는 `/email-login`으로 redirect 처리 — 테스트에서 직접 `/email-login` 사용 권장
+
+### 테스트 실행 결과 (login-flow.spec.js)
+- 9 passed (3.1s) — 100% 통과
