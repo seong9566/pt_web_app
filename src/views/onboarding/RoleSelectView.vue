@@ -78,9 +78,11 @@ const errorMsg = ref('')
 onMounted(async () => {
   const pendingCode = localStorage.getItem('pending_invite_code')
   if (pendingCode) {
-    await saveRole(auth.user.id, 'member')
-    auth.setRole('member')
-    router.replace('/onboarding/member-profile')
+    const success = await saveRole(auth.user.id, 'member')
+    if (success) {
+      auth.setRole('member')
+      router.replace('/onboarding/member-profile')
+    }
   }
 })
 
