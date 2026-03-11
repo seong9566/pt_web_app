@@ -183,6 +183,8 @@
       @click="handleDeleteAccount"
     >{{ deleting ? '삭제 중...' : '삭제' }}</button>
   </AppBottomSheet>
+
+  <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
 </template>
 
 <script setup>
@@ -195,8 +197,12 @@ import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { useReservations } from '@/composables/useReservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
+import { useReservationsStore } from '@/stores/reservations'
+import { useChatBadgeStore } from '@/stores/chatBadge'
+import { useToast } from '@/composables/useToast'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppToast from '@/components/AppToast.vue'
 import '@/views/trainer/SettingsView.css'
 
 const router = useRouter()
@@ -205,6 +211,9 @@ const { disconnectTrainer, softDeleteAccount, fetchConnectedTrainerName } = useP
 const { remainingCount, totalCount, fetchMemberOwnPtCount } = usePtSessions()
 const { checkTrainerConnection } = useReservations()
 const ptSessionsStore = usePtSessionsStore()
+const reservationsStore = useReservationsStore()
+const chatBadgeStore = useChatBadgeStore()
+const { showToast, toastMessage, toastType, showSuccess } = useToast()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
@@ -233,7 +242,7 @@ async function handleRefresh() {
 }
 
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => { if (loaded.value && ptSessionsStore._dirty) loadData() })
+onActivated(() => { if (loaded.value && (ptSessionsStore._dirty || reservationsStore.isStale())) loadData() })
 
 const ptCountPct = computed(() => {
   if (!totalCount.value) return 0
@@ -261,6 +270,10 @@ async function handleDisconnect() {
   const ok = await disconnectTrainer()
   if (ok) {
     showDisconnectSheet.value = false
+    reservationsStore.$reset()
+    ptSessionsStore.$reset()
+    chatBadgeStore.$reset()
+    showSuccess('트레이너 연결이 해제되었습니다')
     await loadData()
   }
 }
