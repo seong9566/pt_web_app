@@ -354,3 +354,28 @@ SVG 내에 여러 색상이 있는 경우:
 14. `src/views/onboarding/RoleSelectView.vue`
 15. `src/components/AppCalendar.vue`
 16. `src/views/trainer/AGENTS.md` — 안티패턴 문서 업데이트 (FIXED 표시)
+
+---
+
+## Task 11: CSS Hard-coded Colors → CSS Variables (2026-03-11)
+
+### 결과
+- 신규 변수 3개 추가: `--color-red-light`, `--color-green-light`, `--color-green-dark`
+- 변환 전: ~83건, 변환 후: 19건 (77% 감소)
+- 빌드: exit code 0 ✓
+
+### 변환 불가 19건 (정당한 유지)
+- linear-gradient 내부 (8건) — 그라디언트 색상은 단일 변수 불가
+- Kakao 브랜드 고정색 #fee500, #3c1e1e (4건) — 브랜드 정체성
+- pending 상태 앰버 배지 #fff8e6/#e89a00 계열 (6건) — max 3 신규 변수 소진
+- warning 앰버 #FFF9E5/#7A5C00/#B88900 (3건) — 동일
+- 오렌지 액센트 #FF9500 (2건) — 해당 변수 없음
+
+### 근사 매핑 사용
+- `#F3F4F6` → `var(--color-gray-100)` (#F2F4F7, 차이 ≤ 2값)
+- `#6B7280` → `var(--color-gray-600)` (#666666, 유사 중간회색)
+- `#D1D5DB` → `var(--color-gray-400)` (#9CA3AF, 비활성 점/막대)
+- `#E5E7EB` → `var(--color-gray-200)` (#EEEEEE, hover 배경)
+- `#d0e8ff`/`#cce4ff`/`#F0F7FF` → `var(--color-blue-light)` (연한 파랑 패밀리)
+- `#FFB340` → `var(--color-yellow)` (pending 점, 동일 의미)
+- `#000000` → `var(--color-gray-900)` (#111111, 카카오 버튼 텍스트)

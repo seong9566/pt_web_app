@@ -13,7 +13,7 @@
 /* ── Error message ── */
 .mem-detail__error {
   padding: 12px 16px;
-  background-color: #FFE5E5;
+  background-color: var(--color-red-light);
   border-left: 4px solid var(--color-red);
   border-radius: var(--radius-small);
   font-size: var(--fs-body2);
@@ -384,7 +384,7 @@
 }
 
 .memo-card__dot--blue { background-color: var(--color-blue-primary); }
-.memo-card__dot--gray { background-color: #D1D5DB; }
+.memo-card__dot--gray { background-color: var(--color-gray-400); }
 
 .memo-card__date {
   font-size: var(--fs-body1);
@@ -426,7 +426,7 @@
 }
 
 .memo-card__delete-btn:active {
-  background-color: #FFE5E5;
+  background-color: var(--color-red-light);
   color: var(--color-red);
 }
 /* Tags row */

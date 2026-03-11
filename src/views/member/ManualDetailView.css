@@ -351,7 +351,7 @@
 }
 
 .manual-detail__action-bar-btn--delete {
-  background-color: #fff0f0;
+  background-color: var(--color-red-light);
   color: var(--color-red);
   flex: 1;
   border: 1.5px solid rgba(220, 38, 38, 0.2);

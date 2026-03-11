@@ -293,7 +293,7 @@
 }
 
 .member-item__status-dot--active   { background-color: var(--color-green); }
-.member-item__status-dot--inactive { background-color: #D1D5DB; }
+.member-item__status-dot--inactive { background-color: var(--color-gray-400); }
 
 /* Info */
 .member-item__info {
@@ -354,7 +354,7 @@
 
 .member-item__bar-fill--blue   { background-color: var(--color-blue-primary); }
 .member-item__bar-fill--orange { background-color: #FF9500; }
-.member-item__bar-fill--gray   { background-color: #D1D5DB; }
+.member-item__bar-fill--gray   { background-color: var(--color-gray-400); }
 
 .member-item__sessions {
   display: flex;
@@ -370,19 +370,19 @@
 
 .member-item__sessions-done--blue   { color: var(--color-blue-primary); }
 .member-item__sessions-done--orange { color: #FF9500; }
-.member-item__sessions-done--gray   { color: #9CA3AF; }
+.member-item__sessions-done--gray   { color: var(--color-gray-400); }
 
 .member-item__sessions-total {
   font-size: var(--fs-caption);
-  color: #9CA3AF;
+  color: var(--color-gray-400);
   line-height: 1;
 }
 
 /* ── Error Message ── */
 .error-message {
   padding: 16px var(--side-margin);
-  background-color: #FEE2E2;
-  border: 1px solid #FECACA;
+  background-color: var(--color-red-light);
+  border: 1px solid var(--color-red-light);
   border-radius: var(--radius-medium);
   color: var(--color-red);
   font-size: var(--fs-body2);

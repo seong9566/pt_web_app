@@ -89,7 +89,7 @@
 .today-workout__profile {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   padding: 16px;
   background-color: var(--color-white);
   border-radius: var(--radius-large);
@@ -388,7 +388,7 @@
   color: var(--color-red);
   margin: 0;
   padding: 8px 12px;
-  background-color: #FFF0EF;
+  background-color: var(--color-red-light);
   border-radius: var(--radius-small);
 }
 
@@ -398,7 +398,7 @@
   font-weight: var(--fw-body1-bold);
   margin: 0;
   padding: 8px 12px;
-  background-color: #F0FFF4;
+  background-color: var(--color-green-light);
   border-radius: var(--radius-small);
 }
 
@@ -472,7 +472,7 @@
 }
 
 .today-workout__history-copy:active {
-  background-color: #cce4ff;
+  background-color: var(--color-blue-light);
 }
 
 .today-workout__history-date {
@@ -576,7 +576,7 @@
 }
 
 .today-workout__history-exercise-add:active:not(:disabled) {
-  background-color: #cce4ff;
+  background-color: var(--color-blue-light);
 }
 
 .today-workout__history-exercise-add:disabled {

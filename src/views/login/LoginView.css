@@ -100,7 +100,7 @@
 
 .login-view__btn--kakao {
   background-color: #fee500;
-  color: #000000;
+  color: var(--color-gray-900);
 }
 
 .login-view__btn--email {
