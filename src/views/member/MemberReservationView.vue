@@ -187,7 +187,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { useWorkHours } from '@/composables/useWorkHours'
@@ -196,7 +195,6 @@ import AppCalendar from '@/components/AppCalendar.vue'
 
 const router = useRouter()
 const route = useRoute()
-const auth = useAuthStore()
 const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
