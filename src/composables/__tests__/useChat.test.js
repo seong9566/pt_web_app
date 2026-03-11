@@ -9,7 +9,6 @@ const mockEnv = vi.hoisted(() => {
 
   return {
     authStore,
-    mockCreateNotification: vi.fn().mockResolvedValue(true),
     supabase: {
       from: vi.fn(),
       storage: {
@@ -27,12 +26,6 @@ vi.mock('@/stores/auth', () => ({
 
 vi.mock('@/lib/supabase', () => ({
   supabase: mockEnv.supabase,
-}))
-
-vi.mock('@/composables/useNotifications', () => ({
-  useNotifications: () => ({
-    createNotification: mockEnv.mockCreateNotification,
-  }),
 }))
 
 function createBuilder() {
@@ -69,8 +62,6 @@ describe('useChat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockEnv.authStore.user = { id: 'user-me' }
-    mockEnv.mockCreateNotification.mockReset()
-    mockEnv.mockCreateNotification.mockResolvedValue(true)
     mockEnv.supabase.from.mockReset()
     mockEnv.supabase.storage.from.mockReset()
     mockEnv.supabase.channel.mockReset()
@@ -395,53 +386,6 @@ describe('useChat', () => {
 
     // 6. 로컬 메시지 is_read 업데이트 확인
     expect(messages.value[0].is_read).toBe(true)
-  })
-
-  it('메시지 전송 성공 후 수신자에게 createNotification을 호출한다', async () => {
-    const query = createBuilder()
-    query.single.mockResolvedValue({
-      data: {
-        id: 20,
-        sender_id: 'user-me',
-        receiver_id: 'partner-1',
-        content: '알림 테스트 메시지',
-      },
-      error: null,
-    })
-    mockEnv.supabase.from.mockReturnValue(query)
-
-    const { sendMessage } = useChat()
-    const result = await sendMessage('partner-1', '알림 테스트 메시지')
-
-    expect(result?.id).toBe(20)
-    expect(mockEnv.mockCreateNotification).toHaveBeenCalledWith(
-      'partner-1',
-      'new_message',
-      '새 메시지',
-      '알림 테스트 메시지',
-      20,
-      'message'
-    )
-  })
-
-  it('알림 생성 실패해도 sendMessage는 메시지를 성공적으로 반환한다', async () => {
-    const query = createBuilder()
-    query.single.mockResolvedValue({
-      data: {
-        id: 21,
-        sender_id: 'user-me',
-        receiver_id: 'partner-1',
-        content: '알림 실패 테스트',
-      },
-      error: null,
-    })
-    mockEnv.supabase.from.mockReturnValue(query)
-    mockEnv.mockCreateNotification.mockRejectedValueOnce(new Error('알림 서버 오류'))
-
-    const { sendMessage } = useChat()
-    const result = await sendMessage('partner-1', '알림 실패 테스트')
-
-    expect(result?.id).toBe(21)
   })
 
   it('파일 업로드 성공 시 chat-files public URL을 반환한다', async () => {

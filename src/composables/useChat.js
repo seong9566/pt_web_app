@@ -9,7 +9,6 @@ import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useChatBadgeStore } from '@/stores/chatBadge'
-import { useNotifications } from '@/composables/useNotifications'
 
 const PAGE_SIZE = 30
 
@@ -261,21 +260,6 @@ export function useChat() {
       if (insertError) throw insertError
 
       messages.value.push(data)
-
-      // 수신자에게 인앱 알림 생성 (실패해도 메시지 전송에 영향 없음)
-      try {
-        const { createNotification } = useNotifications()
-        await createNotification(
-          receiverId,
-          'new_message',
-          '새 메시지',
-          content || '파일을 보냈습니다',
-          data.id,
-          'message'
-        )
-      } catch {
-        // 알림 생성 실패는 무시
-      }
 
       return data
     } catch (e) {
