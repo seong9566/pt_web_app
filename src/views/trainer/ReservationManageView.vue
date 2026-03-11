@@ -254,10 +254,12 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import { useNotifications } from '@/composables/useNotifications'
 
 const router = useRouter()
 const { reservations, loading, error, fetchMyReservations, updateReservationStatus, rejectReservation } = useReservations()
 const reservationsStore = useReservationsStore()
+const { createNotification } = useNotifications()
 
 // ── Filter ──
 const filterChips = [
@@ -333,13 +335,23 @@ function handleReject(item) {
 
 async function confirmReject() {
   if (!rejectTarget.value) return
-  processingId.value = rejectTarget.value.id
+  const item = rejectTarget.value
+  const reason = rejectReason.value.trim()
+  processingId.value = item.id
   try {
-    const success = await rejectReservation(rejectTarget.value.id, rejectReason.value.trim())
+    const success = await rejectReservation(item.id, reason)
     showRejectDialog.value = false
     rejectTarget.value = null
     rejectReason.value = ''
     if (success) {
+      await createNotification(
+        item.member_id,
+        'reservation_rejected',
+        '예약이 거절되었습니다',
+        `${item.date} ${item.start_time} 예약이 거절되었습니다.${reason ? ' 사유: ' + reason : ''}`,
+        item.id,
+        'reservation'
+      )
       reservationsStore.invalidate()
       await fetchMyReservations('trainer')
     }
@@ -380,6 +392,14 @@ async function handleApprove(item) {
   try {
     const success = await updateReservationStatus(item.id, 'approved')
     if (success) {
+      await createNotification(
+        item.member_id,
+        'reservation_approved',
+        '예약이 승인되었습니다',
+        `${item.date} ${item.start_time} 예약이 승인되었습니다.`,
+        item.id,
+        'reservation'
+      )
       reservationsStore.invalidate()
       await fetchMyReservations('trainer')
     }

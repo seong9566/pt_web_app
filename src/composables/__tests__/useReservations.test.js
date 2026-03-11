@@ -75,7 +75,7 @@ describe('useReservations', () => {
       error: null,
     })
     bookedQuery.in.mockResolvedValue({
-      data: [{ start_time: '10:00:00', end_time: '11:00:00' }],
+      data: [{ start_time: '10:00:00', end_time: '11:00:00', status: 'approved' }],
       error: null,
     })
 
@@ -90,9 +90,9 @@ describe('useReservations', () => {
     const result = await fetchAvailableSlots('trainer-1', '2026-03-05')
 
     expect(result.am).toEqual([
-      { label: '09:00', val: '09:00', status: '가능' },
-      { label: '10:00', val: '10:00', status: '마감' },
-      { label: '11:00', val: '11:00', status: '가능' },
+      { label: '09:00', val: '09:00', status: '가능', pendingCount: 0 },
+      { label: '10:00', val: '10:00', status: '마감', pendingCount: 0 },
+      { label: '11:00', val: '11:00', status: '가능', pendingCount: 0 },
     ])
     expect(result.pm).toEqual([])
     expect(result.evening).toEqual([])
@@ -111,5 +111,75 @@ describe('useReservations', () => {
     const result = await fetchAvailableSlots('trainer-1', '2026-03-05')
 
     expect(result).toEqual({ am: [], pm: [], evening: [] })
+  })
+
+  it('pending 예약만 있는 슬롯은 대기중 상태와 pendingCount를 반환한다', async () => {
+    const holidayQuery = createBuilder()
+    const scheduleQuery = createBuilder()
+    const bookedQuery = createBuilder()
+
+    holidayQuery.maybeSingle.mockResolvedValue({ data: null, error: null })
+    scheduleQuery.maybeSingle.mockResolvedValue({
+      data: {
+        start_time: '09:00:00',
+        end_time: '11:00:00',
+        slot_duration_minutes: 60,
+      },
+      error: null,
+    })
+    bookedQuery.in.mockResolvedValue({
+      data: [
+        { start_time: '09:00:00', end_time: '10:00:00', status: 'pending' },
+        { start_time: '09:00:00', end_time: '10:00:00', status: 'pending' },
+      ],
+      error: null,
+    })
+
+    mockEnv.supabase.from.mockImplementation((table) => {
+      if (table === 'trainer_holidays') return holidayQuery
+      if (table === 'work_schedules') return scheduleQuery
+      if (table === 'reservations') return bookedQuery
+      throw new Error(`unexpected table: ${table}`)
+    })
+
+    const { fetchAvailableSlots } = useReservations()
+    const result = await fetchAvailableSlots('trainer-1', '2026-03-05')
+
+    expect(result.am[0]).toMatchObject({
+      val: '09:00',
+      status: '대기중',
+      pendingCount: 2,
+    })
+    expect(result.am[1]).toMatchObject({
+      val: '10:00',
+      status: '가능',
+      pendingCount: 0,
+    })
+  })
+
+  it('createReservation이 Already requested this time slot 에러를 한국어로 변환한다', async () => {
+    mockEnv.supabase.rpc.mockResolvedValue({
+      data: null,
+      error: { message: 'Already requested this time slot' },
+    })
+
+    const { createReservation, error } = useReservations()
+    const result = await createReservation('trainer-1', '2026-03-05', '09:00', 'PT')
+
+    expect(result).toBeNull()
+    expect(error.value).toBe('이미 해당 시간에 예약을 요청하셨습니다.')
+  })
+
+  it('createReservation이 Reservation time slot is already booked 에러를 한국어로 변환한다', async () => {
+    mockEnv.supabase.rpc.mockResolvedValue({
+      data: null,
+      error: { message: 'Reservation time slot is already booked' },
+    })
+
+    const { createReservation, error } = useReservations()
+    const result = await createReservation('trainer-1', '2026-03-05', '09:00', 'PT')
+
+    expect(result).toBeNull()
+    expect(error.value).toBe('해당 시간은 이미 예약이 확정되었습니다. 다른 시간을 선택해주세요.')
   })
 })

@@ -326,3 +326,13 @@
   opacity: 0.9;
   transform: scale(0.98);
 }
+
+.time-slot__status--pending {
+  color: var(--color-yellow);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.time-slot--pending {
+  border: 1px solid var(--color-yellow);
+}

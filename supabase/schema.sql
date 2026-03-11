@@ -97,9 +97,9 @@ create table if not exists public.reservations (
   check (start_time < end_time)
 );
 
-create unique index if not exists reservations_unique_active_slot
+create unique index if not exists reservations_unique_approved_slot
   on public.reservations (trainer_id, date, start_time)
-  where status in ('pending', 'approved');
+  where status = 'approved';
 
 create table if not exists public.memos (
   id uuid primary key default gen_random_uuid(),
@@ -1091,6 +1091,29 @@ begin
     raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
   end if;
 
+  -- approved 슬롯 충돌 확인
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and date = p_date
+      and start_time = p_start_time
+      and status = 'approved'
+  ) then
+    raise exception 'Reservation time slot is already booked';
+  end if;
+
+  -- 동일 회원 중복 pending 확인
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and member_id = v_member_id
+      and date = p_date
+      and start_time = p_start_time
+      and status = 'pending'
+  ) then
+    raise exception 'Already requested this time slot';
+  end if;
+
   insert into public.reservations (
     id,
     trainer_id,
@@ -1181,6 +1204,40 @@ after update on public.reservations
 for each row
 execute function public.auto_deduct_pt_session();
 
+-- 예약 자동 거절 trigger (승인 시 같은 시간대 pending 자동 rejected)
+create or replace function public.auto_reject_competing_reservations()
+returns trigger as $$
+begin
+  if new.status = 'approved' and old.status <> 'approved' then
+    with rejected as (
+      update public.reservations
+      set status = 'rejected',
+          rejection_reason = '다른 회원의 예약이 승인되었습니다',
+          updated_at = now()
+      where trainer_id = new.trainer_id
+        and date = new.date
+        and start_time = new.start_time
+        and id <> new.id
+        and status = 'pending'
+      returning id, member_id
+    )
+    insert into public.notifications (user_id, type, title, body, target_id, target_type)
+    select member_id, 'reservation_rejected',
+           '예약이 자동 거절되었습니다',
+           new.date || ' ' || new.start_time || ' 예약이 다른 회원의 승인으로 인해 자동 거절되었습니다.',
+           id, 'reservation'
+    from rejected;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists trg_auto_reject_competing on public.reservations;
+create trigger trg_auto_reject_competing
+after update on public.reservations
+for each row
+execute function public.auto_reject_competing_reservations();
+
 -- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
 
@@ -1194,6 +1251,12 @@ begin
   update reservations
   set status = 'completed'
   where status = 'approved'
+    and (date + end_time) < (now() at time zone 'Asia/Seoul');
+
+  update reservations
+  set status = 'rejected',
+      rejection_reason = '예약 시간이 경과하여 자동 거절되었습니다'
+  where status = 'pending'
     and (date + end_time) < (now() at time zone 'Asia/Seoul');
 end;
 $$;

@@ -124,30 +124,38 @@ export function useReservations() {
 
       const { data: bookedRows, error: bookedError } = await supabase
         .from('reservations')
-        .select('start_time, end_time')
+        .select('start_time, end_time, status')
         .eq('trainer_id', trainerId)
         .eq('date', dateStr)
         .in('status', ['pending', 'approved'])
 
       if (bookedError) throw bookedError
 
-      const bookedRanges = (bookedRows ?? []).map((row) => ({
-        start: toMinutes(row.start_time),
-        end: toMinutes(row.end_time),
-      }))
-
       const normalized = generatedSlots.map((slot) => {
         const slotStartMinutes = toMinutes(slot.start)
         const slotEndMinutes = toMinutes(slot.end)
 
-        const isBooked = bookedRanges.some(
-          (range) => slotStartMinutes < range.end && range.start < slotEndMinutes
-        )
+        const overlapping = (bookedRows ?? []).filter((row) => {
+          const rStart = toMinutes(row.start_time)
+          const rEnd = toMinutes(row.end_time)
+          return slotStartMinutes < rEnd && rStart < slotEndMinutes
+        })
+
+        const hasApproved = overlapping.some((r) => r.status === 'approved')
+        const pendingCount = overlapping.filter((r) => r.status === 'pending').length
+
+        let status = '가능'
+        if (hasApproved) {
+          status = '마감'
+        } else if (pendingCount > 0) {
+          status = '대기중'
+        }
 
         return {
           label: slot.label,
           val: slot.val,
-          status: isBooked ? '마감' : '가능',
+          status,
+          pendingCount,
         }
       })
 
@@ -197,9 +205,11 @@ export function useReservations() {
       return data
     } catch (e) {
       const ERROR_MESSAGES = {
-        'Reservation time slot is already booked': '해당 시간은 이미 예약되었습니다. 다른 시간을 선택해주세요.',
+        'Reservation time slot is already booked': '해당 시간은 이미 예약이 확정되었습니다. 다른 시간을 선택해주세요.',
+        'Already requested this time slot': '이미 해당 시간에 예약을 요청하셨습니다.',
         'No active trainer-member connection': '트레이너와의 연결이 활성화되지 않았습니다.',
         'End time must be later than start time': '예약 시간이 올바르지 않습니다.',
+        'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.': 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.',
       }
       error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '예약 생성에 실패했습니다'
       return null

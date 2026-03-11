@@ -61,14 +61,15 @@
               class="time-slot"
               :class="{
                 'time-slot--selected': selectedTime === time.val,
-                'time-slot--disabled': time.status === '마감'
+                'time-slot--disabled': time.status === '마감',
+                'time-slot--pending': time.status === '대기중'
               }"
               :disabled="time.status === '마감'"
               @click="selectTime(time.val)"
             >
               <span class="time-slot__time">{{ time.label }}</span>
-              <span class="time-slot__status" :class="`time-slot__status--${time.status === '가능' ? 'available' : 'closed'}`">
-                {{ time.status }}
+              <span class="time-slot__status" :class="slotStatusClass(time)">
+                {{ slotStatusText(time) }}
               </span>
               <div v-if="selectedTime === time.val" class="time-slot__check">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -89,14 +90,15 @@
               class="time-slot"
               :class="{
                 'time-slot--selected': selectedTime === time.val,
-                'time-slot--disabled': time.status === '마감'
+                'time-slot--disabled': time.status === '마감',
+                'time-slot--pending': time.status === '대기중'
               }"
               :disabled="time.status === '마감'"
               @click="selectTime(time.val)"
             >
               <span class="time-slot__time">{{ time.label }}</span>
-              <span class="time-slot__status" :class="`time-slot__status--${time.status === '가능' ? 'available' : 'closed'}`">
-                {{ time.status }}
+              <span class="time-slot__status" :class="slotStatusClass(time)">
+                {{ slotStatusText(time) }}
               </span>
               <div v-if="selectedTime === time.val" class="time-slot__check">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -117,14 +119,15 @@
               class="time-slot"
               :class="{
                 'time-slot--selected': selectedTime === time.val,
-                'time-slot--disabled': time.status === '마감'
+                'time-slot--disabled': time.status === '마감',
+                'time-slot--pending': time.status === '대기중'
               }"
               :disabled="time.status === '마감'"
               @click="selectTime(time.val)"
             >
               <span class="time-slot__time">{{ time.label }}</span>
-              <span class="time-slot__status" :class="`time-slot__status--${time.status === '가능' ? 'available' : 'closed'}`">
-                {{ time.status }}
+              <span class="time-slot__status" :class="slotStatusClass(time)">
+                {{ slotStatusText(time) }}
               </span>
               <div v-if="selectedTime === time.val" class="time-slot__check">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -296,6 +299,18 @@ const disabledDates = computed(() => {
 
 function selectTime(val) {
   selectedTime.value = val
+}
+
+function slotStatusText(time) {
+  if (time.status === '마감') return '마감'
+  if (time.status === '대기중') return `대기중 ${time.pendingCount}건`
+  return '가능'
+}
+
+function slotStatusClass(time) {
+  if (time.status === '마감') return 'time-slot__status--closed'
+  if (time.status === '대기중') return 'time-slot__status--pending'
+  return 'time-slot__status--available'
 }
 
 // Computed properties for time slots
