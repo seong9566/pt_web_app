@@ -1,0 +1,20 @@
+# Task 3 — npm run build 결과
+
+## 명령어
+npm run build
+
+## 결과
+✓ built in 1.36s
+
+## 주요 출력 (이상 없음)
+- 220 modules transformed
+- useReservations-Bn1TXM6M.js: 4.55 kB │ gzip: 2.05 kB
+- CSS/JS 전체 정상 생성
+
+## 경고 (기존 경고, 이번 변경과 무관)
+1. css-syntax-error: --animation-duration-fast: 0.2s (전처리 이슈, 기존 경고)
+2. Dynamic import warning: router/index.js (기존 경고)
+
+## 에러: 없음 ✅
+
+## 결론: npm run build 성공 — Task 3+4 변경사항 이상 없음

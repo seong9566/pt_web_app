@@ -1,0 +1,13 @@
+Task 7: schema.sql Index Update Verification
+==============================================
+
+Command: grep -n "reservations_unique_approved_slot" supabase/schema.sql
+
+Result:
+100:create unique index if not exists reservations_unique_approved_slot
+
+Status: ✅ PASS
+- Old index name "reservations_unique_active_slot" has been replaced
+- New index name "reservations_unique_approved_slot" is present at line 100
+- Index condition changed from "WHERE status IN ('pending', 'approved')" to "WHERE status = 'approved'"
+- This allows multiple pending reservations for the same time slot while preventing duplicate approved reservations

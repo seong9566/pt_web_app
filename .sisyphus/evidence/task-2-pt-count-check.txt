@@ -1,0 +1,21 @@
+Task 2 QA 4 - PT 잔여 횟수 검증 로직 유지 확인
+Project: ajafzzmojhtpczjvovmm
+Trainer: 9ac8d1de-db83-4fa4-a977-3b19946d8ad0
+Member A: 1c156173-717c-4558-8d35-0e89a690ce0b
+
+SQL:
+SELECT coalesce(sum(change_amount), 0) AS remaining
+FROM public.pt_sessions
+WHERE member_id = '1c156173-717c-4558-8d35-0e89a690ce0b'
+  AND trainer_id = '9ac8d1de-db83-4fa4-a977-3b19946d8ad0';
+
+Result:
+remaining = 0
+
+추가 확인:
+SELECT prosrc FROM pg_proc WHERE proname = 'create_reservation';
+- 함수 본문에 "IF v_remaining <= 0 THEN" 및
+  "RAISE EXCEPTION 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';" 존재 확인
+- 함수 본문에 "Already requested this time slot" 문자열 존재 확인
+
+판정: PASS (PT 잔여 횟수 검증 로직 및 신규 중복 pending 검증 로직 유지)

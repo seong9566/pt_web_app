@@ -1,0 +1,7 @@
+72:     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+84:import AppToast from '@/components/AppToast.vue'
+93:const { showToast, toastMessage, toastType, showSuccess } = useToast()
+185:    reservationsStore.invalidate()
+186:    ptSessionsStore.invalidate()
+187:    chatBadgeStore.loadUnreadCount(true)
+188:    showSuccess('트레이너와 연결되었습니다')

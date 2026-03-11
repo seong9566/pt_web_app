@@ -1,0 +1,11 @@
+Found 8 match(es) in 1 file(s)
+
+/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/src/views/member/MemberReservationView.vue
+  71: <span class="time-slot__status" :class="slotStatusClass(time)">
+  72: {{ slotStatusText(time) }}
+  100: <span class="time-slot__status" :class="slotStatusClass(time)">
+  101: {{ slotStatusText(time) }}
+  129: <span class="time-slot__status" :class="slotStatusClass(time)">
+  130: {{ slotStatusText(time) }}
+  304: function slotStatusText(time) {
+  310: function slotStatusClass(time) {

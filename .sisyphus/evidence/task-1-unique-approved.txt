@@ -1,0 +1,15 @@
+Task 1 QA 3 - approved 유니크 인덱스 이중 승인 차단
+Project: ajafzzmojhtpczjvovmm (FitLink)
+Trainer ID: 9ac8d1de-db83-4fa4-a977-3b19946d8ad0
+Member C ID: db0443b1-5d32-442a-b7f5-d5c557662d8a
+Test Slot: 2099-04-15 10:00-11:00
+
+pending INSERT 결과:
+- id: b71cbdbf-6428-4ba0-bd85-d21b81159a2a
+- status: pending
+
+approved UPDATE 시도 결과:
+- ERROR: duplicate key value violates unique constraint "reservations_unique_approved_slot"
+- DETAIL: Key (trainer_id, date, start_time)=(9ac8d1de-db83-4fa4-a977-3b19946d8ad0, 2099-04-15, 10:00:00) already exists.
+
+판정: PASS (expected unique_violation)

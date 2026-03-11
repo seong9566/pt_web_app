@@ -1,0 +1,24 @@
+Task 6 — npm run build Evidence
+생성일: 2026-03-11
+
+== 빌드 결과 ==
+> pt-web-app@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 220 modules transformed.
+
+[경고] CSS minification warnings (--animation-duration-fast: 0.2s) — 기존 경고, Task 6 무관
+[경고] router/index.js dynamic import warning — 기존 경고, Task 6 무관
+
+dist/assets/ReservationManageView-k2BrUCVa.js  12.62 kB │ gzip:  3.51 kB
+dist/assets/useNotifications-OHrvlZCS.js        2.21 kB │ gzip:  1.01 kB
+
+✓ built in 1.35s
+
+== 결론 ==
+- 빌드 성공 (에러 없음) ✓
+- ReservationManageView.js 정상 생성 ✓
+- useNotifications.js 번들에 포함 ✓
+- 기존 경고(CSS/router)는 Task 6 변경과 무관한 사전 존재 항목

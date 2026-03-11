@@ -1,6 +1,10 @@
-=== Build Result ===
-dist/assets/SettingsView-sc-6TGUN.js                  12.02 kB │ gzip:  3.88 kB
-dist/assets/ReservationManageView-CC9xOKNF.js         12.23 kB │ gzip:  3.36 kB
-dist/assets/TrainerMemberDetailView-BVq-DzVR.js       14.55 kB │ gzip:  4.32 kB
-dist/assets/index-BUuxGZMg.js                        313.23 kB │ gzip: 98.20 kB
-✓ built in 1.30s
+dist/assets/MemberHomeView-BM1gn--Y.js                11.40 kB │ gzip:  4.11 kB
+dist/assets/TrainerHomeView-Bvs0Z_ES.js               11.65 kB │ gzip:  3.97 kB
+dist/assets/SettingsView-MUO4gGCe.js                  12.02 kB │ gzip:  3.88 kB
+dist/assets/PtCountManageView-BS-ihwqB.js             12.03 kB │ gzip:  3.91 kB
+dist/assets/ReservationManageView-DPg8FX0w.js         12.27 kB │ gzip:  3.37 kB
+dist/assets/MemberChatView-BDTc37kX.js                14.92 kB │ gzip:  4.93 kB
+dist/assets/TrainerMemberDetailView-DnplKrAy.js       15.54 kB │ gzip:  4.51 kB
+dist/assets/TrainerChatView-CLVhMf9n.js               16.26 kB │ gzip:  5.35 kB
+dist/assets/index-DAXhpp-y.js                        313.51 kB │ gzip: 98.27 kB
+✓ built in 1.29s

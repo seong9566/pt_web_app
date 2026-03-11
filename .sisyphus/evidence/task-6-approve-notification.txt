@@ -1,0 +1,39 @@
+Task 6 — handleApprove 알림 추가 Evidence
+생성일: 2026-03-11
+
+== grep 결과 (createNotification + handleApprove 관련) ==
+
+Line 163: <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleApprove(item)">
+Line 262: const { createNotification } = useNotifications()
+Line 390: async function handleApprove(item) {
+Line 395:       await createNotification(
+Line 397:         'reservation_approved',
+
+== 실제 구현 (line 390-409) ==
+
+async function handleApprove(item) {
+  processingId.value = item.id
+  try {
+    const success = await updateReservationStatus(item.id, 'approved')
+    if (success) {
+      await createNotification(
+        item.member_id,
+        'reservation_approved',
+        '예약이 승인되었습니다',
+        `${item.date} ${item.start_time} 예약이 승인되었습니다.`,
+        item.id,
+        'reservation'
+      )
+      reservationsStore.invalidate()
+      await fetchMyReservations('trainer')
+    }
+  } finally {
+    processingId.value = null
+  }
+}
+
+== 검증 ==
+- updateReservationStatus 기존 로직 유지 ✓
+- createNotification 호출: type='reservation_approved' ✓
+- member_id, date, start_time, item.id, 'reservation' 전달 ✓
+- reservationsStore.invalidate() + fetchMyReservations 순서 유지 ✓

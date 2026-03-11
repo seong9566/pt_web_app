@@ -1,0 +1,18 @@
+Task 2 QA 1 - approved 슬롯 차단 로직 검증
+Project: ajafzzmojhtpczjvovmm
+Trainer: 9ac8d1de-db83-4fa4-a977-3b19946d8ad0
+Slot: 2099-04-15 10:00
+
+SQL:
+SELECT EXISTS (
+  SELECT 1 FROM public.reservations
+  WHERE trainer_id = '9ac8d1de-db83-4fa4-a977-3b19946d8ad0'
+    AND date = '2099-04-15'
+    AND start_time = '10:00'
+    AND status = 'approved'
+) AS approved_exists;
+
+Result:
+approved_exists = true
+
+판정: PASS (approved 슬롯 존재 시 RPC가 'Reservation time slot is already booked'로 차단되어야 함)

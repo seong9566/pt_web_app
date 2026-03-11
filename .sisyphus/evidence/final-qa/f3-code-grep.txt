@@ -1,0 +1,63 @@
+====================================================================
+member-connection-refresh 코드 삽입 grep 검증 결과
+실행일시: 2026-03-11
+====================================================================
+
+[1] InviteEnterView.vue — store invalidation + AppToast 확인
+--------------------------------------------------------------------
+파일: src/views/invite/InviteEnterView.vue
+
+Line 72:  <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+Line 84:  import AppToast from '@/components/AppToast.vue'
+Line 93:  const { showToast, toastMessage, toastType, showSuccess } = useToast()
+Line 185: reservationsStore.invalidate()
+Line 186: ptSessionsStore.invalidate()
+Line 187: chatBadgeStore.loadUnreadCount(true)
+Line 188: showSuccess('트레이너와 연결되었습니다')
+
+결과: PASS (7/7 매칭)
+  ✓ reservationsStore.invalidate() — 존재
+  ✓ ptSessionsStore.invalidate() — 존재
+  ✓ chatBadgeStore.loadUnreadCount(true) — 존재
+  ✓ showSuccess() — 존재
+  ✓ AppToast 컴포넌트 — import + 사용 확인
+
+[2] MemberSettingsView.vue — store reset + onActivated 확인
+--------------------------------------------------------------------
+파일: src/views/member/MemberSettingsView.vue
+
+Line 191: import { ref, computed, onMounted, onActivated } from 'vue'
+Line 216: const { showToast, toastMessage, toastType, showSuccess } = useToast()
+Line 245: onActivated(() => { if (loaded.value && (ptSessionsStore._dirty || reservationsStore.isStale())) loadData() })
+Line 273: reservationsStore.$reset()
+Line 274: ptSessionsStore.$reset()
+Line 275: chatBadgeStore.$reset()
+Line 276: showSuccess('트레이너 연결이 해제되었습니다')
+
+결과: PASS (7/7 매칭)
+  ✓ reservationsStore.$reset() — 존재
+  ✓ ptSessionsStore.$reset() — 존재
+  ✓ chatBadgeStore.$reset() — 존재
+  ✓ reservationsStore.isStale() — onActivated 내에서 사용
+  ✓ onActivated() — 등록 및 stale 체크 로직 포함
+  ✓ showSuccess() — 연결 해제 시 토스트 표시
+
+[3] MemberProfileView.vue — store invalidation 확인
+--------------------------------------------------------------------
+파일: src/views/onboarding/MemberProfileView.vue
+
+Line 235: reservationsStore.invalidate()
+Line 236: ptSessionsStore.invalidate()
+Line 237: chatBadgeStore.loadUnreadCount(true)
+
+결과: PASS (3/3 매칭)
+  ✓ reservationsStore.invalidate() — 존재
+  ✓ ptSessionsStore.invalidate() — 존재
+  ✓ chatBadgeStore.loadUnreadCount(true) — 존재
+
+====================================================================
+종합 결과: PASS
+  - 3개 파일 모두 예상 코드 삽입 위치 확인
+  - store invalidation/reset 패턴 정상 구현
+  - AppToast 컴포넌트 InviteEnterView에 존재
+====================================================================

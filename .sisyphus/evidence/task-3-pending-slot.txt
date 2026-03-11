@@ -1,0 +1,33 @@
+# Task 3 QA — pending 슬롯 → status='대기중' + pendingCount 검증
+
+## 검증 위치
+파일: src/composables/useReservations.js
+위치: fetchAvailableSlots 함수 내 normalized 매핑 (line 134-160)
+
+## 로직 확인
+```js
+const hasApproved = overlapping.some((r) => r.status === 'approved')
+const pendingCount = overlapping.filter((r) => r.status === 'pending').length
+
+let status = '가능'
+if (hasApproved) {
+  status = '마감'
+} else if (pendingCount > 0) {
+  status = '대기중'      // <-- pending만 있으면 '대기중'
+}
+
+return {
+  label: slot.label,
+  val: slot.val,
+  status,
+  pendingCount,          // <-- pending 개수 포함
+}
+```
+
+## 시나리오
+- bookedRows에 해당 슬롯과 겹치는 status='pending' 행이 3개 존재하는 경우
+- hasApproved = false, pendingCount = 3
+- status = '대기중'
+- 반환 객체: { label: '10:00', val: '10:00', status: '대기중', pendingCount: 3 }
+
+## 결론: ✅ pending만 있는 슬롯은 status='대기중' + pendingCount=N 으로 반환됨 (코드 확인)

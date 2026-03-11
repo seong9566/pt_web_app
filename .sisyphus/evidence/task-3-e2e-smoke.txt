@@ -1,0 +1,110 @@
+Task 3: Playwright E2E Infrastructure Setup + Smoke Test + Baseline Screenshots
+================================================================================
+
+EXECUTION DATE: 2026-03-11
+STATUS: ✅ COMPLETED
+
+DELIVERABLES CHECKLIST:
+========================
+
+[✅] playwright.config.js created
+     - baseURL: http://localhost:5173
+     - viewport: 480x844 (mobile)
+     - projects: chromium only
+     - retries: 1
+     - screenshot: only-on-failure
+     - webServer: auto-start npm run dev
+
+[✅] tests/e2e/ directory structure created
+     - tests/e2e/auth.setup.js (authentication helper)
+     - tests/e2e/smoke.spec.js (smoke tests)
+     - tests/e2e/screenshots/ (baseline images)
+
+[✅] tests/e2e/auth.setup.js implemented
+     - Verifies email login page loads
+     - Validates form elements (email, password inputs)
+     - No actual authentication required (page structure only)
+
+[✅] tests/e2e/smoke.spec.js implemented
+     - 8 smoke tests covering:
+       1. Email login page loads
+       2. Email and password input fields visible
+       3. Login and signup tabs display
+       4. Submit button visible
+       5. Baseline screenshot of full page
+       6. Baseline screenshot of form container
+       7. Tab switching functionality
+       8. App branding display
+
+[✅] package.json updated
+     - Added "test:e2e": "npx playwright test" script
+
+[✅] Smoke test execution results
+     - Command: npm run test:e2e
+     - Result: 8 passed (5.4s)
+     - All tests passed successfully
+     - No failures or skips
+
+[✅] Baseline screenshots captured
+     - email-login-baseline.png (53KB)
+     - email-login-form-baseline.png (53KB)
+     - Location: tests/e2e/screenshots/
+
+TECHNICAL DETAILS:
+==================
+
+Installation:
+- @playwright/test: ^1.58.2 (installed via npm)
+- Chromium browser: v145.0.7632.6 (installed via npx playwright install)
+- FFmpeg: v1011 (auto-installed for video recording)
+
+Test Framework:
+- Playwright Test (native test runner)
+- Chromium only (no Firefox/WebKit)
+- Mobile viewport: 480x844px (Pixel 5 device profile)
+- Parallel execution: 6 workers
+- Retry policy: 1 retry on failure
+
+Test Coverage:
+- Page load verification
+- DOM element visibility checks
+- User interaction (tab switching)
+- Screenshot capture for visual regression
+- Text content validation
+
+NOTES:
+======
+
+1. Tests use /email-login route (not /dev-login which redirects)
+2. No actual Supabase credentials required for smoke tests
+3. Tests verify page structure and UI elements only
+4. Real authentication flow will be tested in Task 15 (E2E核心플로우)
+5. Screenshots serve as baseline for future visual regression testing
+6. All tests run in headless mode by default
+7. HTML report generated in playwright-report/ directory
+
+NEXT STEPS:
+===========
+
+- Task 15: Implement full E2E authentication flow tests
+- Add more comprehensive test suites for each feature
+- Integrate E2E tests into CI/CD pipeline
+- Set up visual regression testing with baseline screenshots
+
+COMMAND REFERENCE:
+==================
+
+Run all E2E tests:
+  npm run test:e2e
+
+Run specific test file:
+  npx playwright test tests/e2e/smoke.spec.js
+
+Run in headed mode (see browser):
+  npx playwright test --headed
+
+Run with debug mode:
+  npx playwright test --debug
+
+View HTML report:
+  npx playwright show-report

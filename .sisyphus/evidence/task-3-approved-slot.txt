@@ -1,0 +1,26 @@
+# Task 3 QA — approved 슬롯 → status='마감' 검증
+
+## 검증 위치
+파일: src/composables/useReservations.js
+위치: fetchAvailableSlots 함수 내 normalized 매핑 (line 134-160)
+
+## 로직 확인
+```js
+const hasApproved = overlapping.some((r) => r.status === 'approved')
+const pendingCount = overlapping.filter((r) => r.status === 'pending').length
+
+let status = '가능'
+if (hasApproved) {
+  status = '마감'         // <-- approved 예약이 있으면 '마감'
+} else if (pendingCount > 0) {
+  status = '대기중'
+}
+```
+
+## 시나리오
+- bookedRows에 해당 슬롯과 겹치는 status='approved' 행이 존재하는 경우
+- overlapping 배열에 { status: 'approved', ... } 원소 포함
+- hasApproved = true → status = '마감'
+- 반환 객체: { label, val, status: '마감', pendingCount: 0 (또는 N) }
+
+## 결론: ✅ approved 슬롯은 status='마감'으로 분류됨 (코드 확인)

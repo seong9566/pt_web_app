@@ -1,0 +1,33 @@
+# Task 3 QA — 빈 슬롯 → status='가능' 검증
+
+## 검증 위치
+파일: src/composables/useReservations.js
+위치: fetchAvailableSlots 함수 내 normalized 매핑 (line 134-160)
+
+## 로직 확인
+```js
+const overlapping = (bookedRows ?? []).filter((row) => {
+  const rStart = toMinutes(row.start_time)
+  const rEnd = toMinutes(row.end_time)
+  return slotStartMinutes < rEnd && rStart < slotEndMinutes
+})
+
+const hasApproved = overlapping.some((r) => r.status === 'approved')
+const pendingCount = overlapping.filter((r) => r.status === 'pending').length
+
+let status = '가능'      // <-- 기본값 '가능'
+if (hasApproved) {
+  status = '마감'
+} else if (pendingCount > 0) {
+  status = '대기중'
+}
+```
+
+## 시나리오
+- 해당 슬롯과 겹치는 bookedRows 없음
+- overlapping = [] (빈 배열)
+- hasApproved = false, pendingCount = 0
+- status 는 기본값 '가능' 그대로 유지
+- 반환 객체: { label: '14:00', val: '14:00', status: '가능', pendingCount: 0 }
+
+## 결론: ✅ 예약 없는 슬롯은 status='가능' + pendingCount=0 으로 반환됨 (코드 확인)

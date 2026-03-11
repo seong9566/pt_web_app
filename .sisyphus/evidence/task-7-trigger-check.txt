@@ -1,0 +1,19 @@
+Task 7: schema.sql Trigger Update Verification
+================================================
+
+Command: grep -n "auto_reject_competing_reservations" supabase/schema.sql
+
+Result:
+1208:create or replace function public.auto_reject_competing_reservations()
+1239:execute function public.auto_reject_competing_reservations();
+
+Status: ✅ PASS
+- Function "auto_reject_competing_reservations" added at line 1208
+- Trigger "trg_auto_reject_competing" created at line 1236-1239
+- Function logic:
+  * Triggers on UPDATE of reservations table
+  * When status changes to 'approved' (and was not previously approved)
+  * Automatically rejects all pending reservations for the same trainer/date/start_time
+  * Sets rejection_reason: '다른 회원의 예약이 승인되었습니다'
+  * Creates notifications for rejected members
+- This implements the auto-rejection of competing pending reservations when one is approved

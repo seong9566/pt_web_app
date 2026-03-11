@@ -1,0 +1,25 @@
+Task 7: schema.sql RPC Update Verification
+============================================
+
+Command: grep -n "Already requested this time slot" supabase/schema.sql
+
+Result:
+1114:    raise exception 'Already requested this time slot';
+
+Status: ✅ PASS
+- create_reservation RPC updated with two new validation checks:
+
+1. Approved Slot Conflict Check (lines 1094-1103):
+   - Prevents creating reservation if an approved reservation exists for same trainer/date/start_time
+   - Error: 'Reservation time slot is already booked'
+
+2. Duplicate Pending Check (lines 1105-1115):
+   - Prevents same member from requesting the same time slot twice
+   - Error: 'Already requested this time slot'
+
+- Both checks are placed AFTER PT remaining count validation (line 1085-1092)
+- Both checks are placed BEFORE INSERT statement (line 1117)
+- This ensures:
+  * Only one approved reservation per time slot
+  * Only one pending reservation per member per time slot
+  * Multiple different members can have pending reservations for the same slot
