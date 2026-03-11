@@ -67,20 +67,30 @@
       </button>
       <button v-else class="invite-enter__confirm-btn" :disabled="!verifiedTrainer || isLoading" @click="handleConfirm">
         {{ isLoading ? '연결 중...' : '연결 확정' }}
-      </button>
-    </div>
-  </div>
-</template>
+       </button>
+     </div>
+     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
+   </div>
+ </template>
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
 import { useAuthStore } from '@/stores/auth'
+import { useReservationsStore } from '@/stores/reservations'
+import { usePtSessionsStore } from '@/stores/ptSessions'
+import { useChatBadgeStore } from '@/stores/chatBadge'
+import { useToast } from '@/composables/useToast'
+import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const { validateInviteCode, redeemInviteCode, error: inviteError } = useInvite()
+const reservationsStore = useReservationsStore()
+const ptSessionsStore = usePtSessionsStore()
+const chatBadgeStore = useChatBadgeStore()
+const { showToast, toastMessage, toastType, showSuccess } = useToast()
 
 const codeDigits = ref(['', '', '', '', '', ''])
 const inputRefs = ref([])
@@ -172,7 +182,11 @@ async function handleConfirm() {
     }
 
     await auth.fetchProfile()
-    router.push('/member/home')
+    reservationsStore.invalidate()
+    ptSessionsStore.invalidate()
+    chatBadgeStore.loadUnreadCount(true)
+    showSuccess('트레이너와 연결되었습니다')
+    setTimeout(() => router.push('/member/home'), 300)
   } catch (e) {
     errorMsg.value = e?.message ?? '연결에 실패했습니다. 다시 시도해주세요.'
   } finally {
