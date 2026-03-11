@@ -114,7 +114,6 @@
       <span>등록하기</span>
     </button>
 
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
 
   </div>
 </template>
@@ -126,7 +125,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 import { getYoutubeThumbnailUrl } from '@/utils/youtube'
-import AppToast from '@/components/AppToast.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()

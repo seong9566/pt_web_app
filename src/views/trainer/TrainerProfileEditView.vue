@@ -86,10 +86,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
+import { useToast } from '@/composables/useToast'
 import AppInput from '@/components/AppInput.vue'
 import AppButton from '@/components/AppButton.vue'
 import personIcon from '@/assets/icons/person.svg'
@@ -97,6 +98,7 @@ import personIcon from '@/assets/icons/person.svg'
 const router = useRouter()
 const auth = useAuthStore()
 const { uploading, error: profileError, uploadAvatar, updateProfilePhoto, updateTrainerProfile } = useProfile()
+const { showToast } = useToast()
 
 const fileInput = ref(null)
 const avatarPreview = ref(null)
@@ -156,6 +158,8 @@ async function handleSave() {
     router.back()
   }
 }
+
+watch(profileError, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./TrainerProfileEditView.css" scoped></style>

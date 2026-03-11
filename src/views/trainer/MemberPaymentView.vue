@@ -202,12 +202,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePayments } from '@/composables/usePayments'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -217,6 +218,7 @@ const memberId = route.params.id
 const hasActiveConnection = ref(null)
 
 const { payments, totalAmount, loading, error, fetchPayments, updatePayment, deletePayment } = usePayments()
+const { showToast } = useToast()
 
 // ── 수정 폼 ──
 const showEditSheet = ref(false)
@@ -290,6 +292,8 @@ function goToWrite() {
   if (hasActiveConnection.value !== true) return
   router.push({ name: 'trainer-payment-write', params: { id: memberId } })
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./MemberPaymentView.css" scoped></style>

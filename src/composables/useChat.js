@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 
 const PAGE_SIZE = 30
+const CONVERSATION_FETCH_LIMIT = 100
 
 /** 실시간 채팅 관리 */
 export function useChat() {
@@ -43,7 +44,6 @@ export function useChat() {
         return conversations.value
       }
 
-      // 내가 sender이거나 receiver인 모든 메시지 조회 (최신 500개)
       const { data, error: fetchError } = await supabase
         .from('messages')
         .select(`
@@ -60,7 +60,7 @@ export function useChat() {
         `)
         .or(`sender_id.eq.${me},receiver_id.eq.${me}`)
         .order('created_at', { ascending: false })
-        .limit(500)
+        .limit(CONVERSATION_FETCH_LIMIT)
 
       if (fetchError) throw fetchError
 

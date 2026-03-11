@@ -91,19 +91,19 @@
       <div style="height: calc(var(--nav-height) + 16px);" />
     </div>
 
-    <AppToast v-model="showToast" :message="toastMsg" />
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
+import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppToast from '@/components/AppToast.vue'
 import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
 const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
+const { showToast: showToastGlobal } = useToast()
 
 const toastMsg = ref('')
 const showToast = ref(false)
@@ -143,5 +143,7 @@ onMounted(async () => {
   }
   fetchRecentMembers()
 })
+
+watch(error, (e) => { if (e) showToastGlobal(e, 'error') })
 </script>
 <style src="./InviteManageView.css" scoped></style>

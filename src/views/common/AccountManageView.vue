@@ -124,15 +124,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useProfile } from '@/composables/useProfile'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { error: profileError, updateUserEmail, updateUserPassword } = useProfile()
+const { showToast } = useToast()
 
 const isEmailUser = computed(() => auth.user?.app_metadata?.provider === 'email')
 
@@ -201,6 +203,8 @@ async function handlePasswordChange() {
 
    passwordLoading.value = false
 }
+
+watch(profileError, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./AccountManageView.css" scoped></style>

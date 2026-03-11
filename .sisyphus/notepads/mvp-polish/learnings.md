@@ -440,3 +440,72 @@ SVG 내에 여러 색상이 있는 경우:
 
 ### 테스트 실행 결과 (login-flow.spec.js)
 - 9 passed (3.1s) — 100% 통과
+
+## [2026-03-11] Task 18: per-component AppToast 제거
+- 12개 뷰에서 AppToast import + template 태그 제거 완료
+- useToast() 호출 및 showToast 사용은 유지
+- App.vue의 단일 글로벌 인스턴스가 모든 Toast 처리
+- InviteManageView, WorkTimeSettingView는 useToast() 미사용 (로컬 ref 방식) — import만 제거, 로컬 ref 유지
+- grep -rl 'AppToast' src/views/ | wc -l → 0
+- npm run build: exit code 0
+
+## [2026-03-11] Task 17: 에러 표시 패턴 통일
+
+### 변경 내용 요약
+- **총 26개 파일** 수정 (+ 6개는 이미 처리됨 = 전체 32개 뷰 커버)
+- **그룹 A (2개)**: 이미 `import { useToast }` 있으나 watch 없던 파일 → watch만 추가
+  - ManualRegisterView.vue (`watch(error, ...)`, `showError` 사용)
+  - InviteEnterView.vue (`watch(inviteError, ...)`)
+- **그룹 B (24개)**: useToast 없던 파일 → import + `const { showToast }` + watch 모두 추가
+  - 트레이너 뷰 14개: TrainerScheduleView, TrainerMemberView, TrainerMemberDetailView, TrainerProfileEditView, TrainerProfileView, MemoWriteView, TrainerSearchView, ReservationManageView, MemberPaymentView, PaymentWriteView, TrainerHomeView, PtCountManageView, WorkTimeSettingView, TodayWorkoutView
+  - 회원 뷰 8개: RoleSelectView, MemberProfileView, ManualDetailView, MemberMemoView, MemberReservationView, MemberProfileEditView, MemberPaymentHistoryView, MemberScheduleView
+  - 공통 뷰 2개: AccountManageView, InviteManageView
+
+### 핵심 패턴
+```js
+import { watch } from 'vue'
+import { useToast } from '@/composables/useToast'
+const { showToast } = useToast()
+watch(errorVar, (e) => { if (e) showToast(e, 'error') })
+```
+
+### 주의사항
+- `showToast` 로컬 충돌 파일(WorkTimeSettingView, InviteManageView): `showToast: showToastGlobal`로 별칭
+- TrainerHomeView: reservError, membersError, chatError 세 개 모두 watch
+- TrainerMemberDetailView: error, ptError 두 개 watch
+- 이미 처리된 6개 파일(skip): TrainerChatView, TrainerManualView, NotificationListView, MemberChatView, MemberManualView, MemberWorkoutDetailView
+- MemberHomeView는 watch(reservError, workoutError)가 이미 있어 skip
+- grep 패턴 `watch\(error`는 별칭 변수(reservError 등)를 탐지 못해 수동 확인 필요
+- 멀티라인 destructure는 단일라인 grep으로 탐지 불가 (MemberScheduleView, TodayWorkoutView 등)
+
+### 빌드
+- `npm run build` → **exit code 0** ✓
+- 메인 번들: 315.79 kB (98.82 kB gzip)
+
+## F3: Playwright E2E 테스트 패턴 (2026-03-11)
+
+### 테스트 격리
+- `npx playwright test`는 각 테스트마다 격리된 브라우저 컨텍스트 사용
+- playwright.config.js의 `webServer` 설정으로 dev server 자동 시작 (reuseExistingServer: true)
+- MCP playwright 브라우저는 세션 공유 → 테스트 컨텍스트와 다름
+
+### 검증된 라우터 가드 동작
+- 비인증 → 보호 라우트: `/login`으로 리다이렉트
+- 인증 + 역할 불일치 (member → trainer 라우트): 역할 홈으로 리다이렉트
+- 인증 + 올바른 역할: 정상 접근
+- `/dev-login` → `/email-login` 리다이렉트 존재
+
+### /email-login 페이지 구조
+- `.email-login__back` — 뒤로가기 버튼
+- `.email-login__app-name` — "PT 매니저" 헤딩
+- `.email-login__tab` — 로그인/회원가입 탭 (2개)
+- `#email` — 이메일 입력, type="email"
+- `#password` — 비밀번호 입력, type="password"
+- `.email-login__forgot` — "비밀번호를 잊으셨나요?" 버튼
+- `.email-login__btn--primary` — 제출 버튼
+- `.email-login__error` — 유효성 검사 오류 메시지 영역
+
+## [2026-03-11] F4 Scope Fidelity Learnings
+- F4 1:1 검증은 단순 파일 존재 확인만으로 부족하고, 계획 Acceptance 명령 + 실제 파일 내용(예: AppSkeleton type validator) 교차 확인이 필요하다.
+- Task 11/12는 지시된 최소 명령만 보면 통과처럼 보일 수 있으나, 계획 원문 grep 기준(뷰 CSS hex/px 잔존) 추가 점검에서 미준수(색상 20건, px 다수)가 드러났다.
+- 스코프 검증 시 git status 기반으로 계획 외 파일 변동(.sisyphus/plans/mvp-polish.md 등)을 별도 오염/미계상 항목으로 분리 집계해야 최종 판정 일관성이 유지된다.

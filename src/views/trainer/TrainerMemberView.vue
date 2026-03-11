@@ -232,13 +232,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed, onMounted, onActivated, watch } from 'vue'
 
 defineOptions({ name: 'TrainerMemberView' })
 import { useRouter } from 'vue-router'
 import { useMembers } from '@/composables/useMembers'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
 import { useNotifications } from '@/composables/useNotifications'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 import { useMembersStore } from '@/stores/members'
@@ -248,6 +249,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 const router = useRouter()
 const { members, loading, error, fetchMembers } = useMembers()
 const membersStore = useMembersStore()
+const { showToast } = useToast()
 const { fetchPendingRequests, approveConnection, rejectConnection } = useTrainerSearch()
 
 // ── Tabs ──
@@ -398,6 +400,8 @@ const filteredMembers = computed(() => {
   }
   return list
 })
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./TrainerMemberView.css" scoped></style>

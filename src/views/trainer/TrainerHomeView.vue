@@ -193,6 +193,7 @@ import { useMembers } from '@/composables/useMembers'
 import { useChat } from '@/composables/useChat'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useToast } from '@/composables/useToast'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
@@ -205,6 +206,7 @@ const { members, loading: membersLoading, error: membersError, fetchMembers } = 
 const { conversations, loading: chatLoading, error: chatError, fetchConversations } = useChat()
 const { fetchPendingRequests } = useTrainerSearch()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
+const { showToast } = useToast()
 
 const pendingConnectionCount = ref(0)
 
@@ -321,6 +323,9 @@ async function handleRefresh() {
 }
 
 watch(selectedDate, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
+watch(reservError, (e) => { if (e) showToast(e, 'error') })
+watch(membersError, (e) => { if (e) showToast(e, 'error') })
+watch(chatError, (e) => { if (e) showToast(e, 'error') })
 
 onMounted(() => { if (!loaded.value) loadData() })
 onActivated(() => {

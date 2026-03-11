@@ -184,7 +184,6 @@
     >{{ deleting ? '삭제 중...' : '삭제' }}</button>
   </AppBottomSheet>
 
-  <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
 </template>
 
 <script setup>
@@ -202,7 +201,6 @@ import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useToast } from '@/composables/useToast'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
-import AppToast from '@/components/AppToast.vue'
 import '@/views/trainer/SettingsView.css'
 
 const router = useRouter()

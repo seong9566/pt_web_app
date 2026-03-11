@@ -168,13 +168,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed, onMounted, onActivated, watch } from 'vue'
 
 defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useHolidays } from '@/composables/useHolidays'
 import { useWorkHours } from '@/composables/useWorkHours'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
@@ -186,6 +187,7 @@ const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
 const { fetchWorkingDays } = useWorkHours()
+const { showToast } = useToast()
 
 const loaded = ref(false)
 const workingDays = ref(new Set())
@@ -385,6 +387,8 @@ function goWorkout(session) {
     query: { memberId: session.member_id, date: selectedDateStr.value }
   })
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./TrainerScheduleView.css" scoped></style>

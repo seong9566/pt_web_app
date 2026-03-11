@@ -865,7 +865,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: `src/views/common/*.vue`, `src/views/invite/*.vue`, `src/views/trainer/WorkTimeSettingView.vue`, `src/views/trainer/TrainerSearchView.vue`
   - Pre-commit: `npm run build`
 
-- [ ] 10. SVG 하드코딩 색상 정리
+- [x] 10. SVG 하드코딩 색상 정리
 
   **What to do**:
   - 18개 파일에서 54개 하드코딩된 SVG 색상을 `currentColor` + CSS 변수로 변환
@@ -928,7 +928,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: 18개 뷰/컴포넌트 파일
   - Pre-commit: `npm run build`
 
-- [ ] 11. CSS 하드코딩 색상 정리
+- [x] 11. CSS 하드코딩 색상 정리
 
   **What to do**:
   - CSS 파일(.css, `<style>` 블록) 내 하드코딩된 색상값을 CSS 변수로 변환
@@ -981,7 +981,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: CSS 파일들 + `src/assets/css/global.css`
   - Pre-commit: `npm run build`
 
-- [ ] 12. CSS px → 변수 변환 (제한 범위)
+- [x] 12. CSS px → 변수 변환 (제한 범위)
 
   **What to do**:
   - 기존 CSS 변수로 직접 대체 가능한 하드코딩 px만 변환:
@@ -1039,7 +1039,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: CSS 파일들
   - Pre-commit: `npm run build`
 
-- [ ] 13. 직접 Supabase 호출 정리 (2개 뷰)
+- [x] 13. 직접 Supabase 호출 정리 (2개 뷰)
 
   **What to do**:
   - `MemberProfileView.vue` — 직접 Supabase 호출을 `useProfile` 컴포저블로 이동
@@ -1102,7 +1102,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: `src/views/onboarding/MemberProfileView.vue`, `src/views/common/AccountManageView.vue`, `src/composables/useProfile.js`
   - Pre-commit: `npm test`
 
-- [ ] 14. useConnection 테스트 + 기존 테스트 Edge Case 보강
+- [x] 14. useConnection 테스트 + 기존 테스트 Edge Case 보강
 
   **What to do**:
   - `src/composables/__tests__/useConnection.test.js` 신규 작성
@@ -1172,7 +1172,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: `src/composables/__tests__/useConnection.test.js`, 기존 테스트 파일들
   - Pre-commit: `npm test`
 
-- [ ] 15. E2E 핵심 플로우 테스트 작성
+- [x] 15. E2E 핵심 플로우 테스트 작성
 
   **What to do**:
   - `tests/e2e/` 디렉토리에 5개 핵심 시나리오 작성:
@@ -1242,7 +1242,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: `tests/e2e/*.spec.js`
   - Pre-commit: `npx playwright test`
 
-- [ ] 16. fetchConversations 페이지네이션 개선 검토
+- [x] 16. fetchConversations 페이지네이션 개선 검토
 
   **What to do**:
   - `useChat.js`의 `fetchConversations()` 분석 — 현재 `.limit(500)` 설정
@@ -1312,7 +1312,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: `src/composables/useChat.js`
   - Pre-commit: `npm test`
 
-- [ ] 17. 에러 표시 패턴 통일
+- [x] 17. 에러 표시 패턴 통일
 
   **What to do**:
   - 모든 데이터 fetch 뷰에서 composable의 `error` ref를 글로벌 Toast로 표시하는 패턴 통일
@@ -1373,7 +1373,7 @@ Max Concurrent: 7 (Wave 2)
   - Files: 다수 뷰 파일
   - Pre-commit: `npm run build`
 
-- [ ] 18. 기존 12개 뷰 Toast per-component → 글로벌 전환
+- [x] 18. 기존 12개 뷰 Toast per-component → 글로벌 전환
 
   **What to do**:
   - 기존에 개별 `<AppToast>` 인스턴스를 사용하는 12개 뷰에서:
@@ -1438,19 +1438,19 @@ Max Concurrent: 7 (Wave 2)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Rejection → fix → re-run.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `npm run build` + `npm test`. Review all changed files for: hard-coded hex colors in SVG (should be 0), hard-coded px where CSS vars exist (should be 0), console.log in prod, commented-out code, unused imports. Check no new `as any` or `@ts-ignore`.
   Output: `Build [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
   Start from clean state via EmailLoginView (`/email-login`). Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (skeleton + toast + error display working together). Test edge cases: empty state, invalid input, rapid navigation. Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 

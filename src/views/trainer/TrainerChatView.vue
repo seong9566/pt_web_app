@@ -279,7 +279,6 @@
       </div>
     </div>
 
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
     <AppImageViewer v-model="showImageViewer" :src="viewerImageSrc" />
     <AppVideoViewer v-model="showVideoViewer" :src="viewerVideoSrc" />
     </template>
@@ -293,7 +292,6 @@ import { isActiveConnection } from '@/composables/useConnection'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
 import { useToast } from '@/composables/useToast'
-import AppToast from '@/components/AppToast.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'

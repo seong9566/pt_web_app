@@ -166,15 +166,13 @@
     </div>
 
   </div>
-  <AppToast v-model="showToast" :message="toastMessage" type="error" />
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
-import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -299,6 +297,8 @@ onMounted(async () => {
     }
   }
 })
+
+watch(error, (e) => { if (e) showError(e) })
 </script>
 
 <style src="./ManualRegisterView.css" scoped></style>

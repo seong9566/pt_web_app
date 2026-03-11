@@ -172,9 +172,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useManuals } from '@/composables/useManuals'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { extractYoutubeVideoId } from '@/utils/youtube'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
@@ -186,6 +187,7 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const { currentManual: manual, loading, error, fetchManual, deleteManual } = useManuals()
+const { showToast } = useToast()
 
 const showDeleteDialog = ref(false)
 
@@ -207,6 +209,8 @@ async function confirmDelete() {
 onMounted(() => {
   fetchManual(route.params.id)
 })
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./ManualDetailView.css" scoped></style>

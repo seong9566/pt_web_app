@@ -77,11 +77,10 @@
         {{ isLoading ? '연결 중...' : '연결 확정' }}
        </button>
      </div>
-     <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
    </div>
  </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useInvite } from '@/composables/useInvite'
 import { useAuthStore } from '@/stores/auth'
@@ -90,7 +89,6 @@ import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -202,5 +200,7 @@ async function handleConfirm() {
     isLoading.value = false
   }
 }
+
+watch(inviteError, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./InviteEnterView.css" scoped></style>

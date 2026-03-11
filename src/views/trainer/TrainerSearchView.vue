@@ -59,9 +59,10 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
+import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
@@ -69,6 +70,7 @@ const searchQuery = ref('')
 const requestingId = ref(null)
 
 const { trainers, loading, error, searchTrainers, requestConnection } = useTrainerSearch()
+const { showToast } = useToast()
 
 /** 검색 쿼리 변경 시 debounce 적용하여 검색 */
 let searchTimeout
@@ -97,5 +99,7 @@ async function handleRequestConnection(trainerId) {
 onMounted(() => {
   searchTrainers()
 })
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./TrainerSearchView.css" scoped></style>

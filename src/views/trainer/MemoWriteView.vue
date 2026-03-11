@@ -149,13 +149,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useMemos } from '@/composables/useMemos'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -167,6 +168,7 @@ const isEditMode = computed(() => !!memoId)
 const hasActiveConnection = ref(null)
 
 const { createMemo, updateMemo, fetchMemoById, currentMemo, loading, error } = useMemos()
+const { showToast } = useToast()
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -271,6 +273,8 @@ async function handleSave() {
     if (success) router.back()
   }
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./MemoWriteView.css" scoped></style>

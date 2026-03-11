@@ -260,12 +260,13 @@
 
 <script setup>
 defineOptions({ name: 'TrainerMemberDetailView' })
-import { onMounted, onActivated, ref } from 'vue'
+import { onMounted, onActivated, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { isActiveConnection } from '@/composables/useConnection'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -276,6 +277,7 @@ const auth = useAuthStore()
 const { member, memos, loading, error, fetchMemberDetail, fetchMemos, deleteMemo } = useMemos()
 const { disconnectMember } = useProfile()
 const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
+const { showToast } = useToast()
 
 const showDisconnectSheet = ref(false)
 const showDeleteMemoSheet = ref(false)
@@ -346,6 +348,9 @@ async function confirmDeleteMemo() {
     deleteMemoTarget.value = null
   }
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
+watch(ptError, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./TrainerMemberDetailView.css" scoped></style>

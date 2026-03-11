@@ -276,7 +276,6 @@
     </div>
     </template>
 
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
     <AppImageViewer v-model="showImageViewer" :src="viewerImageSrc" />
     <AppVideoViewer v-model="showVideoViewer" :src="viewerVideoSrc" />
   </div>
@@ -288,7 +287,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
-import AppToast from '@/components/AppToast.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'

@@ -104,10 +104,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePayments } from '@/composables/usePayments'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -117,6 +118,7 @@ const memberId = route.params.id || route.query.memberId
 const hasActiveConnection = ref(null)
 
 const { createPayment, loading, error } = usePayments()
+const { showToast } = useToast()
 
 const amount = ref('')
 const amountError = ref('')
@@ -158,6 +160,8 @@ async function handleSave() {
     router.back()
   }
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./PaymentWriteView.css" scoped></style>

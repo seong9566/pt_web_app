@@ -131,22 +131,22 @@
       <button class="wt-setting__time-confirm" @click="confirmTime">확인</button>
     </AppBottomSheet>
 
-    <AppToast v-model="showToast" :message="toastMessage" type="success" />
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'
-import AppToast from '@/components/AppToast.vue'
 import { useWorkHours } from '@/composables/useWorkHours'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours } = useWorkHours()
+const { showToast: showToastGlobal } = useToast()
 
 // ── 예약 단위 ──
 const unitOptions = [
@@ -213,6 +213,8 @@ onMounted(async () => {
     isInitialLoading.value = false
   }
 })
+
+watch(error, (e) => { if (e) showToastGlobal(e, 'error') })
 </script>
 
 <style src="./WorkTimeSettingView.css" scoped></style>

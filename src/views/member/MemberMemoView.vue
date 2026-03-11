@@ -77,15 +77,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useReservations } from '@/composables/useReservations'
+import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const { memos, loading, error, getMemberMemos } = useMemos()
 const { checkTrainerConnection } = useReservations()
+const { showToast } = useToast()
 const hasActiveConnection = ref(null)
 
 onMounted(async () => {
@@ -96,6 +98,8 @@ onMounted(async () => {
   }
   await getMemberMemos()
 })
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./MemberMemoView.css" scoped></style>

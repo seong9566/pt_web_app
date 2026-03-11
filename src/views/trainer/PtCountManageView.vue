@@ -244,13 +244,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { usePayments } from '@/composables/usePayments'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useMembersStore } from '@/stores/members'
@@ -276,6 +277,7 @@ const {
 } = usePtSessions()
 
 const { createPayment, loading: paymentLoading, error: paymentError } = usePayments()
+const { showToast } = useToast()
 
 // ── 바텀 시트 상태 ──
 const showAddSheet = ref(false)
@@ -427,6 +429,9 @@ function formatDate(dateStr) {
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}.${m}.${d}`
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
+watch(paymentError, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./PtCountManageView.css" scoped></style>

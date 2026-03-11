@@ -101,7 +101,6 @@
     <!-- ── Bottom nav spacer ── -->
     <div style="height: calc(var(--nav-height) + 16px);" />
 
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
 
   </div>
 </template>
@@ -113,7 +112,6 @@ import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 import { getYoutubeThumbnailUrl } from '@/utils/youtube'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const { manuals, loading, fetchManuals, error } = useManuals()

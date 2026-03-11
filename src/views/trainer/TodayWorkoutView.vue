@@ -243,16 +243,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const { showToast } = useToast()
 
 const {
   workoutPlans,
@@ -400,6 +402,8 @@ function formatChipDate(dateStr) {
   const dayName = dayNames[dateObj.getDay()]
   return `${Number(m)}/${Number(d)}(${dayName})`
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./TodayWorkoutView.css" scoped></style>

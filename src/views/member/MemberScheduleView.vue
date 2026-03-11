@@ -289,13 +289,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated } from "vue";
+import { ref, computed, onMounted, onActivated, watch } from "vue";
 
 defineOptions({ name: "MemberScheduleView" });
 import { useRouter } from "vue-router";
 import { useReservations } from "@/composables/useReservations";
 import { useWorkHours } from "@/composables/useWorkHours";
 import { useWorkoutPlans } from "@/composables/useWorkoutPlans";
+import { useToast } from "@/composables/useToast";
 import { useReservationsStore } from "@/stores/reservations";
 import AppPullToRefresh from "@/components/AppPullToRefresh.vue";
 import AppSkeleton from "@/components/AppSkeleton.vue";
@@ -313,6 +314,7 @@ const {
 } = useReservations();
 const { fetchWorkingDays } = useWorkHours();
 const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans();
+const { showToast } = useToast();
 
 // ── Calendar state ──
 const now = new Date();
@@ -561,6 +563,8 @@ async function handleCancel(session) {
     }
   }
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./MemberScheduleView.css" scoped></style>

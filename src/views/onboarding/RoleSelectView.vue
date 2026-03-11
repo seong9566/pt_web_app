@@ -60,16 +60,18 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import ProgressBar from "@/components/ProgressBar.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useProfile } from "@/composables/useProfile";
+import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const auth = useAuthStore();
 const { saveRole, error: roleError, uploading } = useProfile();
+const { showToast } = useToast();
 const selectedRole = ref(null);
 const isLoading = ref(false)
 const errorMsg = ref('')
@@ -108,5 +110,7 @@ async function handleNext() {
   else if (selectedRole.value === 'member')
     router.push('/onboarding/member-profile')
 }
+
+watch(roleError, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./RoleSelectView.css" scoped></style>

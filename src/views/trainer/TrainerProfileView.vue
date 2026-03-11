@@ -58,10 +58,11 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
+import { useToast } from '@/composables/useToast'
 import ProgressBar from '@/components/ProgressBar.vue'
 import AppButton from "@/components/AppButton.vue";
 import AppInput from "@/components/AppInput.vue";
@@ -74,6 +75,7 @@ import sportsIcon from '@/assets/icons/sports.svg'
 const router = useRouter()
 const auth = useAuthStore()
 const { saveTrainerProfile, error: profileError, uploading } = useProfile()
+const { showToast } = useToast()
 
 const name = ref("");
 const isLoading = ref(false)
@@ -133,5 +135,7 @@ async function handleSave() {
   isLoading.value = false
   router.push('/trainer/home')
 }
+
+watch(profileError, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./TrainerProfileView.css" scoped></style>

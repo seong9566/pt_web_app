@@ -256,18 +256,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useNotifications } from '@/composables/useNotifications'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { reservations, loading, error, fetchMyReservations, updateReservationStatus, rejectReservation } = useReservations()
 const reservationsStore = useReservationsStore()
 const { createNotification } = useNotifications()
+const { showToast } = useToast()
 
 // ── Filter ──
 const filterChips = [
@@ -418,6 +420,8 @@ async function handleApprove(item) {
 
 function handleDetail(item) {
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./ReservationManageView.css" scoped></style>

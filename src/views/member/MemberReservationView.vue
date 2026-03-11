@@ -185,12 +185,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useHolidays } from '@/composables/useHolidays'
+import { useToast } from '@/composables/useToast'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
@@ -200,6 +201,7 @@ const { slots, loading, error, fetchAvailableSlots, createReservation, getConnec
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
 const { holidays, fetchHolidays } = useHolidays()
+const { showToast } = useToast()
 
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
 const workingDays = ref(new Set())
@@ -355,6 +357,8 @@ async function submitReservation() {
   }
   // Error message is displayed via error ref in template
 }
+
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./MemberReservationView.css" scoped></style>

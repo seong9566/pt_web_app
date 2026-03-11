@@ -187,7 +187,6 @@
       </template>
     </div>
     </AppPullToRefresh>
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -205,7 +204,6 @@ import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()

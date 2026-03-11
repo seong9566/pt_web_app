@@ -13,3 +13,8 @@
 - NO Auth view (6 files) Supabase direct call cleanup
 - NO reservations Realtime
 - NO external icon libraries
+
+## [2026-03-11] F4 Verdict Decision
+- Scope fidelity 판정 기준은 "계획 Acceptance + 지정 검증 명령 + Must NOT" 3축으로 고정한다.
+- Task 11, Task 12가 계획 수용 기준을 충족하지 못해 전체 F4 판정은 REJECT로 결정한다.
+- 계획 문서 변경 파일은 구현 스코프 외 산출물로 보고 contamination/unaccounted에 별도 반영한다.

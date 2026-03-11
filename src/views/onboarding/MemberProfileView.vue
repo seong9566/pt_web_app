@@ -120,13 +120,14 @@
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import AppInput from "@/components/AppInput.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
+import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useChatBadgeStore } from '@/stores/chatBadge'
@@ -135,6 +136,7 @@ const router = useRouter();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, saveMemberProfileBasic, saveMemberProfileDetails } = useProfile()
 const { redeemInviteCode } = useInvite()
+const { showToast } = useToast()
 const reservationsStore = useReservationsStore()
 const ptSessionsStore = usePtSessionsStore()
 const chatBadgeStore = useChatBadgeStore()
@@ -229,8 +231,10 @@ async function handleComplete() {
      }
      router.push('/member/home')
    } else {
-     router.push('/search')
-   }
+      router.push('/search')
+    }
 }
+
+watch(uploadError, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./MemberProfileView.css" scoped></style>

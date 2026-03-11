@@ -66,7 +66,6 @@
       </div>
     </div>
 
-    <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
   </div>
 </template>
 
@@ -77,7 +76,6 @@ import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
