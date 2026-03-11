@@ -259,7 +259,7 @@
   align-items: center;
   gap: 6px;
   height: 52px;
-  padding: 0 20px;
+  padding: 0 var(--side-margin);
   background-color: var(--color-blue-primary);
   color: var(--color-white);
   border: none;

@@ -20,7 +20,7 @@
        <template v-if="loading">
          <AppSkeleton type="rect" height="170px" borderRadius="var(--radius-large)" :count="3" />
        </template>
-       <div v-else-if="trainers.length === 0" style="padding: 20px; text-align: center; color: var(--color-gray-600);">
+       <div v-else-if="trainers.length === 0" style="padding: var(--side-margin); text-align: center; color: var(--color-gray-600);">
          검색 결과가 없습니다.
        </div>
        <template v-else>

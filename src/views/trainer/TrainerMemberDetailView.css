@@ -208,7 +208,7 @@
 .pt-count-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   background-color: var(--color-white);
   border: 1.5px solid var(--color-gray-200);
   border-radius: var(--radius-large);
@@ -259,7 +259,7 @@
 .quick-action {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   width: 100%;
   padding: 14px 16px;
   background-color: var(--color-white);

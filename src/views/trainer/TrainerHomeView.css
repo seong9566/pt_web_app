@@ -103,7 +103,7 @@
 .trainer-home__action-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   background: linear-gradient(135deg, var(--color-blue-primary) 0%, #3d9aff 100%);
   color: var(--color-white);
   padding: 16px 18px;
@@ -272,7 +272,7 @@
 
 .trainer-home__empty--loading {
   align-items: stretch;
-  gap: 14px;
+  gap: var(--spacing-item);
 }
 
 .trainer-home__empty-hint {

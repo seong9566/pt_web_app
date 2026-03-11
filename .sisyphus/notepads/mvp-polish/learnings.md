@@ -379,3 +379,28 @@ SVG 내에 여러 색상이 있는 경우:
 - `#d0e8ff`/`#cce4ff`/`#F0F7FF` → `var(--color-blue-light)` (연한 파랑 패밀리)
 - `#FFB340` → `var(--color-yellow)` (pending 점, 동일 의미)
 - `#000000` → `var(--color-gray-900)` (#111111, 카카오 버튼 텍스트)
+
+## Task 12: CSS Hard-coded px → CSS Variables (2026-03-11)
+
+### 변환 규칙 & 결과
+| 하드코딩 | → 변수 | 변환 건수 |
+|---|---|---|
+| `padding: 20px` (all 4) | `var(--side-margin)` | 7건 (CSS 6 + Vue inline 1) |
+| `padding: 0 20px` (좌우) | `0 var(--side-margin)` | 3건 |
+| `border-radius: 12px` | `var(--radius-medium)` | 2건 |
+| `border-radius: 8px` | `var(--radius-small)` | 2건 |
+| `gap: 28px` | `var(--spacing-section)` | 5건 |
+| `gap: 14px` | `var(--spacing-item)` | 11건 |
+| **합계** | | **~30건** |
+
+### 변환 안 한 패턴 (명확한 이유)
+- `padding: 60px 20px`, `padding: 20px 16px`, `padding: 10px 20px` — 다른 값 혼합, 변수 없음
+- `padding: 20px 0` — 상하만 (의미 맞지 않음)
+- `margin-top/bottom: 20px` — 단방향, 변수 의미 부적합
+- `border-radius: 18px / 26px / 28px / 50%` — 대응 변수 없음
+- `border-radius: 8px` (circle badge) — 변환함 (var(--radius-small) = 8px로 동일)
+
+### 적용 범위
+- CSS 파일 21개 + Vue 파일 2개 = **23개 파일** 수정
+- `replaceAll: true` 사용 파일: TrainerHomeView, SettingsView, TrainerMemberDetailView, MemberHomeView
+- 빌드: exit code 0 ✓

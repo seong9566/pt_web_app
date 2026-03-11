@@ -170,7 +170,7 @@
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
   padding: 4px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-medium);
 }
 
 .member-home__pt-time-row {
@@ -303,7 +303,7 @@
 .member-home__goal-card {
   background: linear-gradient(145deg, #111827 0%, #1c2535 60%, #0d1520 100%);
   border-radius: var(--radius-large);
-  padding: 20px;
+  padding: var(--side-margin);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -322,7 +322,7 @@
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-medium);
   margin-bottom: 10px;
   border: 1px solid rgba(52, 199, 89, 0.35);
 }

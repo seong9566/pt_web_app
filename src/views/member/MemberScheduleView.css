@@ -501,7 +501,7 @@
   right: var(--side-margin);
   bottom: calc(var(--nav-height) + 16px + env(safe-area-inset-bottom));
   height: 56px;
-  padding: 0 20px;
+  padding: 0 var(--side-margin);
   border-radius: 28px;
   background-color: var(--color-blue-primary);
   color: var(--color-white);

@@ -151,7 +151,7 @@ function isActive(item) {
   height: 16px;
   background-color: var(--color-red);
   color: var(--color-white);
-  border-radius: 8px;
+  border-radius: var(--radius-small);
   font-size: 10px;
   font-weight: 700;
   display: flex;

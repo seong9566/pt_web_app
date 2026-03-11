@@ -1,0 +1,78 @@
+# Task 12 — CSS px 하드코딩 → CSS 변수 변환
+
+**날짜:** 2026-03-11
+**빌드 결과:** ✅ exit code 0
+
+---
+
+## 변환 규칙
+
+| 하드코딩 값 | 적용 CSS 변수 |
+|---|---|
+| `padding: 20px` (all 4 sides) | `var(--side-margin)` |
+| `padding: 0 20px` (좌우만) | `0 var(--side-margin)` |
+| `border-radius: 16px` | `var(--radius-large)` |
+| `border-radius: 12px` | `var(--radius-medium)` |
+| `border-radius: 8px` | `var(--radius-small)` |
+| `gap: 28px` | `var(--spacing-section)` |
+| `gap: 14px` | `var(--spacing-item)` |
+
+---
+
+## 변환된 파일 목록
+
+### gap: 28px → var(--spacing-section) (5개)
+- src/views/member/MemberProfileEditView.css (line 45)
+- src/views/invite/InviteEnterView.css (line 46)
+- src/views/trainer/TrainerProfileEditView.css (line 45)
+- src/views/trainer/TrainerProfileView.css (line 43)
+- src/views/onboarding/MemberProfileView.css (line 44)
+
+### gap: 14px → var(--spacing-item) (11개)
+- src/views/invite/InviteEnterView.css (line 162)
+- src/views/common/AccountManageView.css (line 43)
+- src/views/trainer/TodayWorkoutView.css (line 92)
+- src/views/trainer/TrainerHomeView.css (lines 106, 275) — replaceAll
+- src/views/trainer/SettingsView.css (lines 42, 131) — replaceAll
+- src/views/trainer/ReservationManageView.css (line 185)
+- src/views/trainer/MemberPaymentView.css (line 212)
+- src/views/trainer/TrainerMemberDetailView.css (lines 211, 262) — replaceAll
+
+### border-radius: 12px → var(--radius-medium) (2개)
+- src/views/member/MemberHomeView.css (lines 173, 325) — replaceAll
+
+### border-radius: 8px → var(--radius-small) (2개)
+- src/components/BottomNav.vue (line 154)
+- src/components/TrainerBottomNav.vue (line 148)
+
+### padding: 0 20px → 0 var(--side-margin) (3개)
+- src/views/member/MemberScheduleView.css (line 504)
+- src/views/trainer/TrainerManualView.css (line 262)
+- src/views/trainer/ReservationManageView.css (line 524)
+
+### padding: 20px → var(--side-margin) (7개)
+- src/views/member/MemberHomeView.css (line 306)
+- src/views/invite/InviteManageView.css (line 185)
+- src/views/login/PasswordUpdateView.css (line 99)
+- src/views/login/PasswordResetView.css (line 112)
+- src/views/trainer/TrainerProfileReadOnlyView.css (line 61)
+- src/views/onboarding/RoleSelectView.css (line 71)
+- src/views/trainer/TrainerSearchView.vue (line 23 — inline style)
+
+---
+
+## 변환하지 않은 패턴 (이유)
+
+- `padding: 60px 20px` — 60px은 변수 없음 (고유 여백)
+- `padding: 20px 16px` — 16px은 변수 없음 (mixed)
+- `padding: 10px 20px` — 10px은 변수 없음
+- `padding: 20px 0` — 상하 패딩 패턴 (좌우 0)
+- `margin-top: 20px`, `margin-bottom: 20px` — 단방향 마진 (변수 의미 부적합)
+- `border-radius: 18px`, `border-radius: 26px`, `border-radius: 28px` — 대응 변수 없음
+- `border-radius: 50%` — circle 패턴 (컴포넌트 고유)
+
+---
+
+## 총계
+- **변환된 occurrences:** ~30개
+- **변환된 파일:** 23개 (CSS 파일 21개 + Vue 파일 2개)

@@ -39,7 +39,7 @@
 .settings__profile {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   padding: 20px 16px;
   margin-top: 20px;
   background-color: var(--color-white);
@@ -128,7 +128,7 @@
 .settings__row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--spacing-item);
   width: 100%;
   padding: 16px;
   background: none;

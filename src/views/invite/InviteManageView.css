@@ -182,7 +182,7 @@
 .invite-manage__members {
   background-color: var(--color-white);
   border-radius: var(--radius-large);
-  padding: 20px;
+  padding: var(--side-margin);
   box-shadow: var(--shadow-card);
 }
 
