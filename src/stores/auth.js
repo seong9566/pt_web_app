@@ -238,6 +238,9 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (e) {
       error.value = e?.message ?? 'Sign out failed'
     } finally {
+      // Auth 구독 해제
+      _authSubscription?.unsubscribe()
+      _authSubscription = null
       resetAuthState()
       loading.value = false
     }
