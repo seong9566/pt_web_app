@@ -161,4 +161,18 @@ describe('useWorkoutPlans', () => {
     expect(workoutPlans.value).toHaveLength(1)
     expect(workoutPlans.value[0].id).toBe('wp2')
   })
+
+  it('deleteWorkoutPlan DB 오류 시 false를 반환하고 workoutPlans를 변경하지 않는다', async () => {
+    const builder = createBuilder()
+    builder.eq.mockResolvedValue({ error: { message: '삭제 실패' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { workoutPlans, deleteWorkoutPlan, error } = useWorkoutPlans()
+    workoutPlans.value = [{ id: 'wp1' }, { id: 'wp2' }]
+    const result = await deleteWorkoutPlan('wp1')
+
+    expect(result).toBe(false)
+    expect(error.value).toBe('삭제 실패')
+    expect(workoutPlans.value).toHaveLength(2)
+  })
 })

@@ -111,4 +111,18 @@ describe('useHolidays', () => {
     expect(isHoliday('2026-03-10')).toBe(true)
     expect(isHoliday('2026-03-11')).toBe(false)
   })
+
+  it('setHoliday DB 오류 시 false를 반환하고 error를 설정하며 holidays에 추가하지 않는다', async () => {
+    const builder = createBuilder()
+    builder.insert.mockResolvedValue({ error: { message: '휴무일 설정에 실패했습니다' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { holidays, setHoliday, error } = useHolidays()
+    holidays.value = []
+    const result = await setHoliday('2026-03-10')
+
+    expect(result).toBe(false)
+    expect(error.value).toBe('휴무일 설정에 실패했습니다')
+    expect(holidays.value).toHaveLength(0)
+  })
 })

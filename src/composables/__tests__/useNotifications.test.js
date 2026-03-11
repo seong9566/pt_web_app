@@ -81,6 +81,18 @@ describe('useNotifications', () => {
     })
   })
 
+  it('fetchNotifications 빈 결과 시 notifications가 빈 배열이고 unreadCount가 0이다', async () => {
+    const query = createBuilder()
+    query.order.mockResolvedValue({ data: [], error: null })
+    mockEnv.supabase.from.mockReturnValue(query)
+
+    const { fetchNotifications, notifications, unreadCount } = useNotifications()
+    await fetchNotifications()
+
+    expect(notifications.value).toHaveLength(0)
+    expect(unreadCount.value).toBe(0)
+  })
+
   it('개별 읽음 처리 후 로컬 unreadCount를 갱신한다', async () => {
     const fetchQuery = createBuilder()
     const readQuery = createBuilder()

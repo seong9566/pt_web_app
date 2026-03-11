@@ -138,4 +138,29 @@ describe('useMemos', () => {
     expect(result).toBe(false)
     expect(error.value).toBe('수정 실패')
   })
+
+  it('fetchMemos DB 오류 시 error를 설정하고 memos가 빈 배열을 유지한다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({ data: null, error: { message: '조회 실패' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchMemos, memos, error } = useMemos()
+    await fetchMemos('member-1')
+
+    expect(error.value).toBe('조회 실패')
+    expect(memos.value).toEqual([])
+  })
+
+  it('deleteMemo DB 오류 시 error를 설정하고 memos 목록을 변경하지 않는다', async () => {
+    const builder = createBuilder()
+    builder.eq.mockResolvedValue({ error: { message: '삭제 실패' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { memos, deleteMemo, error } = useMemos()
+    memos.value = [{ id: 'm1' }, { id: 'm2' }]
+    await deleteMemo('m1')
+
+    expect(error.value).toBe('삭제 실패')
+    expect(memos.value).toHaveLength(2)
+  })
 })

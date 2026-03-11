@@ -88,4 +88,17 @@ describe('useWorkHours', () => {
       { onConflict: 'trainer_id,day_of_week' }
     )
   })
+
+  it('saveWorkHours DB 오류 시 false를 반환하고 error를 설정한다', async () => {
+    const builder = createBuilder()
+    builder.upsert.mockResolvedValue({ error: { message: '저장에 실패했습니다' } })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { saveWorkHours, error } = useWorkHours()
+    const daysList = [{ id: 'mon', label: '월요일', enabled: true, start: '09:00', end: '18:00' }]
+    const result = await saveWorkHours(daysList, 60)
+
+    expect(result).toBe(false)
+    expect(error.value).toBe('저장에 실패했습니다')
+  })
 })

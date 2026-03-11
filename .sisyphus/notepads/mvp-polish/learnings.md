@@ -17,7 +17,17 @@
 ## Existing Infrastructure
 - AppToast + useToast: already 12 views use per-component pattern
 - chatBadge.js: Realtime subscription pattern (subscribe/unsubscribe)
-- 15/16 composable tests exist, useConnection missing
+- 16/16 composable tests now exist (useConnection added in task-14)
+
+## Task 14: useConnection Tests + Edge Case Coverage (2026-03-11)
+- useConnection.js exports standalone async functions (not the standard composable pattern with loading/error refs)
+- For functions ending in `.maybeSingle()`: just mock `builder.maybeSingle.mockResolvedValue(...)`
+- For functions ending in `.eq()` (no maybeSingle): need `builder.eq.mockReturnValueOnce(builder).mockResolvedValueOnce(...)` for multi-eq chains
+- For functions ending in `.eq()` with single eq after `.or()`: just `builder.eq.mockResolvedValueOnce(...)`
+- useConnection has no authStore dependency — only imports supabase
+- Edge case pattern: DB error → `builder.order.mockResolvedValue({ data: null, error: { message: '...' } })`
+- All composables follow try/catch pattern: error sets `error.value`, returns false on failure
+- Test count: 105 → 133 total (+28 new tests, all passing, 6 pre-existing failures unchanged)
 - EmailLoginView at /email-login for E2E auth bypass
 - Vitest configured, tests in src/composables/__tests__/
 
