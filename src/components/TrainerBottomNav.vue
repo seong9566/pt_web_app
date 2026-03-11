@@ -43,10 +43,12 @@ document.addEventListener('visibilitychange', handleVisibilityChange)
 
 onMounted(async () => {
   await chatBadgeStore.loadUnreadCount()
+  chatBadgeStore.subscribe()
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
+  chatBadgeStore.unsubscribe()
 })
 
 const navItems = [

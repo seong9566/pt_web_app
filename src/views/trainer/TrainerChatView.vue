@@ -295,10 +295,12 @@ import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
+import { useChatBadgeStore } from '@/stores/chatBadge'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const chatBadgeStore = useChatBadgeStore()
 const {
   conversations,
   messages,
@@ -395,6 +397,7 @@ async function openChat(conv) {
   selectedPartnerId.value = conv.partnerId
   await fetchMessages(conv.partnerId)
   await markAsRead(conv.partnerId)
+  chatBadgeStore.loadUnreadCount(true)
   subscribeToMessages(conv.partnerId)
   subscribeToReadReceipts(conv.partnerId)
   scrollToBottom()
@@ -574,6 +577,7 @@ onMounted(async () => {
   partnerName.value = '채팅'
   await fetchMessages(partnerId)
   await markAsRead(partnerId)
+  chatBadgeStore.loadUnreadCount(true)
   subscribeToMessages(partnerId)
   subscribeToReadReceipts(partnerId)
   scrollToBottom()
