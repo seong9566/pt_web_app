@@ -6,7 +6,7 @@
       <div class="trainer-home__header-left">
         <div class="trainer-home__avatar">
           <img v-if="auth.profile?.photo_url" :src="auth.profile.photo_url" alt="avatar" class="trainer-home__avatar-img" />
-          <img v-else src="@/assets/icons/person.svg" alt="avatar" />
+          <img v-else src="@/assets/icons/person.svg" alt="avatar" class="trainer-home__default-avatar" />
         </div>
         <div class="trainer-home__greeting">
           <span class="trainer-home__greeting-sub">환영합니다</span>
@@ -120,7 +120,7 @@
               </div>
               <div class="trainer-home__schedule-avatar">
                 <img v-if="reservation.partner_photo" :src="reservation.partner_photo" alt="" />
-                <img v-else src="@/assets/icons/person.svg" alt="" />
+                <img v-else src="@/assets/icons/person.svg" alt="" class="trainer-home__default-avatar" />
               </div>
               <div class="trainer-home__schedule-info">
                 <h3 class="trainer-home__schedule-name">{{ reservation.partner_name }}</h3>
@@ -155,7 +155,7 @@
           >
             <div class="trainer-home__message-avatar">
               <img v-if="conv.partnerPhoto" :src="conv.partnerPhoto" :alt="conv.partnerName" />
-              <img v-else src="@/assets/icons/person.svg" :alt="conv.partnerName" />
+              <img v-else src="@/assets/icons/person.svg" :alt="conv.partnerName" class="trainer-home__default-avatar" />
               <span v-if="conv.unreadCount > 0" class="trainer-home__message-badge">
                 {{ conv.unreadCount > 9 ? '9+' : conv.unreadCount }}
               </span>

@@ -490,3 +490,12 @@
     animation: none;
   }
 }
+
+.trainer-home__avatar img.trainer-home__default-avatar,
+.trainer-home__schedule-avatar img.trainer-home__default-avatar,
+.trainer-home__message-avatar img.trainer-home__default-avatar {
+  width: 55%;
+  height: 55%;
+  object-fit: contain;
+  opacity: 0.8;
+}
