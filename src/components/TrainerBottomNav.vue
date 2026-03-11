@@ -21,6 +21,7 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useChatBadgeStore } from '@/stores/chatBadge'
+import { useNotificationBadgeStore } from '@/stores/notificationBadge'
 
 import IconHome from '@/assets/icons/home.svg'
 import IconMembers from '@/assets/icons/people.svg'
@@ -31,6 +32,7 @@ import IconSettings from '@/assets/icons/setting.svg'
 const router = useRouter()
 const route = useRoute()
 const chatBadgeStore = useChatBadgeStore()
+const notificationBadgeStore = useNotificationBadgeStore()
 const { unreadCount: chatUnreadCount } = storeToRefs(chatBadgeStore)
 
 async function handleVisibilityChange() {
@@ -44,11 +46,14 @@ document.addEventListener('visibilitychange', handleVisibilityChange)
 onMounted(async () => {
   await chatBadgeStore.loadUnreadCount()
   chatBadgeStore.subscribe()
+  await notificationBadgeStore.loadUnreadCount()
+  notificationBadgeStore.subscribe()
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   chatBadgeStore.unsubscribe()
+  notificationBadgeStore.unsubscribe()
 })
 
 const navItems = [

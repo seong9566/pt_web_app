@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/auth'
 export const useNotificationBadgeStore = defineStore('notificationBadge', () => {
   const unreadCount = ref(0)
   const lastFetchedAt = ref(null)
+  let _channel = null
 
   /**
    * notifications 테이블에서 미읽은 알림 개수 조회 (7일 필터 포함)
@@ -44,6 +45,41 @@ export const useNotificationBadgeStore = defineStore('notificationBadge', () => 
   }
 
   /**
+   * Supabase Realtime 구독 — 새 알림 수신 시 unreadCount 즉시 증가
+   * BottomNav 마운트 시 호출. 중복 구독 방지 내장.
+   */
+  function subscribe() {
+    const auth = useAuthStore()
+    if (!auth.user?.id || _channel) return
+
+    _channel = supabase
+      .channel(`notification-badge-${auth.user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${auth.user.id}`,
+        },
+        () => {
+          unreadCount.value += 1
+        }
+      )
+      .subscribe()
+  }
+
+  /**
+   * Realtime 구독 해제
+   */
+  function unsubscribe() {
+    if (_channel) {
+      supabase.removeChannel(_channel)
+      _channel = null
+    }
+  }
+
+  /**
    * 캐시 무효화 — 다음 조회 시 강제 새로고침
    */
   function invalidate() {
@@ -51,17 +87,20 @@ export const useNotificationBadgeStore = defineStore('notificationBadge', () => 
   }
 
   /**
-   * 스토어 상태 초기화
+   * 스토어 상태 초기화 + 구독 해제
    */
   function $reset() {
     unreadCount.value = 0
     lastFetchedAt.value = null
+    unsubscribe()
   }
 
   return {
     unreadCount,
     lastFetchedAt,
     loadUnreadCount,
+    subscribe,
+    unsubscribe,
     invalidate,
     $reset,
   }
