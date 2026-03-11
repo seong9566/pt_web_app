@@ -57,14 +57,14 @@
     <!-- ── Header ── -->
     <div class="reservation__header">
       <button class="reservation__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="reservation__title">예약 관리</h1>
       <button class="reservation__filter" @click="handleFilter">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M4 6H20M7 12H17M10 18H14" stroke="#111111" stroke-width="2" stroke-linecap="round"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
+          <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
     </div>

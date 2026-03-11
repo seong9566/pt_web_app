@@ -1,0 +1,78 @@
+Task 10: SVG 인라인 하드코딩 색상 → currentColor 변환
+=======================================================
+Date: 2026-03-11
+
+## 검증 결과
+
+### grep 검증 (0건 확인)
+Command: grep -rn 'stroke="#\|fill="#' src/views/ src/components/ | grep -v 'fill="none"'
+Result: (출력 없음 - 0건)  ✅
+
+### npm run build
+Result: ✓ built in 1.33s (exit code 0)  ✅
+
+## 변경 파일 목록 (15개 파일)
+
+1. src/assets/css/global.css
+   - --color-gray-400: #9CA3AF 추가
+
+2. src/views/home/HomeView.vue
+   - stroke="#007AFF" × 2 → stroke="currentColor" + SVG style="color: var(--color-blue-primary)"
+
+3. src/views/member/MemberMemoView.vue
+   - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+
+4. src/views/member/MemberScheduleView.vue
+   - stroke="#9CA3AF" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-400)"
+
+5. src/views/invite/InviteEnterView.vue
+   - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+   - fill="#007AFF" × 2 → fill="currentColor" + SVG style="color: var(--color-blue-primary)"
+   - fill="#34C759" × 1 → fill="currentColor" + SVG style="color: var(--color-green)"
+
+6. src/views/login/EmailLoginView.vue
+   - fill="#007AFF" × 5 → fill="currentColor" + SVG style="color: var(--color-blue-primary)"
+
+7. src/views/login/LoginView.vue
+   - fill="#007AFF" × 5 → fill="currentColor" + SVG style="color: var(--color-blue-primary)"
+   - fill="#000000" × 1 → fill="currentColor" + SVG style="color: var(--color-gray-900)"
+   - stroke="#666666" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-600)"
+
+8. src/views/trainer/TrainerMemberView.vue
+   - stroke="#9CA3AF" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-400)"
+
+9. src/views/trainer/ReservationManageView.vue
+   - stroke="#111111" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+
+10. src/views/trainer/MemoWriteView.vue
+    - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+
+11. src/views/trainer/TrainerScheduleView.vue
+    - stroke="#9CA3AF" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-400)"
+
+12. src/views/trainer/WorkTimeSettingView.vue
+    - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+    - stroke="#007AFF" × 5 → stroke="currentColor" + SVG style="color: var(--color-blue-primary)"
+
+13. src/views/trainer/TrainerMemberDetailView.vue
+    - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+    - stroke="#007AFF" × 9 → stroke="currentColor" + SVG style="color: var(--color-blue-primary)"
+
+14. src/views/onboarding/RoleSelectView.vue
+    - stroke="#111111" × 1 → stroke="currentColor" + SVG style="color: var(--color-gray-900)"
+
+15. src/components/AppCalendar.vue
+    - stroke="#9CA3AF" × 2 → stroke="currentColor" + SVG style="color: var(--color-gray-400)"
+
+16. src/views/trainer/AGENTS.md
+    - Anti-pattern 문서 항목 업데이트 (FIXED 표시)
+
+## 색상 매핑
+- #007AFF → var(--color-blue-primary)
+- #111111 → var(--color-gray-900)
+- #9CA3AF → var(--color-gray-400) [신규 추가]
+- #34C759 → var(--color-green)
+- #666666 → var(--color-gray-600)
+- #000000 → var(--color-gray-900) [가장 근접]
+
+## fill="none" 변경 없음 (SVG 배경 표시, 의도적 유지)

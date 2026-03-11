@@ -306,3 +306,51 @@ Added 4 new functions to `src/composables/useProfile.js`:
 - Auth-related views (LoginView, EmailLoginView, DevLoginView, PasswordResetView, PasswordUpdateView, AuthCallbackView) were NOT modified per requirements
 - No new composable files created — all functions added to existing useProfile.js
 - This is a pure refactoring to move Supabase calls to composables layer
+
+## [2026-03-11] Task 10: SVG 인라인 하드코딩 색상 → currentColor 변환
+
+### 변환 전략
+- 인라인 SVG의 `stroke="#XXXXXX"` / `fill="#XXXXXX"` → `stroke="currentColor"` / `fill="currentColor"`
+- 각 SVG 태그에 `style="color: var(--color-xxx)"` 인라인 스타일 추가 (부모에 color 없는 경우)
+- `fill="none"` 는 SVG 배경 없음 표시이므로 **절대 변경 금지**
+
+### 색상 매핑
+| 하드코딩 값 | CSS 변수 | 비고 |
+|------------|---------|------|
+| `#007AFF` | `var(--color-blue-primary)` | 기존 변수 |
+| `#111111` | `var(--color-gray-900)` | 기존 변수 |
+| `#9CA3AF` | `var(--color-gray-400)` | **신규 추가** — global.css에 없던 색상 |
+| `#34C759` | `var(--color-green)` | 기존 변수 |
+| `#666666` | `var(--color-gray-600)` | 기존 변수 |
+| `#000000` | `var(--color-gray-900)` | `#111111`이 가장 근접 |
+
+### 신규 CSS 변수 추가
+- `global.css`에 `--color-gray-400: #9CA3AF;` 추가 (4개 파일에서 공통 사용하는 색상)
+
+### 변환 패턴 (혼합 색상 SVG)
+SVG 내에 여러 색상이 있는 경우:
+- 주요 색상(fill/stroke)에 currentColor 적용
+- 고정 색상(예: `stroke="white"` 체크마크)은 그대로 유지
+- SVG 태그 color를 주요 색상으로 설정
+
+### 검증
+- `grep -rn 'stroke="#\|fill="#' src/views/ src/components/ | grep -v 'fill="none"'` → **0건** ✅
+- `npm run build` → **exit code 0** ✅
+
+### 변경 파일 목록 (15개 파일)
+1. `src/assets/css/global.css` — --color-gray-400 추가
+2. `src/views/home/HomeView.vue`
+3. `src/views/member/MemberMemoView.vue`
+4. `src/views/member/MemberScheduleView.vue`
+5. `src/views/invite/InviteEnterView.vue`
+6. `src/views/login/EmailLoginView.vue`
+7. `src/views/login/LoginView.vue`
+8. `src/views/trainer/TrainerMemberView.vue`
+9. `src/views/trainer/ReservationManageView.vue`
+10. `src/views/trainer/MemoWriteView.vue`
+11. `src/views/trainer/TrainerScheduleView.vue`
+12. `src/views/trainer/WorkTimeSettingView.vue`
+13. `src/views/trainer/TrainerMemberDetailView.vue`
+14. `src/views/onboarding/RoleSelectView.vue`
+15. `src/components/AppCalendar.vue`
+16. `src/views/trainer/AGENTS.md` — 안티패턴 문서 업데이트 (FIXED 표시)

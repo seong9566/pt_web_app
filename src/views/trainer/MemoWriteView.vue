@@ -5,8 +5,8 @@
     <!-- ── Header ── -->
     <div class="memo-write__header">
       <button class="memo-write__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="memo-write__title">{{ isEditMode ? '메모 수정' : '메모 작성' }}</h1>

@@ -4,14 +4,14 @@
     <!-- Month Nav -->
     <div class="app-calendar__nav">
       <button class="app-calendar__arrow" @click="prevMonth">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <span class="app-calendar__month">{{ displayYear }}년 {{ displayMonth }}월</span>
       <button class="app-calendar__arrow" @click="nextMonth">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M9 6L15 12L9 18" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
+          <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
     </div>

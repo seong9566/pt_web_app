@@ -47,6 +47,6 @@ member management, scheduling, reservations, settings, and several mock-data pla
 
 ## Anti-Patterns
 
-- Hard-coded SVG colors (`fill="#9CA3AF"`) in `TrainerScheduleView.vue` — use `currentColor`
+- ~~Hard-coded SVG colors in `TrainerScheduleView.vue`~~ — FIXED: all SVG colors now use `currentColor` + CSS variables
 - 3 TODO comments in `ManualRegisterView.vue` and `SettingsView.vue` (API integration, notifications)
 - Stat card counts (24, 18, 4) in `TrainerMemberView.vue` remain hardcoded — not yet connected to real data

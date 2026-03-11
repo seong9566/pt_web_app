@@ -44,9 +44,9 @@
       <!-- ── Search Bar ── -->
       <div class="member-mgmt__search-wrap">
         <div class="member-mgmt__search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="7" stroke="#9CA3AF" stroke-width="1.8"/>
-            <path d="M16.5 16.5L21 21" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
           <input
             v-model="searchQuery"

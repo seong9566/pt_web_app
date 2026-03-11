@@ -5,8 +5,8 @@
     <!-- ── Header ── -->
     <div class="wt-setting__header">
       <button class="wt-setting__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="wt-setting__title">근무 시간 및 예약 설정</h1>
@@ -35,9 +35,9 @@
         <!-- 예약 단위 -->
         <section class="wt-section">
           <h2 class="wt-section__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="#007AFF" stroke-width="1.8"/>
-              <path d="M12 7V12L15 14" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             예약 단위
           </h2>
@@ -57,10 +57,10 @@
         <!-- 근무 일정 -->
         <section class="wt-section">
           <h2 class="wt-section__title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="4" width="18" height="18" rx="3" stroke="#007AFF" stroke-width="1.8"/>
-              <path d="M3 9H21" stroke="#007AFF" stroke-width="1.8"/>
-              <path d="M8 2V6M16 2V6" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M3 9H21" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
             근무 일정
           </h2>

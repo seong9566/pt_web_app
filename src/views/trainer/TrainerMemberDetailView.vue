@@ -22,8 +22,8 @@
     <!-- ── Header ── -->
     <div class="mem-detail__header">
       <button class="mem-detail__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="mem-detail__title">{{ member?.name || '' }}님 운동 메모</h1>
@@ -70,9 +70,9 @@
         <!-- 운동 목표 -->
         <div class="summary-notice">
           <div class="summary-notice__icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#007AFF" stroke-width="1.8"/>
-              <path d="M12 8v1M12 12v4" stroke="#007AFF" stroke-width="2" stroke-linecap="round"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 8v1M12 12v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
           <p class="summary-notice__text">{{ member?.summary || '목표가 아직 설정되지 않았습니다' }}</p>
@@ -82,11 +82,11 @@
         <div class="summary-cards">
           <div class="summary-card">
             <div class="summary-card__icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="#007AFF" stroke-width="1.8"/>
-                <path d="M12 12L8 12" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M12 7v5" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M12 12 C12 12 7 8 5 12" stroke="#007AFF" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M12 12L8 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M12 7v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M12 12 C12 12 7 8 5 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.3"/>
               </svg>
             </div>
             <span class="summary-card__label">최근 방문</span>
@@ -94,11 +94,11 @@
           </div>
           <div class="summary-card">
             <div class="summary-card__icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="#007AFF" stroke-width="1.8"/>
-                <path d="M3 10H21" stroke="#007AFF" stroke-width="1.8"/>
-                <path d="M8 3V7M16 3V7" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M7.5 14.5L10 17L16.5 13" stroke="#007AFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+                <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M7.5 14.5L10 17L16.5 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
             <span class="summary-card__label">다음 예약</span>

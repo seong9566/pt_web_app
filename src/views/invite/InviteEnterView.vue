@@ -3,7 +3,7 @@
   <div class="invite-enter">
     <div class="invite-enter__header">
       <button class="invite-enter__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="invite-enter__title">초대 코드 입력</h2>
       <div style="width: 40px" />
@@ -54,17 +54,17 @@
       <div v-else-if="verifiedTrainer" class="invite-enter__trainer-card">
         <div class="invite-enter__trainer-avatar">
           <img v-if="verifiedTrainer.trainerPhoto" :src="verifiedTrainer.trainerPhoto" alt="trainer" />
-          <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" fill="#007AFF"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="#007AFF"/>
+          <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
+            <circle cx="12" cy="8" r="4" fill="currentColor"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="currentColor"/>
           </svg>
         </div>
         <div class="invite-enter__trainer-info">
           <p class="invite-enter__trainer-name">{{ verifiedTrainer.trainerName }}</p>
           <p class="invite-enter__trainer-label">담당 트레이너</p>
         </div>
-        <svg class="invite-enter__trainer-check" width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" fill="#34C759"/>
+        <svg class="invite-enter__trainer-check" width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-green)">
+          <circle cx="12" cy="12" r="10" fill="currentColor"/>
           <path d="M8 12l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>

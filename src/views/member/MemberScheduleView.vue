@@ -25,10 +25,10 @@
       <div class="calendar-card">
         <div class="calendar-card__nav">
           <button class="calendar-card__arrow" @click="prevMonth">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#9CA3AF"
+                stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -39,10 +39,10 @@
             >{{ currentYear }}년 {{ currentMonth }}월</span
           >
           <button class="calendar-card__arrow" @click="nextMonth">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
               <path
                 d="M9 6L15 12L9 18"
-                stroke="#9CA3AF"
+                stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"

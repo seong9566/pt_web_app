@@ -8,12 +8,12 @@
 
     <div class="email-login__brand">
       <div class="email-login__icon-box">
-        <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
-          <rect x="6" y="20" width="8" height="8" rx="3" fill="#007AFF"/>
-          <rect x="34" y="20" width="8" height="8" rx="3" fill="#007AFF"/>
-          <rect x="10" y="16" width="6" height="16" rx="2" fill="#007AFF"/>
-          <rect x="32" y="16" width="6" height="16" rx="2" fill="#007AFF"/>
-          <rect x="16" y="22" width="16" height="4" rx="2" fill="#007AFF"/>
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" style="color: var(--color-blue-primary)">
+          <rect x="6" y="20" width="8" height="8" rx="3" fill="currentColor"/>
+          <rect x="34" y="20" width="8" height="8" rx="3" fill="currentColor"/>
+          <rect x="10" y="16" width="6" height="16" rx="2" fill="currentColor"/>
+          <rect x="32" y="16" width="6" height="16" rx="2" fill="currentColor"/>
+          <rect x="16" y="22" width="16" height="4" rx="2" fill="currentColor"/>
         </svg>
       </div>
       <h1 class="email-login__app-name">PT 매니저</h1>
