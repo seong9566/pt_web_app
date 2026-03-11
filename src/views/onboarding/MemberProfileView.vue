@@ -128,11 +128,17 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
+import { useReservationsStore } from '@/stores/reservations'
+import { usePtSessionsStore } from '@/stores/ptSessions'
+import { useChatBadgeStore } from '@/stores/chatBadge'
 import personIcon from '@/assets/icons/person.svg'
 const router = useRouter();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, updateProfilePhoto } = useProfile()
 const { redeemInviteCode } = useInvite()
+const reservationsStore = useReservationsStore()
+const ptSessionsStore = usePtSessionsStore()
+const chatBadgeStore = useChatBadgeStore()
 const fileInput = ref(null)
 const avatarPreview = ref(null)
 const avatarUrl = ref(null)
@@ -224,7 +230,12 @@ async function handleComplete() {
   const pendingCode = localStorage.getItem('pending_invite_code')
   if (pendingCode) {
     const result = await redeemInviteCode(pendingCode)
-    if (result) localStorage.removeItem('pending_invite_code')
+    if (result) {
+      localStorage.removeItem('pending_invite_code')
+      reservationsStore.invalidate()
+      ptSessionsStore.invalidate()
+      chatBadgeStore.loadUnreadCount(true)
+    }
     router.push('/member/home')
   } else {
     router.push('/search')
