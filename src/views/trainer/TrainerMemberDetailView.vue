@@ -12,8 +12,9 @@
       <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    <div v-else-if="hasActiveConnection === null" class="mem-detail__loading-shell">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <template v-else>
@@ -31,8 +32,9 @@
     <!-- 에러 메시지 -->
     <div v-if="error" class="mem-detail__error">{{ error }}</div>
 
-    <div v-if="loading" class="mem-detail__body" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">로딩 중...</p>
+    <div v-if="loading" class="mem-detail__body mem-detail__body--loading">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <div v-else-if="!member" class="mem-detail__body" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
@@ -266,6 +268,7 @@ import { usePtSessions } from '@/composables/usePtSessions'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useAuthStore } from '@/stores/auth'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()

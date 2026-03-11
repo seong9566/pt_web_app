@@ -290,5 +290,72 @@ export function useProfile() {
     return true
   }
 
-  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount, cancelAccountDeletion, fetchConnectedTrainerName }
+  /** 회원 프로필 기본 정보 저장 (이름, 전화번호, 사진) */
+  async function saveMemberProfileBasic(name, phone, photoUrl) {
+    error.value = null
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ name, phone, photo_url: photoUrl || null })
+        .eq('id', auth.user.id)
+
+      if (profileError) throw profileError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '프로필 저장에 실패했습니다.'
+      return false
+    }
+  }
+
+  /** 회원 프로필 상세 정보 저장 (나이, 키, 몸무게, 성별, 목표, 메모) */
+  async function saveMemberProfileDetails(age, height, weight, gender, goals, notes) {
+    error.value = null
+    try {
+      const { error: memberError } = await supabase
+        .from('member_profiles')
+        .upsert({
+          id: auth.user.id,
+          age: parseInt(age) || null,
+          height: parseFloat(height) || null,
+          weight: parseFloat(weight) || null,
+          gender: gender || null,
+          goals: goals,
+          notes: notes,
+        })
+
+      if (memberError) throw memberError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '회원 정보 저장에 실패했습니다.'
+      return false
+    }
+  }
+
+  /** 사용자 이메일 변경 */
+  async function updateUserEmail(newEmail) {
+    error.value = null
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ email: newEmail })
+      if (updateError) throw updateError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '이메일 변경 중 오류가 발생했습니다.'
+      return false
+    }
+  }
+
+  /** 사용자 비밀번호 변경 */
+  async function updateUserPassword(newPassword) {
+    error.value = null
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+      if (updateError) throw updateError
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '비밀번호 변경 중 오류가 발생했습니다.'
+      return false
+    }
+  }
+
+  return { uploading, error, uploadAvatar, updateProfilePhoto, saveTrainerProfile, saveRole, updateTrainerProfile, updateMemberProfile, disconnectMember, disconnectTrainer, softDeleteAccount, cancelAccountDeletion, fetchConnectedTrainerName, saveMemberProfileBasic, saveMemberProfileDetails, updateUserEmail, updateUserPassword }
 }

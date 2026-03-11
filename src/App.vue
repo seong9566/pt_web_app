@@ -9,6 +9,7 @@
       <TrainerBottomNav v-if="auth.role === 'trainer'" />
       <BottomNav v-else-if="auth.role === 'member'" />
     </template>
+    <AppToast />
   </div>
 </template>
 
@@ -16,6 +17,7 @@
 import { useRoute } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import TrainerBottomNav from '@/components/TrainerBottomNav.vue'
+import AppToast from '@/components/AppToast.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()

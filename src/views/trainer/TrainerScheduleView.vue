@@ -109,7 +109,10 @@
 
     <!-- ── Session Cards ── -->
     <div class="schedule-list">
-      <div v-if="sessions.length === 0" class="schedule-list__empty">
+      <div v-if="loading" class="schedule-list__loading">
+        <AppSkeleton type="line" :count="4" />
+      </div>
+      <div v-else-if="sessions.length === 0" class="schedule-list__empty">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/>
           <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"/>
@@ -175,6 +178,7 @@ import { useWorkHours } from '@/composables/useWorkHours'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const auth = useAuthStore()

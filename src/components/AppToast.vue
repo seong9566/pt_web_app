@@ -1,46 +1,23 @@
-<!-- 공통 Toast 컴포넌트. 화면 하단에 메시지를 잠시 표시 후 자동 사라짐 -->
 <template>
   <Teleport to="body">
     <Transition name="app-toast">
-      <div v-if="visible" class="app-toast" :class="typeClass">
-        {{ message }}
+      <div v-if="toastStore.visible" class="app-toast" :class="typeClass">
+        {{ toastStore.message }}
       </div>
     </Transition>
   </Teleport>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { computed } from 'vue'
+import { useToastStore } from '@/stores/toast'
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false },
-  message: { type: String, default: '' },
-  duration: { type: Number, default: 2000 },
-  type: { type: String, default: 'default' }, // 'default' | 'success' | 'error'
-})
-
-const emit = defineEmits(['update:modelValue'])
-
-const visible = ref(false)
-let timer = null
+const toastStore = useToastStore()
 
 const typeClass = computed(() => {
-  if (props.type === 'success') return 'app-toast--success'
-  if (props.type === 'error') return 'app-toast--error'
+  if (toastStore.type === 'success') return 'app-toast--success'
+  if (toastStore.type === 'error') return 'app-toast--error'
   return ''
-})
-
-watch(() => props.modelValue, (val) => {
-  if (val) {
-    visible.value = true
-    clearTimeout(timer)
-    timer = setTimeout(() => {
-      visible.value = false
-      emit('update:modelValue', false)
-    }, props.duration)
-  } else {
-    visible.value = false
-  }
 })
 </script>
 

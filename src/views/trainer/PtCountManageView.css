@@ -155,12 +155,24 @@
   border-bottom: 1px solid var(--color-gray-200);
 }
 
+.pt-count-manage__connection-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-item);
+  padding: 60px var(--side-margin);
+}
+
 .pt-count-manage__history-state {
   font-size: var(--fs-body2);
   color: var(--color-gray-600);
   text-align: center;
   padding: 32px var(--side-margin);
   margin: 0;
+}
+
+.pt-count-manage__history-state--skeleton {
+  text-align: left;
+  padding: 16px var(--side-margin);
 }
 
 .pt-count-manage__history-list {

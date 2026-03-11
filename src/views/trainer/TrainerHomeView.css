@@ -270,6 +270,11 @@
   text-align: center;
 }
 
+.trainer-home__empty--loading {
+  align-items: stretch;
+  gap: 14px;
+}
+
 .trainer-home__empty-hint {
   font-size: var(--fs-caption);
   color: var(--color-gray-600);

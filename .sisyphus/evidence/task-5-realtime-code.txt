@@ -1,0 +1,14 @@
+15:  let _channel = null
+51:  function subscribe() {
+53:    if (!auth.user?.id || _channel) return
+55:    _channel = supabase
+56:      .channel(`notification-badge-${auth.user.id}`)
+60:          event: 'INSERT',
+69:      .subscribe()
+75:  function unsubscribe() {
+76:    if (_channel) {
+77:      supabase.removeChannel(_channel)
+78:      _channel = null
+95:    unsubscribe()
+102:    subscribe,
+103:    unsubscribe,

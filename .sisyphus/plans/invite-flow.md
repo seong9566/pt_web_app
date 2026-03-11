@@ -156,7 +156,7 @@ Max Concurrent: 2 (Waves 1, 2)
 
 ## TODOs
 
-- [ ] 1. 라우터 PUBLIC_ROUTES 추가 + InviteEnterView 미인증 접근 허용
+- [x] 1. 라우터 PUBLIC_ROUTES 추가 + InviteEnterView 미인증 접근 허용
 
   **What to do**:
   - `src/router/index.js`의 `PUBLIC_ROUTES` 배열에 `"/invite/enter"` 추가
@@ -212,7 +212,7 @@ Max Concurrent: 2 (Waves 1, 2)
   - Message: `feat(invite): allow unauthenticated access to invite enter page with deep link support`
   - Files: `src/router/index.js`
 
-- [ ] 2. InviteEnterView — ?code= 쿼리 파라미터 자동 채우기 + 인증 상태별 UI 분기
+- [x] 2. InviteEnterView — ?code= 쿼리 파라미터 자동 채우기 + 인증 상태별 UI 분기
 
   **What to do**:
   - `onMounted`에서 `route.query.code` 읽어서 `codeDigits` 배열에 자동 채우기 (최대 6자)
@@ -298,7 +298,7 @@ Max Concurrent: 2 (Waves 1, 2)
   - Message: `feat(invite): allow unauthenticated access to invite enter page with deep link support`
   - Files: `src/views/invite/InviteEnterView.vue`
 
-- [ ] 3. AuthCallbackView — 초대 코드 감지 + 자동 member 역할 설정 + MemberProfileView 이동
+- [x] 3. AuthCallbackView — 초대 코드 감지 + 자동 member 역할 설정 + MemberProfileView 이동
 
   **What to do**:
   - `handleRedirect(session)` 함수 내에서 `auth.role`이 없을 때(신규 가입) 기존 로직:
@@ -386,7 +386,7 @@ Max Concurrent: 2 (Waves 1, 2)
   - Message: `feat(auth): auto-detect pending invite code on login and set member role`
   - Files: `src/views/auth/AuthCallbackView.vue`
 
-- [ ] 4. EmailLoginView — 초대 코드 감지 + 자동 member 역할 설정 + MemberProfileView 이동
+- [x] 4. EmailLoginView — 초대 코드 감지 + 자동 member 역할 설정 + MemberProfileView 이동
 
   **What to do**:
   - `handleSubmit()` 함수 내 **로그인 성공** 분기(line 158-164)에서:
@@ -471,7 +471,7 @@ Max Concurrent: 2 (Waves 1, 2)
   - Message: `feat(auth): auto-detect pending invite code on login and set member role`
   - Files: `src/views/login/EmailLoginView.vue`
 
-- [ ] 5. MemberProfileView — 프로필 저장 후 자동 connect_via_invite + /member/home 이동
+- [x] 5. MemberProfileView — 프로필 저장 후 자동 connect_via_invite + /member/home 이동
 
   **What to do**:
   - `handleComplete()` 함수의 마지막 부분(line 220-228) 수정:
@@ -564,7 +564,7 @@ Max Concurrent: 2 (Waves 1, 2)
   - Message: `feat(onboarding): auto-connect trainer via invite code after profile completion`
   - Files: `src/views/onboarding/MemberProfileView.vue`
 
-- [ ] 6. RoleSelectView — 초대 코드 존재 시 자동 member 설정 + MemberProfileView 직행
+- [x] 6. RoleSelectView — 초대 코드 존재 시 자동 member 설정 + MemberProfileView 직행
 
   **What to do**:
   - `onMounted`에서 `localStorage.getItem('pending_invite_code')` 확인
@@ -639,15 +639,15 @@ Max Concurrent: 2 (Waves 1, 2)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Rejection → fix → re-run.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `npm run build`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
   Output: `Build [PASS/FAIL] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
   Start from clean state. Execute EVERY QA scenario from EVERY task. Test the 4 main flows end-to-end:
   1. 미인증 + 딥링크 → 이메일 가입 → 프로필 → 연동 → /member/home
   2. 미인증 + 딥링크 → 카카오 가입 → 프로필 → 연동 → /member/home
@@ -656,7 +656,7 @@ Max Concurrent: 2 (Waves 1, 2)
   Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Unaccounted [CLEAN/N files] | VERDICT`
 

@@ -10,6 +10,13 @@
   background-color: var(--color-gray-100);
 }
 
+.today-workout__connection-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-item);
+  padding: 60px var(--side-margin);
+}
+
 /* Header */
 .today-workout__header {
   display: flex;
@@ -87,6 +94,11 @@
   background-color: var(--color-white);
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-card);
+}
+
+.today-workout__profile--loading {
+  align-items: flex-start;
+  gap: var(--spacing-item);
 }
 
 .today-workout__profile-avatar {
@@ -395,6 +407,10 @@
   color: var(--color-gray-600);
   margin: 0;
   padding: 4px 0;
+}
+
+.today-workout__placeholder--skeleton {
+  padding: 0;
 }
 
 .today-workout__empty {

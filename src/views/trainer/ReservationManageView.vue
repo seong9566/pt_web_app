@@ -108,6 +108,11 @@
 
     <!-- ── Body ── -->
     <div class="reservation__body">
+      <div v-if="loading" style="padding-top: 24px;">
+        <AppSkeleton type="line" :count="4" />
+      </div>
+
+      <template v-else>
 
       <!-- 다가오는 요청 (대기중) -->
       <section v-if="pendingList.length" class="reservation__section">
@@ -242,6 +247,8 @@
         <p class="reservation__empty-text">예약 요청이 없습니다</p>
       </div>
 
+      </template>
+
       <div style="height: calc(var(--nav-height) + 16px);" />
     </div>
 
@@ -254,6 +261,7 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useNotifications } from '@/composables/useNotifications'
 
 const router = useRouter()

@@ -128,10 +128,11 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import { supabase } from '@/lib/supabase'
+import { useProfile } from '@/composables/useProfile'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { error: profileError, updateUserEmail, updateUserPassword } = useProfile()
 
 const isEmailUser = computed(() => auth.user?.app_metadata?.provider === 'email')
 
@@ -147,70 +148,58 @@ const passwordError = ref('')
 const passwordSuccess = ref('')
 
 async function handleEmailChange() {
-  emailError.value = ''
-  emailSuccess.value = ''
+   emailError.value = ''
+   emailSuccess.value = ''
 
-  if (!newEmail.value.trim()) {
-    emailError.value = '새 이메일을 입력해주세요.'
-    return
-  }
+   if (!newEmail.value.trim()) {
+     emailError.value = '새 이메일을 입력해주세요.'
+     return
+   }
 
-  emailLoading.value = true
+   emailLoading.value = true
 
-  try {
-    const { error } = await supabase.auth.updateUser({ email: newEmail.value })
+   const success = await updateUserEmail(newEmail.value)
+   if (success) {
+     emailSuccess.value = '확인 이메일을 발송했습니다.'
+     newEmail.value = ''
+   } else {
+     emailError.value = profileError.value || '이메일 변경 중 오류가 발생했습니다.'
+   }
 
-    if (error) {
-      emailError.value = error.message
-      return
-    }
-
-    emailSuccess.value = '확인 이메일을 발송했습니다.'
-    newEmail.value = ''
-  } catch (e) {
-    emailError.value = e.message || '이메일 변경 중 오류가 발생했습니다.'
-  } finally {
-    emailLoading.value = false
-  }
+   emailLoading.value = false
 }
 
 async function handlePasswordChange() {
-  passwordError.value = ''
-  passwordSuccess.value = ''
+   passwordError.value = ''
+   passwordSuccess.value = ''
 
-  if (!newPassword.value) {
-    passwordError.value = '새 비밀번호를 입력해주세요.'
-    return
-  }
+   if (!newPassword.value) {
+     passwordError.value = '새 비밀번호를 입력해주세요.'
+     return
+   }
 
-  if (newPassword.value.length < 6) {
-    passwordError.value = '비밀번호는 6자 이상이어야 합니다.'
-    return
-  }
+   if (newPassword.value.length < 6) {
+     passwordError.value = '비밀번호는 6자 이상이어야 합니다.'
+     return
+   }
 
-  if (newPassword.value !== confirmPassword.value) {
-    passwordError.value = '비밀번호가 일치하지 않습니다.'
-    return
-  }
+   if (newPassword.value !== confirmPassword.value) {
+     passwordError.value = '비밀번호가 일치하지 않습니다.'
+     return
+   }
 
-  passwordLoading.value = true
+   passwordLoading.value = true
 
-  try {
-    const { error } = await supabase.auth.updateUser({ password: newPassword.value })
+   const success = await updateUserPassword(newPassword.value)
+   if (success) {
+     passwordSuccess.value = '비밀번호가 변경되었습니다.'
+     newPassword.value = ''
+     confirmPassword.value = ''
+   } else {
+     passwordError.value = profileError.value || '비밀번호 변경 중 오류가 발생했습니다.'
+   }
 
-    if (error) {
-      passwordError.value = error.message
-      return
-    }
-
-    passwordSuccess.value = '비밀번호가 변경되었습니다.'
-    newPassword.value = ''
-    confirmPassword.value = ''
-  } catch (e) {
-    passwordError.value = e.message || '비밀번호 변경 중 오류가 발생했습니다.'
-  } finally {
-    passwordLoading.value = false
-  }
+   passwordLoading.value = false
 }
 </script>
 

@@ -80,6 +80,18 @@
   gap: 32px;
 }
 
+.mem-detail__loading-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-item);
+  padding: 60px var(--side-margin);
+}
+
+.mem-detail__body--loading {
+  gap: var(--spacing-item);
+  padding-top: 32px;
+}
+
 /* ── Shared section title ── */
 .section-title {
   font-size: var(--fs-display);

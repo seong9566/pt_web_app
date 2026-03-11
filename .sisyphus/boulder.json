@@ -1,10 +1,22 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/invite-flow.md",
-  "started_at": "2026-03-10T06:27:02.546Z",
-  "session_ids": [
-    "ses_329928efcffeY7wf2dZAaCvRXU"
-  ],
-  "plan_name": "invite-flow",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/mvp-polish.md",
+  "started_at": "2026-03-11T05:53:37.104Z",
+  "session_ids": ["ses_3248accd9ffeSgd4V9uLd8ZHlC"],
+  "plan_name": "mvp-polish",
+  "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas",
-  "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app"
+  "completed_plans": [
+    {
+      "plan_name": "invite-flow",
+      "completed_at": "2026-03-11T00:00:00.000Z"
+    },
+    {
+      "plan_name": "member-connection-refresh",
+      "completed_at": "2026-03-11T00:26:13.781Z"
+    },
+    {
+      "plan_name": "reservation-ux-fix",
+      "completed_at": "2026-03-11T01:57:57.410Z"
+    }
+  ]
 }

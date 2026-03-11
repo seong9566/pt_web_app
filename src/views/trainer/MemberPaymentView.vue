@@ -24,14 +24,22 @@
       <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    <div v-else-if="hasActiveConnection === null" style="display:flex;flex-direction:column;gap:var(--spacing-item);padding:60px var(--side-margin);">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <div v-else class="payment-view__body">
 
       <!-- 로딩 -->
-      <div v-if="loading && !showEditSheet" class="payment-view__loading">로딩 중...</div>
+      <div
+        v-if="loading && !showEditSheet"
+        class="payment-view__loading"
+        style="flex-direction:column;align-items:stretch;justify-content:flex-start;gap:var(--spacing-item);padding:24px 0;"
+      >
+        <AppSkeleton type="rect" height="88px" :count="1" />
+        <AppSkeleton type="line" :count="4" />
+      </div>
 
       <template v-else>
 
@@ -197,6 +205,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePayments } from '@/composables/usePayments'
 import { useAuthStore } from '@/stores/auth'

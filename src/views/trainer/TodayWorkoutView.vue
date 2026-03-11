@@ -23,14 +23,19 @@
       <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    <div v-else-if="hasActiveConnection === null" class="today-workout__connection-loading">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <div v-else class="today-workout__body">
 
       <!-- ① 회원 프로필 -->
-      <section v-if="memberProfile" class="today-workout__profile">
+      <section v-if="loading && !memberProfile" class="today-workout__profile today-workout__profile--loading">
+        <AppSkeleton type="circle" width="64px" height="64px" />
+        <AppSkeleton type="line" :count="2" />
+      </section>
+      <section v-else-if="memberProfile" class="today-workout__profile">
         <div class="today-workout__profile-avatar">
           <img v-if="memberProfile.photo" :src="memberProfile.photo" :alt="memberProfile.name" class="today-workout__profile-avatar-img" />
           <span v-else class="today-workout__profile-avatar-initial">{{ memberProfile.name.charAt(0) }}</span>
@@ -166,7 +171,9 @@
       <!-- ④ 배정 이력 -->
       <section class="today-workout__section">
         <h2 class="today-workout__section-title">배정 이력</h2>
-        <p v-if="historyLoading" class="today-workout__placeholder">불러오는 중...</p>
+        <div v-if="historyLoading" class="today-workout__placeholder today-workout__placeholder--skeleton">
+          <AppSkeleton type="line" :count="3" />
+        </div>
         <p v-else-if="workoutPlans.length === 0" class="today-workout__empty">배정 이력이 없습니다</p>
         <div v-else class="today-workout__history">
           <div
@@ -241,6 +248,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()

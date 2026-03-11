@@ -84,7 +84,7 @@
 
       <!-- ── Loading State ── -->
       <div v-if="loading" class="loading-state">
-        회원 목록을 불러오는 중...
+        <AppSkeleton type="line" :count="4" />
       </div>
 
       <!-- ── Member List ── -->
@@ -171,7 +171,7 @@
       <div class="pending-section">
 
         <div v-if="loadingPending" class="loading-state">
-          대기 중인 요청을 불러오는 중...
+          <AppSkeleton type="line" :count="4" />
         </div>
 
         <div v-else-if="pendingRequests.length === 0" class="pending-list__empty">
@@ -243,6 +243,7 @@ import { useAuthStore } from '@/stores/auth'
 
 import { useMembersStore } from '@/stores/members'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const { members, loading, error, fetchMembers } = useMembers()

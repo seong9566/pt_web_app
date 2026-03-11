@@ -339,6 +339,10 @@
     padding: 0 var(--side-margin);
 }
 
+.schedule-list__loading {
+    padding: 16px 0;
+}
+
 .schedule-list__empty {
     display: flex;
     flex-direction: column;

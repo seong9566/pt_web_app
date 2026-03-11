@@ -1,21 +1,23 @@
-import { ref } from 'vue'
+import { useToastStore } from '@/stores/toast'
 
 export function useToast() {
-  const showToast = ref(false)
-  const toastMessage = ref('')
-  const toastType = ref('default')
+  const toastStore = useToastStore()
+
+  function showToast(msg, type = 'info', duration = 3000) {
+    toastStore.showToast(msg, type, duration)
+  }
+
+  function hideToast() {
+    toastStore.hideToast()
+  }
 
   function showError(msg) {
-    toastMessage.value = msg
-    toastType.value = 'error'
-    showToast.value = true
+    toastStore.showToast(msg, 'error', 3000)
   }
 
   function showSuccess(msg) {
-    toastMessage.value = msg
-    toastType.value = 'success'
-    showToast.value = true
+    toastStore.showToast(msg, 'success', 3000)
   }
 
-  return { showToast, toastMessage, toastType, showError, showSuccess }
+  return { showToast, hideToast, showError, showSuccess }
 }

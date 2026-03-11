@@ -88,8 +88,8 @@
           >{{ tab.label }}</button>
         </div>
 
-        <div v-if="reservLoading" class="trainer-home__empty">
-          <p>로딩 중...</p>
+        <div v-if="reservLoading" class="trainer-home__empty trainer-home__empty--loading">
+          <AppSkeleton type="rect" height="92px" :count="2" />
         </div>
         <div v-else-if="filteredReservations.length === 0" class="trainer-home__empty">
           <template v-if="memberCount === 0">
@@ -142,7 +142,9 @@
           <a href="#" class="trainer-home__section-link" @click.prevent="router.push('/trainer/chat')">전체보기</a>
         </div>
 
-        <div v-if="chatLoading" class="trainer-home__empty">로딩 중...</div>
+        <div v-if="chatLoading" class="trainer-home__empty trainer-home__empty--loading">
+          <AppSkeleton type="line" :count="3" />
+        </div>
         <div v-else-if="chatError" class="trainer-home__error">{{ chatError }}</div>
         <div v-else-if="recentConversations.length === 0" class="trainer-home__empty">메시지가 없습니다.</div>
         <div v-else class="trainer-home__message-list">
@@ -192,6 +194,7 @@ import { useChat } from '@/composables/useChat'
 import { useTrainerSearch } from '@/composables/useTrainerSearch'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const auth = useAuthStore()

@@ -46,8 +46,9 @@
     </div>
 
     <!-- ── Loading ── -->
-    <div v-if="loading" class="manual-list__loading">
-      <span>로딩 중...</span>
+    <div v-if="loading" class="manual-list__loading manual-list__loading--skeleton">
+      <AppSkeleton type="rect" height="180px" :count="2" />
+      <AppSkeleton type="line" :count="2" />
     </div>
 
     <!-- ── Grid ── -->
@@ -126,6 +127,7 @@ import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 import { getYoutubeThumbnailUrl } from '@/utils/youtube'
 import AppToast from '@/components/AppToast.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const auth = useAuthStore()

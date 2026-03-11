@@ -124,7 +124,6 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import AppInput from "@/components/AppInput.vue";
 import AppButton from "@/components/AppButton.vue";
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
@@ -134,7 +133,7 @@ import { useChatBadgeStore } from '@/stores/chatBadge'
 import personIcon from '@/assets/icons/person.svg'
 const router = useRouter();
 const auth = useAuthStore()
-const { uploading, error: uploadError, uploadAvatar, updateProfilePhoto } = useProfile()
+const { uploading, error: uploadError, uploadAvatar, saveMemberProfileBasic, saveMemberProfileDetails } = useProfile()
 const { redeemInviteCode } = useInvite()
 const reservationsStore = useReservationsStore()
 const ptSessionsStore = usePtSessionsStore()
@@ -187,59 +186,51 @@ async function handleFileSelect(event) {
 
 /** 회원 프로필 저장 및 다음 단계 진행 */
 async function handleComplete() {
-  if (!form.value.name.trim()) {
-    errorMsg.value = '이름을 입력해주세요.'
-    return
-  }
+   if (!form.value.name.trim()) {
+     errorMsg.value = '이름을 입력해주세요.'
+     return
+   }
 
-  isLoading.value = true
-  errorMsg.value = ''
+   isLoading.value = true
+   errorMsg.value = ''
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ name: form.value.name, phone: form.value.phone, photo_url: avatarUrl.value || null })
-    .eq('id', auth.user.id)
+   const basicSuccess = await saveMemberProfileBasic(form.value.name, form.value.phone, avatarUrl.value)
+   if (!basicSuccess) {
+     errorMsg.value = '프로필 저장에 실패했습니다. 다시 시도해주세요.'
+     isLoading.value = false
+     return
+   }
 
-  if (profileError) {
-    errorMsg.value = '프로필 저장에 실패했습니다. 다시 시도해주세요.'
-    isLoading.value = false
-    return
-  }
+   const detailsSuccess = await saveMemberProfileDetails(
+     form.value.age,
+     form.value.height,
+     form.value.weight,
+     form.value.gender,
+     selectedGoals.value,
+     form.value.notes
+   )
+   if (!detailsSuccess) {
+     errorMsg.value = '회원 정보 저장에 실패했습니다. 다시 시도해주세요.'
+     isLoading.value = false
+     return
+   }
 
-  const { error: memberError } = await supabase
-    .from('member_profiles')
-    .upsert({
-      id: auth.user.id,
-      age: parseInt(form.value.age) || null,
-      height: parseFloat(form.value.height) || null,
-      weight: parseFloat(form.value.weight) || null,
-      gender: form.value.gender || null,
-      goals: selectedGoals.value,
-      notes: form.value.notes,
-    })
+   await auth.fetchProfile()
+   isLoading.value = false
 
-  if (memberError) {
-    errorMsg.value = '회원 정보 저장에 실패했습니다. 다시 시도해주세요.'
-    isLoading.value = false
-    return
-  }
-
-  await auth.fetchProfile()
-  isLoading.value = false
-
-  const pendingCode = localStorage.getItem('pending_invite_code')
-  if (pendingCode) {
-    const result = await redeemInviteCode(pendingCode)
-    if (result) {
-      localStorage.removeItem('pending_invite_code')
-      reservationsStore.invalidate()
-      ptSessionsStore.invalidate()
-      chatBadgeStore.loadUnreadCount(true)
-    }
-    router.push('/member/home')
-  } else {
-    router.push('/search')
-  }
+   const pendingCode = localStorage.getItem('pending_invite_code')
+   if (pendingCode) {
+     const result = await redeemInviteCode(pendingCode)
+     if (result) {
+       localStorage.removeItem('pending_invite_code')
+       reservationsStore.invalidate()
+       ptSessionsStore.invalidate()
+       chatBadgeStore.loadUnreadCount(true)
+     }
+     router.push('/member/home')
+   } else {
+     router.push('/search')
+   }
 }
 </script>
 <style src="./MemberProfileView.css" scoped></style>

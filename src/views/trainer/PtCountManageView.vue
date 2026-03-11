@@ -23,8 +23,9 @@
       <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    <div v-else-if="hasActiveConnection === null" class="pt-count-manage__connection-loading">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <div v-else class="pt-count-manage__body">
@@ -63,7 +64,9 @@
       <!-- 변동 이력 -->
       <section class="pt-count-manage__history">
         <h2 class="pt-count-manage__history-title">변동 이력</h2>
-        <p v-if="loading" class="pt-count-manage__history-state">로딩 중...</p>
+        <div v-if="loading" class="pt-count-manage__history-state pt-count-manage__history-state--skeleton">
+          <AppSkeleton type="line" :count="4" />
+        </div>
         <p v-else-if="ptHistory.length === 0" class="pt-count-manage__history-state">변동 이력이 없습니다</p>
         <ul v-else class="pt-count-manage__history-list">
           <li
@@ -244,6 +247,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePtSessions } from '@/composables/usePtSessions'
 import { usePayments } from '@/composables/usePayments'

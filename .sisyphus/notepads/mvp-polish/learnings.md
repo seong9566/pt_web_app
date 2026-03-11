@@ -154,3 +154,155 @@ Remove per-component `<AppToast>` instances from 12 views (they now use global i
 - Add feature-specific test suites (chat, reservations, payments, etc.)
 - Integrate into CI/CD pipeline
 - Set up visual regression testing with baseline comparison
+
+## Task 4: Auth Subscription Cleanup (Completed)
+
+### Implementation
+- **File**: `src/stores/auth.js`
+- **Function**: `signOut()` (lines 228-244)
+- **Changes**: Added 2 lines in finally block:
+  ```js
+  _authSubscription?.unsubscribe()
+  _authSubscription = null
+  ```
+
+### Context
+- `_authSubscription` variable declared at line 25: `let _authSubscription = null`
+- `registerAuthListener()` already has null check to prevent duplicate registration
+- Cleanup prevents memory leak when user logs out
+
+### Testing Results
+- `npm test`: 99 passed, 6 failed (pre-existing failures — no regression)
+- `npm run build`: ✓ Success, 314.41 kB gzipped
+- Evidence: `.sisyphus/evidence/task-4-auth-cleanup.txt` contains grep output
+
+### Files Modified
+- ✅ Updated: `src/stores/auth.js` (2 lines added to signOut finally block)
+
+## Task 5: Notification Badge Realtime Subscription (Completed)
+
+### Implementation
+- **File**: `src/stores/notificationBadge.js`
+- **Changes**:
+  1. Added `let _channel = null` at line 15 (state variable for Realtime channel)
+  2. Added `subscribe()` function (lines 51-71):
+     - Checks `auth.user?.id` and prevents duplicate subscription via `_channel` guard
+     - Creates Supabase Realtime channel: `notification-badge-${auth.user.id}`
+     - Subscribes to `notifications` table INSERT events with filter `user_id=eq.${auth.user.id}`
+     - Increments `unreadCount.value` on each new notification
+  3. Added `unsubscribe()` function (lines 75-80):
+     - Removes channel via `supabase.removeChannel(_channel)`
+     - Nullifies `_channel` to allow re-subscription
+  4. Updated `$reset()` to call `unsubscribe()` (line 95)
+  5. Exported `subscribe` and `unsubscribe` in return object (lines 102-103)
+
+### Component Integration
+- **BottomNav.vue**: Added `useNotificationBadgeStore` import + instance
+  - `onMounted`: Added `await notificationBadgeStore.loadUnreadCount()` + `notificationBadgeStore.subscribe()`
+  - `onUnmounted`: Added `notificationBadgeStore.unsubscribe()`
+- **TrainerBottomNav.vue**: Identical pattern applied
+
+### Pattern Reference
+- Copied from `chatBadge.js` (lines 49-78) but adapted for `notifications` table + `user_id` filter
+- chatBadge uses `messages` table + `receiver_id` filter; notificationBadge uses `notifications` + `user_id`
+
+### Testing Results
+- `npm run build`: ✓ Success, 315.50 kB gzipped (no regression)
+- LSP diagnostics: Clean on all modified files
+- Evidence: `.sisyphus/evidence/task-5-realtime-code.txt` contains grep output of subscribe/unsubscribe/INSERT
+
+### Files Modified
+- ✅ Updated: `src/stores/notificationBadge.js` (added _channel, subscribe, unsubscribe, updated $reset)
+- ✅ Updated: `src/components/BottomNav.vue` (added notificationBadge import + subscribe/unsubscribe calls)
+- ✅ Updated: `src/components/TrainerBottomNav.vue` (added notificationBadge import + subscribe/unsubscribe calls)
+
+## [2026-03-11] Task: 트레이너 뷰 로딩 스켈레턴 치환
+- 대상 10개 트레이너 뷰의 로딩 텍스트를 `AppSkeleton` 조합으로 치환했다.
+- 리스트형 화면은 `type="line" :count="4"`를 기본으로 적용했다.
+- 상세/연결 확인 로딩은 `type="circle" width="64px" height="64px"` + `type="line" :count="3"` 조합으로 통일했다.
+- 대시보드/매뉴얼/수납 로딩은 카드 비율을 맞추기 위해 `type="rect"`와 `type="line"` 조합을 사용했다.
+- 기존 `loading` ref만 있던 화면(`TrainerScheduleView`, `ReservationManageView`)에도 스켈레턴 분기를 추가했다.
+
+## [2026-03-11] Task: 멤버 9개 뷰 로딩 텍스트 → AppSkeleton 치환
+- 대상 9개 뷰(`MemberHomeView`, `MemberScheduleView`, `MemberReservationView`, `MemberChatView`, `MemberManualView`, `ManualDetailView`, `MemberMemoView`, `MemberPaymentHistoryView`, `MemberWorkoutDetailView`)에 `AppSkeleton` import + 로딩 UI 조합 적용
+- `로딩 중...` 문자열은 카드 리스트(`type="rect" height="80px" :count="3"`), 채팅(`type="line" :count="5"`), 홈/상세 영역(`rect + line`, `circle + line`) 형태로 교체
+- 연결 확인 단계(`hasActiveConnection === null`, `hasTrainer === null`)의 텍스트 로딩도 동일하게 스켈레턴으로 교체해 9개 뷰 모두 일관된 로딩 경험 유지
+- 관련 스타일 보정: `MemberHomeView.css`, `ManualDetailView.css`의 로딩 컨테이너를 스켈레턴 레이아웃에 맞게 column/gap/padding 구조로 조정
+- 검증: 변경 파일 LSP diagnostics clean, `npm run build` 성공(기존 CSS minify warning 2건 + router chunk warning은 선행 이슈), `grep -rc '로딩 중' src/views/member/` 전체 0
+
+## [2026-03-11] Task: 공통/기타 6개 뷰 로딩 텍스트/상태 → AppSkeleton 치환
+- 대상 6개 뷰(`NotificationListView`, `InviteManageView`, `InviteEnterView`, `TrainerSearchView`, `AccountManageView`, `WorkTimeSettingView`)에 `AppSkeleton` import와 로딩별 스켈레턴 조합 적용
+- `NotificationListView`, `TrainerSearchView`의 `로딩 중...` 텍스트를 리스트형 스켈레턴(`type="rect"`)으로 교체해 텍스트 로딩 제거
+- `InviteManageView`는 초대 코드 카드/최근 회원 리스트를 `loading && 데이터 없음` 조건으로 분기해 코드+회원 영역 스켈레턴을 노출하도록 구성
+- `InviteEnterView`는 코드 검증 중(`isChecking`) 트레이너 정보 카드 자리에 `circle + line` 스켈레턴을 표시해 확인 단계 공백을 제거
+- `AccountManageView`는 `auth.loading` 동안 계정 정보/입력 섹션 스켈레턴을 먼저 렌더링하고, 로딩 종료 후 기존 폼을 그대로 표시
+- `WorkTimeSettingView`는 `isInitialLoading` 상태를 추가해 초기 조회 시 예약 단위/근무 일정 테이블 스켈레턴을 노출하고 저장 로딩(`loading`)과 구분
+- 검증: 변경 파일 LSP diagnostics clean, `npm run build` 성공(exit code 0, 기존 CSS minify warning 2건 및 router chunk warning은 선행 이슈)
+
+## Task 13: Remove Direct Supabase Imports from Views (Completed)
+
+### Objective
+Refactor `MemberProfileView.vue` and `AccountManageView.vue` to remove direct Supabase imports and use `useProfile` composable instead.
+
+### Implementation
+
+#### 1. Enhanced useProfile.js
+Added 4 new functions to `src/composables/useProfile.js`:
+- **saveMemberProfileBasic(name, phone, photoUrl)**
+  - Updates `profiles` table with name, phone, photo_url
+  - Returns boolean success/failure
+- **saveMemberProfileDetails(age, height, weight, gender, goals, notes)**
+  - Upserts `member_profiles` table with detailed member info
+  - Handles type conversion (parseInt for age, parseFloat for height/weight)
+  - Returns boolean success/failure
+- **updateUserEmail(newEmail)**
+  - Calls `supabase.auth.updateUser({ email })`
+  - Returns boolean success/failure
+- **updateUserPassword(newPassword)**
+  - Calls `supabase.auth.updateUser({ password })`
+  - Returns boolean success/failure
+
+#### 2. MemberProfileView.vue Refactoring
+- **Removed**: `import { supabase } from '@/lib/supabase'`
+- **Updated**: useProfile() destructuring to include `saveMemberProfileBasic`, `saveMemberProfileDetails`
+- **Refactored**: `handleComplete()` function
+  - Replaced direct `supabase.from('profiles').update()` with `saveMemberProfileBasic()`
+  - Replaced direct `supabase.from('member_profiles').upsert()` with `saveMemberProfileDetails()`
+  - Maintained error handling and user feedback flow
+
+#### 3. AccountManageView.vue Refactoring
+- **Removed**: `import { supabase } from '@/lib/supabase'`
+- **Added**: `import { useProfile } from '@/composables/useProfile'`
+- **Updated**: useProfile() destructuring to include `updateUserEmail`, `updateUserPassword`
+- **Refactored**: `handleEmailChange()` function
+  - Replaced direct `supabase.auth.updateUser({ email })` with `updateUserEmail()`
+  - Maintained error handling and success messaging
+- **Refactored**: `handlePasswordChange()` function
+  - Replaced direct `supabase.auth.updateUser({ password })` with `updateUserPassword()`
+  - Maintained error handling and success messaging
+
+### Verification Results
+- ✅ **npm test**: 99 passed, 6 failed (pre-existing failures unrelated to changes)
+  - Failures in useProfile.test.js, useInvite.test.js, useChat.test.js (existed before refactoring)
+  - No new test failures introduced
+- ✅ **npm run build**: SUCCESS (exit code 0)
+  - 223 modules transformed
+  - dist/ generated successfully
+  - No breaking changes
+
+### Architecture Compliance
+- ✅ Composable Pattern: All Supabase calls now go through useProfile()
+- ✅ No Direct Imports: Both views no longer import supabase directly
+- ✅ Error Handling: Consistent error handling with error.value refs
+- ✅ User Feedback: All success/error messages preserved
+- ✅ Functionality: No behavioral changes — pure refactoring
+
+### Files Modified
+1. `src/composables/useProfile.js` (294 → 368 lines, +4 functions)
+2. `src/views/onboarding/MemberProfileView.vue` (imports changed, handleComplete refactored)
+3. `src/views/common/AccountManageView.vue` (imports changed, handlers refactored)
+
+### Notes
+- Auth-related views (LoginView, EmailLoginView, DevLoginView, PasswordResetView, PasswordUpdateView, AuthCallbackView) were NOT modified per requirements
+- No new composable files created — all functions added to existing useProfile.js
+- This is a pure refactoring to move Supabase calls to composables layer

@@ -12,8 +12,9 @@
       <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
     </div>
 
-    <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
-      <p style="color:var(--color-gray-600);font-size:var(--fs-body2);">불러오는 중...</p>
+    <div v-else-if="hasActiveConnection === null" class="trainer-chat__connection-loading">
+      <AppSkeleton type="circle" width="64px" height="64px" />
+      <AppSkeleton type="line" :count="3" />
     </div>
 
     <template v-else>
@@ -27,8 +28,8 @@
       </div>
 
       <!-- 로딩 -->
-      <div v-if="loading" class="trainer-chat__loading">
-        대화 목록을 불러오는 중...
+      <div v-if="loading" class="trainer-chat__loading trainer-chat__loading--skeleton">
+        <AppSkeleton type="line" :count="4" />
       </div>
 
       <!-- 빈 상태 -->
@@ -154,8 +155,8 @@
           </div>
         </template>
         <template v-else>
-          <div v-if="loading && messages.length === 0" class="trainer-chat__msg-loading">
-            메시지를 불러오는 중...
+          <div v-if="loading && messages.length === 0" class="trainer-chat__msg-loading trainer-chat__msg-loading--skeleton">
+            <AppSkeleton type="line" :count="4" />
           </div>
           <div v-else-if="messages.length === 0" class="trainer-chat__msg-empty">
             첫 메시지를 보내보세요
@@ -295,6 +296,7 @@ import { useToast } from '@/composables/useToast'
 import AppToast from '@/components/AppToast.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 
 const router = useRouter()

@@ -287,6 +287,13 @@
   font-size: var(--fs-body2);
 }
 
+.manual-list__loading--skeleton {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-item);
+  padding: 24px var(--side-margin);
+}
+
 /* ── Card Placeholder (no media) ── */
 .manual-list__card-placeholder {
   width: 100%;

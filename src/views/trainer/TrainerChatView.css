@@ -11,6 +11,13 @@
   background-color: var(--color-white);
 }
 
+.trainer-chat__connection-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-item);
+  padding: 60px var(--side-margin);
+}
+
 /* ══════════════════════════════
    대화 목록 패널
 ══════════════════════════════ */
@@ -44,6 +51,11 @@
   padding: 48px var(--side-margin);
   font-size: var(--fs-body2);
   color: var(--color-gray-600);
+}
+
+.trainer-chat__loading--skeleton {
+  justify-content: flex-start;
+  padding-top: 24px;
 }
 
 /* 빈 상태 */
@@ -262,6 +274,10 @@
   font-size: var(--fs-body2);
   color: var(--color-gray-600);
   padding-top: 24px;
+}
+
+.trainer-chat__msg-loading--skeleton {
+  text-align: left;
 }
 
 .trainer-chat__load-more {
