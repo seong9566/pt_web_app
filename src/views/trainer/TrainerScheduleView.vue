@@ -147,6 +147,13 @@
             </svg>
             {{ session.time }}
           </div>
+          <template v-if="formatWorkoutSummary(workoutMap[session.member_id])">
+            <div class="scard__workout-divider" />
+            <div class="scard__workout">
+              <span class="scard__workout-label">배정된 운동</span>
+              <p class="scard__workout-text">{{ formatWorkoutSummary(workoutMap[session.member_id]) }}</p>
+            </div>
+          </template>
           <button
             v-if="session.status === 'approved'"
             class="scard__action"
@@ -157,7 +164,7 @@
               <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
-        </div>
+         </div>
     </div>
 
     </div>
@@ -175,6 +182,7 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useHolidays } from '@/composables/useHolidays'
 import { useWorkHours } from '@/composables/useWorkHours'
+import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
@@ -187,6 +195,7 @@ const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
 const { fetchWorkingDays } = useWorkHours()
+const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 const { showToast } = useToast()
 
 const loaded = ref(false)
@@ -197,6 +206,7 @@ async function loadData() {
   await fetchMyReservations('trainer')
   await fetchHolidays(auth.user?.id)
   workingDays.value = await fetchWorkingDays(auth.user?.id)
+  await fetchDayWorkoutPlans(selectedDateStr.value)
   loaded.value = true
 }
 
@@ -377,6 +387,24 @@ const sessions = computed(() => {
     }))
 })
 
+/** 회원별 운동 계획 맵 생성 (member_id → exercises 배열) */
+const workoutMap = computed(() => {
+  const map = {}
+  for (const plan of dayWorkoutPlans.value) {
+    map[plan.member_id] = plan.exercises
+  }
+  return map
+})
+
+/** 운동 계획 배열을 요약 문자열로 변환 (예: "벤치프레스 3x10, 스쿼트 4x8") */
+function formatWorkoutSummary(exercises) {
+  if (!exercises || exercises.length === 0) return null
+  return exercises
+    .filter(e => e.name)
+    .map(e => `${e.name} ${e.sets}x${e.reps}`)
+    .join(', ')
+}
+
 function handleAdd() {
   router.push({ name: 'trainer-reservations' })
 }
@@ -388,6 +416,7 @@ function goWorkout(session) {
   })
 }
 
+watch(selectedDateStr, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
 watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 

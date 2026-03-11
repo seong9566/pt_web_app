@@ -598,3 +598,23 @@
 .scard__action:active {
     background-color: var(--color-blue-light);
 }
+
+.scard__workout-divider {
+  height: 1px;
+  background-color: var(--color-gray-100);
+  margin: 12px 0;
+}
+
+.scard__workout-label {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+  margin-bottom: 4px;
+}
+
+.scard__workout-text {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  margin: 0;
+}
