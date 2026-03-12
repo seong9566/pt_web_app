@@ -20,7 +20,7 @@
           </div>
         </div>
       </div>
-      <button class="member-home__bell" @click="handleNotification">
+      <button class="member-home__bell press-effect" @click="handleNotification">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
             stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -41,7 +41,7 @@
         </svg>
         <p class="member-home__unconnected-title">아직 담당 트레이너가 없습니다</p>
         <p class="member-home__unconnected-desc">트레이너를 찾아 PT를 시작해보세요</p>
-        <button class="member-home__unconnected-btn" @click="router.push({ name: 'trainer-search' })">
+        <button class="member-home__unconnected-btn press-effect" @click="router.push({ name: 'trainer-search' })">
           트레이너 찾기
         </button>
       </div>
@@ -53,10 +53,10 @@
 
       <template v-else>
 
-      <section class="member-home__section" :style="{ '--stagger-index': 0 }">
+      <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 0 }">
         <div class="member-home__section-row">
           <h2 class="member-home__section-title">다음 PT 일정</h2>
-          <button class="member-home__see-all" @click="handleSeeAll">전체보기</button>
+          <button class="member-home__see-all press-effect" @click="handleSeeAll">전체보기</button>
         </div>
 
         <div class="member-home__pt-card">
@@ -89,12 +89,12 @@
         </div>
       </section>
 
-      <section class="member-home__section" :style="{ '--stagger-index': 1 }">
+      <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 1 }">
         <div class="member-home__section-row">
           <h2 class="member-home__section-title">다음 예정 운동</h2>
           <button
             v-if="displayExercises.length > 0"
-            class="member-home__see-all"
+            class="member-home__see-all press-effect"
             @click="goWorkoutDetail"
           >전체보기</button>
         </div>
@@ -122,7 +122,7 @@
             <div
               v-for="(exercise, idx) in displayExercises"
               :key="idx"
-              class="member-home__exercise-card"
+              class="member-home__exercise-card stagger-fade-in"
               :style="{ '--stagger-index': idx }"
             >
               <div class="member-home__exercise-header">
@@ -138,7 +138,7 @@
 
           <button
             v-if="remainingExerciseCount > 0"
-            class="member-home__exercise-more"
+            class="member-home__exercise-more press-effect"
             @click="goWorkoutDetail"
           >
             외 {{ remainingExerciseCount }}개 더 보기
@@ -146,7 +146,7 @@
         </template>
       </section>
 
-      <section class="member-home__section" :style="{ '--stagger-index': 2 }">
+      <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 2 }">
         <div class="member-home__goal-card">
           <div class="member-home__goal-left">
             <span class="member-home__goal-badge">이번 주 목표</span>

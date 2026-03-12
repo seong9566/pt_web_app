@@ -36,8 +36,8 @@
         <div class="trainer-profile-edit__fields">
           <div class="trainer-profile-edit__field">
             <label class="trainer-profile-edit__label">이름 <span class="trainer-profile-edit__required">*</span></label>
-            <AppInput v-model="form.name" placeholder="이름을 입력해주세요" />
-            <p v-if="nameError" class="trainer-profile-edit__field-error">{{ nameError }}</p>
+            <AppInput v-model="form.name" placeholder="이름을 입력해주세요" @blur="validateName" :class="{ 'form-field--error': nameError }" />
+            <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
           </div>
           <div class="trainer-profile-edit__field">
             <label class="trainer-profile-edit__label">전화번호</label>
@@ -145,6 +145,14 @@ function toggleSpecialty(id) {
   const idx = form.value.specialties.indexOf(id)
   if (idx === -1) form.value.specialties.push(id)
   else form.value.specialties.splice(idx, 1)
+}
+
+function validateName() {
+  if (!form.value.name.trim()) {
+    nameError.value = '이름을 입력해주세요.'
+  } else {
+    nameError.value = ''
+  }
 }
 
 async function handleSave() {

@@ -24,7 +24,7 @@
       <!-- ── Monthly Calendar ── -->
       <div class="calendar-card">
         <div class="calendar-card__nav">
-          <button class="calendar-card__arrow" @click="prevMonth">
+          <button class="calendar-card__arrow press-effect" @click="prevMonth">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
               <path
                 d="M15 18L9 12L15 6"
@@ -38,7 +38,7 @@
           <span class="calendar-card__month"
             >{{ currentYear }}년 {{ currentMonth }}월</span
           >
-          <button class="calendar-card__arrow" @click="nextMonth">
+          <button class="calendar-card__arrow press-effect" @click="nextMonth">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
               <path
                 d="M9 6L15 12L9 18"
@@ -123,19 +123,21 @@
       <!-- ── Session Cards ── -->
       <div class="schedule-list">
         <div
-          v-for="session in selectedDaySessions"
+          v-for="(session, sessionIndex) in selectedDaySessions"
           :key="session.id"
-          class="scard"
-          :class="`scard--${session.status}`"
+          class="scard stagger-fade-in"
+          :class="[
+            `scard--${session.status}`,
+            { 'press-effect': session.status === 'approved' || session.status === 'completed' },
+          ]"
           @click="
             (session.status === 'approved' || session.status === 'completed') &&
             goWorkoutDetail()
           "
-          :style="
-            session.status === 'approved' || session.status === 'completed'
-              ? 'cursor: pointer;'
-              : ''
-          "
+          :style="{
+            '--stagger-index': sessionIndex,
+            cursor: session.status === 'approved' || session.status === 'completed' ? 'pointer' : '',
+          }"
         >
           <div class="scard__border" />
           <div class="scard__body">
@@ -196,7 +198,7 @@
               </div>
               <button
                 v-if="session.status === 'approved'"
-                class="scard__cancel-btn"
+                class="scard__cancel-btn press-effect"
                 @click.stop="handleCancel(session)"
               >
                 취소
@@ -264,7 +266,7 @@
       <div style="height: calc(var(--nav-height) + 32px)" />
 
       <!-- ── Floating Action Button (FAB) ── -->
-      <button class="member-schedule__fab" @click="handleReserve">
+      <button class="member-schedule__fab press-effect" @click="handleReserve">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path
             d="M12 5V19M5 12H19"

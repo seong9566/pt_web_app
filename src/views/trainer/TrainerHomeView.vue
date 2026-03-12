@@ -13,7 +13,7 @@
           <h1 class="trainer-home__greeting-name">{{ auth.profile?.name }} 트레이너님</h1>
         </div>
       </div>
-      <button class="trainer-home__bell" @click="router.push({ name: 'notifications' })">
+      <button class="trainer-home__bell press-effect" @click="router.push({ name: 'notifications' })">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           <path d="M13.73 21A2 2 0 0 1 10.27 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -28,7 +28,7 @@
 
     <div class="trainer-home__content">
 
-      <div v-if="pendingConnectionCount > 0" class="trainer-home__action-card" :style="{ '--stagger-index': 0 }" @click="router.push({ name: 'trainer-members' })">
+      <div v-if="pendingConnectionCount > 0" class="trainer-home__action-card stagger-fade-in press-effect" :style="{ '--stagger-index': 0 }" @click="router.push({ name: 'trainer-members' })">
         <div class="trainer-home__action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M2 20C2 17.2386 5.13401 15 9 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 11V17M14 14H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
@@ -39,7 +39,7 @@
         <svg class="trainer-home__action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
 
-      <div v-if="pendingReservationCount > 0" class="trainer-home__action-card" :style="{ '--stagger-index': 1 }" @click="router.push({ name: 'trainer-reservations' })">
+      <div v-if="pendingReservationCount > 0" class="trainer-home__action-card stagger-fade-in press-effect" :style="{ '--stagger-index': 1 }" @click="router.push({ name: 'trainer-reservations' })">
         <div class="trainer-home__action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
@@ -82,7 +82,7 @@
           <button
             v-for="tab in dateTabs"
             :key="tab.date"
-            class="trainer-home__date-tab"
+            class="trainer-home__date-tab press-effect"
             :class="{ 'trainer-home__date-tab--active': selectedDate === tab.date }"
             @click="selectedDate = tab.date"
           >{{ tab.label }}</button>
@@ -100,7 +100,7 @@
             </svg>
             <p>아직 연결된 회원이 없습니다.</p>
             <p class="trainer-home__empty-hint">초대 코드를 생성하여 회원을 초대하세요.</p>
-            <button class="trainer-home__invite-btn" @click="router.push('/invite/manage')">초대 코드 생성</button>
+            <button class="trainer-home__invite-btn press-effect" @click="router.push('/invite/manage')">초대 코드 생성</button>
           </template>
           <template v-else>
             <p>예약이 없습니다.</p>
@@ -110,7 +110,7 @@
           <div
             v-for="(reservation, ri) in filteredReservations"
             :key="reservation.id"
-            class="trainer-home__schedule-card"
+            class="trainer-home__schedule-card stagger-fade-in"
             :class="{ 'trainer-home__schedule-card--workout': workoutMap[reservation.member_id] }"
             :style="{ '--stagger-index': ri }"
           >
@@ -151,7 +151,7 @@
           <div
             v-for="(conv, ci) in recentConversations"
             :key="conv.partnerId"
-            class="trainer-home__message-card"
+            class="trainer-home__message-card stagger-fade-in press-effect"
             :style="{ '--stagger-index': ci }"
             @click="router.push('/trainer/chat')"
           >

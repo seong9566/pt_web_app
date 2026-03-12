@@ -34,14 +34,18 @@
 
       <!-- 메뉴얼 이름 -->
       <section class="manual-reg__section">
-        <label class="manual-reg__label">메뉴얼 이름</label>
+        <label class="manual-reg__label">메뉴얼 이름 <span style="color: var(--color-red);">*</span></label>
         <input
           v-model="form.title"
           class="manual-reg__input"
+          :class="{ 'form-field--error': titleError }"
           type="text"
           placeholder="메뉴얼 제목을 입력하세요"
           maxlength="50"
+          @blur="validateTitle"
+          @input="titleError = ''"
         />
+        <p v-if="titleError" class="form-error-text">{{ titleError }}</p>
       </section>
 
       <!-- 설명 -->
@@ -200,6 +204,7 @@ function selectCategory(cat) {
 const fileInput = ref(null)
 const mediaFiles = ref([])
 const rawFiles = ref([])
+const titleError = ref('')
 
 const totalMediaCount = computed(() => existingMedia.value.length + mediaFiles.value.length)
 
@@ -248,8 +253,20 @@ function removeExistingMedia(idx) {
   existingMedia.value.splice(idx, 1)
 }
 
+function validateTitle() {
+  if (!form.title.trim()) {
+    titleError.value = '메뉴얼 이름을 입력해주세요'
+  } else {
+    titleError.value = ''
+  }
+}
+
 async function handleSave() {
-  if (!form.title.trim()) return
+  if (!form.title.trim()) {
+    titleError.value = '메뉴얼 이름을 입력해주세요'
+    return
+  }
+  titleError.value = ''
   if (!form.category) {
     showError('카테고리는 필수 선택 항목입니다')
     return

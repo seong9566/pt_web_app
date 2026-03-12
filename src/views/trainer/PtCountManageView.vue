@@ -146,7 +146,7 @@
             <span v-if="addPaymentAmount" class="pt-count-manage__sheet-unit">원</span>
           </div>
         </div>
-        <p v-if="addError" class="pt-count-manage__sheet-error">{{ addError }}</p>
+        <p v-if="addError" class="form-error-text">{{ addError }}</p>
         <button
           class="pt-count-manage__sheet-submit"
           :disabled="loading || paymentLoading"
@@ -194,7 +194,7 @@
             placeholder="메모를 입력하세요"
           />
         </div>
-        <p v-if="editError" class="pt-count-manage__sheet-error">{{ editError }}</p>
+        <p v-if="editError" class="form-error-text">{{ editError }}</p>
         <button
           class="pt-count-manage__sheet-submit"
           :disabled="loading"
@@ -233,7 +233,7 @@
             placeholder="메모를 입력하세요"
           />
         </div>
-        <p v-if="deductError" class="pt-count-manage__sheet-error">{{ deductError }}</p>
+        <p v-if="deductError" class="form-error-text">{{ deductError }}</p>
         <button
           class="pt-count-manage__sheet-submit"
           :disabled="loading"

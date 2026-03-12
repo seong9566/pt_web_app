@@ -16,8 +16,8 @@
           maxlength="200"
         />
         <div class="reject-dialog__actions">
-          <button class="reject-dialog__btn reject-dialog__btn--cancel" @click="showRejectDialog = false">취소</button>
-          <button class="reject-dialog__btn reject-dialog__btn--confirm" @click="confirmReject">거절</button>
+          <button class="reject-dialog__btn reject-dialog__btn--cancel press-effect" @click="showRejectDialog = false">취소</button>
+          <button class="reject-dialog__btn reject-dialog__btn--confirm press-effect" @click="confirmReject">거절</button>
         </div>
       </div>
     </AppBottomSheet>
@@ -36,8 +36,8 @@
           maxlength="200"
         />
         <div class="cancel-dialog__actions">
-          <button class="cancel-dialog__btn cancel-dialog__btn--cancel" @click="showCancelDialog = false">닫기</button>
-          <button class="cancel-dialog__btn cancel-dialog__btn--confirm" @click="confirmCancel">취소 확인</button>
+          <button class="cancel-dialog__btn cancel-dialog__btn--cancel press-effect" @click="showCancelDialog = false">닫기</button>
+          <button class="cancel-dialog__btn cancel-dialog__btn--confirm press-effect" @click="confirmCancel">취소 확인</button>
         </div>
       </div>
     </AppBottomSheet>
@@ -45,7 +45,7 @@
     <!-- ── ··· 액션 바텀시트 ── -->
     <AppBottomSheet v-model="showMenuSheet" title="예약 관리">
       <div style="padding: 0 0 8px;">
-        <button class="res-menu-popup__item res-menu-popup__item--cancel" @click="handleCancelFromMenu">
+        <button class="res-menu-popup__item res-menu-popup__item--cancel press-effect" @click="handleCancelFromMenu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
           </svg>
@@ -56,13 +56,13 @@
 
     <!-- ── Header ── -->
     <div class="reservation__header">
-      <button class="reservation__back" @click="router.back()">
+      <button class="reservation__back press-effect" @click="router.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="reservation__title">예약 관리</h1>
-      <button class="reservation__filter" @click="handleFilter">
+      <button class="reservation__filter press-effect" @click="handleFilter">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M4 6H20M7 12H17M10 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -78,7 +78,7 @@
         <button
           v-for="chip in filterChips"
           :key="chip.id"
-          class="reservation__chip"
+          class="reservation__chip press-effect"
           :class="{ 'reservation__chip--active': activeFilter === chip.id }"
           @click="activeFilter = chip.id"
         >
@@ -123,9 +123,10 @@
 
         <div class="reservation__list">
           <div
-            v-for="item in pendingList"
+            v-for="(item, pendingIndex) in pendingList"
             :key="item.id"
-            class="res-card"
+            class="res-card stagger-fade-in"
+            :style="{ '--stagger-index': pendingIndex }"
           >
             <div class="res-card__top">
               <div class="res-card__profile">
@@ -159,13 +160,13 @@
             <div class="res-card__divider" />
 
             <div class="res-card__actions">
-              <button class="res-card__btn res-card__btn--reject" :disabled="processingId === item.id" @click="handleReject(item)">
+              <button class="res-card__btn res-card__btn--reject press-effect" :disabled="processingId === item.id" @click="handleReject(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
                 {{ processingId === item.id ? '처리 중...' : '거절' }}
               </button>
-              <button class="res-card__btn res-card__btn--approve" :disabled="processingId === item.id" @click="handleApprove(item)">
+              <button class="res-card__btn res-card__btn--approve press-effect" :disabled="processingId === item.id" @click="handleApprove(item)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -182,9 +183,10 @@
 
         <div class="reservation__list">
           <div
-            v-for="item in approvedList"
+            v-for="(item, approvedIndex) in approvedList"
             :key="item.id"
-            class="res-card res-card--approved"
+            class="res-card res-card--approved stagger-fade-in"
+            :style="{ '--stagger-index': approvedIndex }"
           >
             <div class="res-card__top">
               <div class="res-card__profile">
@@ -202,8 +204,8 @@
                   승인됨
                 </span>
                 <!-- ··· 점 메뉴 버튼 -->
-                <button
-                  class="res-card__menu-btn"
+                  <button
+                  class="res-card__menu-btn press-effect"
                   :disabled="processingId === item.id"
                   @click.stop="toggleMenu(item)"
                 >

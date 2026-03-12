@@ -50,10 +50,11 @@
             placeholder="금액을 입력하세요"
             min="1"
             @input="amountError = ''"
+            @blur="validateAmount"
           />
           <span class="pay-write__input-suffix">원</span>
         </div>
-        <p v-if="amountError" class="pay-write__field-error">{{ amountError }}</p>
+        <p v-if="amountError" class="form-error-text">{{ amountError }}</p>
       </section>
 
       <!-- 날짜 -->
@@ -61,14 +62,16 @@
         <label class="pay-write__label" for="pay-date">
           날짜 <span class="pay-write__label-required">*</span>
         </label>
-        <div class="pay-write__input-wrap">
+        <div class="pay-write__input-wrap" :class="{ 'pay-write__input-wrap--error': dateError }">
           <input
             id="pay-date"
             class="pay-write__input"
             type="date"
             v-model="paymentDate"
+            @blur="validateDate"
           />
         </div>
+        <p v-if="dateError" class="form-error-text">{{ dateError }}</p>
       </section>
 
       <!-- 메모 -->
@@ -125,6 +128,7 @@ const { showToast, showError, showSuccess } = useToast()
 
 const amount = ref('')
 const amountError = ref('')
+const dateError = ref('')
 
 const pad = (n) => String(n).padStart(2, '0')
 const today = new Date()
@@ -142,6 +146,23 @@ onMounted(async () => {
   hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
 })
 
+function validateAmount() {
+  const parsedAmount = Number(amount.value)
+  if (!amount.value || parsedAmount <= 0) {
+    amountError.value = '금액을 올바르게 입력해 주세요'
+  } else {
+    amountError.value = ''
+  }
+}
+
+function validateDate() {
+  if (!paymentDate.value) {
+    dateError.value = '날짜를 입력해주세요'
+  } else {
+    dateError.value = ''
+  }
+}
+
 async function handleSave() {
   if (hasActiveConnection.value !== true) return
   if (loading.value) return
@@ -149,6 +170,11 @@ async function handleSave() {
   const parsedAmount = Number(amount.value)
   if (!amount.value || parsedAmount <= 0) {
     amountError.value = '금액을 올바르게 입력해 주세요'
+    return
+  }
+
+  if (!paymentDate.value) {
+    dateError.value = '날짜를 입력해주세요'
     return
   }
 

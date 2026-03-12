@@ -7,7 +7,7 @@
     <div class="member-mgmt__header">
      
       <h1 class="member-mgmt__title">회원 관리</h1>
-      <button class="member-mgmt__invite" @click="router.push('/invite/manage')">
+      <button class="member-mgmt__invite press-effect" @click="router.push('/invite/manage')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           <path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
@@ -18,14 +18,14 @@
     <!-- ── Tab Bar ── -->
     <div class="member-mgmt__tabs">
       <button
-        class="member-mgmt__tab"
+        class="member-mgmt__tab press-effect"
         :class="{ 'member-mgmt__tab--active': activeTab === 'members' }"
         @click="activeTab = 'members'"
       >
         회원
       </button>
       <button
-        class="member-mgmt__tab"
+        class="member-mgmt__tab press-effect"
         :class="{ 'member-mgmt__tab--active': activeTab === 'pending' }"
         @click="switchToPending"
       >
@@ -62,7 +62,7 @@
         <button
           v-for="card in statCards"
           :key="card.id"
-          class="stat-card"
+          class="stat-card press-effect"
           :class="{ 'stat-card--active': activeStatCard === card.id }"
           @click="activeStatCard = card.id"
         >
@@ -93,7 +93,7 @@
           <h2 class="member-list-section__title">
             회원 목록 <span class="member-list-section__count">{{ filteredMembers.length }}</span>
           </h2>
-          <button class="member-list-section__sort">
+          <button class="member-list-section__sort press-effect">
             최신순
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M3 6h18M7 12h10M11 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -110,12 +110,13 @@
               <path d="M14 21C14 19.3431 15.3431 18 17 18C18.6569 18 20 19.3431 20 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
             <p>연결된 회원이 없습니다.</p>
-            <button class="member-list__empty-btn" @click="router.push('/invite/manage')">초대 코드 생성하기</button>
+            <button class="member-list__empty-btn press-effect" @click="router.push('/invite/manage')">초대 코드 생성하기</button>
           </div>
           <div
-            v-for="member in filteredMembers"
+            v-for="(member, memberIndex) in filteredMembers"
             :key="member.id"
-            class="member-item"
+            class="member-item stagger-fade-in press-effect"
+            :style="{ '--stagger-index': memberIndex }"
             @click="router.push(`/trainer/members/${member.id}`)"
           >
             <!-- Avatar -->
@@ -204,14 +205,14 @@
             </div>
             <div class="pending-item__actions">
               <button
-                class="pending-item__btn pending-item__btn--approve"
+                class="pending-item__btn pending-item__btn--approve press-effect"
                 :disabled="processingId === req.id"
                 @click="handleApprove(req.id)"
               >
                 승인
               </button>
               <button
-                class="pending-item__btn pending-item__btn--reject"
+                class="pending-item__btn pending-item__btn--reject press-effect"
                 :disabled="processingId === req.id"
                 @click="handleReject(req.id)"
               >

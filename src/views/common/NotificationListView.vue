@@ -4,14 +4,14 @@
 
     <!-- ── Header ── -->
     <div class="notification-list__header">
-      <button class="notification-list__back" @click="router.back()">
+      <button class="notification-list__back press-effect" @click="router.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
       <h1 class="notification-list__title">알림</h1>
       <button
-        class="notification-list__mark-all"
+        class="notification-list__mark-all press-effect"
         :class="{ 'notification-list__mark-all--disabled': unreadCount === 0 }"
         :disabled="unreadCount === 0"
         @click="handleMarkAllAsRead"
@@ -39,10 +39,11 @@
     <!-- ── Notification Items ── -->
     <div v-else class="notification-list__items">
       <div
-        v-for="notification in notifications"
+        v-for="(notification, index) in notifications"
         :key="notification.id"
-        class="notification-item"
+        class="notification-item stagger-fade-in press-effect"
         :class="{ 'notification-item--unread': !notification.is_read }"
+        :style="{ '--stagger-index': index }"
         @click="handleNotificationClick(notification)"
       >
         <!-- Icon -->
