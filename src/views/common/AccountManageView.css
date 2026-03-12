@@ -151,6 +151,24 @@
   line-height: var(--lh-body);
 }
 
+.account-manage__success-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  padding: 14px 16px;
+  border-radius: var(--radius-medium);
+  margin-bottom: 12px;
+}
+
+.account-manage__success-box p {
+  margin: 0;
+  flex: 1;
+  font-size: var(--fs-body2);
+  line-height: var(--lh-body);
+}
+
 .account-manage__btn {
   width: 100%;
   height: var(--btn-height);
