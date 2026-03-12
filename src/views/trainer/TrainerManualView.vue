@@ -130,7 +130,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 const router = useRouter()
 const auth = useAuthStore()
 const { manuals, loading, fetchManuals, error } = useManuals()
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const CATEGORIES = ['전체', '재활', '근력', '다이어트', '스포츠', '코어', '유연성']
 

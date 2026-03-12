@@ -177,7 +177,7 @@ import { useToast } from '@/composables/useToast'
 const router = useRouter()
 const route = useRoute()
 const { loading, error, createManual, fetchManual, updateManual, deleteManualMedia, addManualMedia, currentManual } = useManuals()
-const { showToast, toastMessage, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const isEditMode = computed(() => !!route.params.id)
 

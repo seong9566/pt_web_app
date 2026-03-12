@@ -2,8 +2,8 @@
 <template>
   <div class="trainer-profile">
     <div class="trainer-profile__header">
-      <button class="trainer-profile__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button class="trainer-profile__back" @click="router.back()" style="color: var(--color-gray-900);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="trainer-profile__progress">
         <ProgressBar :current-step="2" :total-steps="2" />

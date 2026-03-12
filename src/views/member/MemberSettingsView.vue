@@ -211,7 +211,7 @@ const { checkTrainerConnection } = useReservations()
 const ptSessionsStore = usePtSessionsStore()
 const reservationsStore = useReservationsStore()
 const chatBadgeStore = useChatBadgeStore()
-const { showToast, toastMessage, toastType, showSuccess } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'

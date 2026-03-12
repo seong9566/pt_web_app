@@ -56,7 +56,6 @@
   /* ── Spacing ── */
   --spacing-section: 28px;
   --spacing-item: 14px;
-}
 
   /* ── Animation ── */
   --animation-duration-fast: 0.2s;
@@ -66,7 +65,13 @@
   --animation-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
   --animation-stagger-delay: 0.06s;
 
-  @keyframes fadeSlideUp {
+  /* ── Warning Colors ── */
+  --color-warning-bg: #FFF9E5;
+  --color-warning-text: #7A5C00;
+  --color-warning-icon: #B88900;
+}
+
+@keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }

@@ -80,7 +80,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 const router = useRouter()
 const auth = useAuthStore()
 const { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead, error } = useNotifications()
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 watch(error, (val) => {
   if (val) showError(val)

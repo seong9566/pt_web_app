@@ -146,7 +146,7 @@ import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours } = useWorkHours()
-const { showToast: showToastGlobal } = useToast()
+const { showToast } = useToast()
 
 // ── 예약 단위 ──
 const unitOptions = [
@@ -156,9 +156,7 @@ const unitOptions = [
   { value: 120, label: '2시간' },
 ]
 
-// ── Toast ──
-const showToast = ref(false)
-const toastMessage = ref('')
+// ── 초기 로딩 상태 ──
 const isInitialLoading = ref(true)
 
 // ── 시간 포맷 (24h → 12h AM/PM) ──
@@ -197,8 +195,7 @@ async function handleSave() {
 
   const success = await saveWorkHours(days.value, selectedUnit.value)
   if (success) {
-    toastMessage.value = '근무시간이 저장되었습니다.'
-    showToast.value = true
+    showToast('근무시간이 저장되었습니다.')
     setTimeout(() => {
       router.back()
     }, 1000)
@@ -214,7 +211,7 @@ onMounted(async () => {
   }
 })
 
-watch(error, (e) => { if (e) showToastGlobal(e, 'error') })
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 
 <style src="./WorkTimeSettingView.css" scoped></style>

@@ -20,7 +20,9 @@
       </svg>
       <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
       <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
-      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+      <div style="margin-top: 8px;">
+        <AppButton variant="primary" @click="router.back()">뒤로가기</AppButton>
+      </div>
     </div>
 
     <div v-else-if="hasActiveConnection === null" style="display:flex;align-items:center;justify-content:center;padding:60px 20px;">
@@ -151,6 +153,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import AppButton from '@/components/AppButton.vue'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppTimePicker from '@/components/AppTimePicker.vue'

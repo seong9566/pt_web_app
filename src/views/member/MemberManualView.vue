@@ -115,7 +115,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const { manuals, loading, fetchManuals, error } = useManuals()
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const searchQuery = ref('')
 const selectedCategory = ref('전체')

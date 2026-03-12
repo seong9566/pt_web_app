@@ -223,7 +223,7 @@ const {
 } = useWorkoutPlans()
 const { fetchRemainingByPair } = usePtSessions()
 const { unreadCount, getUnreadCount } = useNotifications()
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const hasTrainer = ref(null)
 const ptRemaining = ref(null)

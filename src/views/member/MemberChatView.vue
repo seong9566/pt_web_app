@@ -314,7 +314,7 @@ const {
   unsubscribe,
 } = useChat()
 
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 const { checkTrainerConnection } = useReservations()
 
 const selectedPartnerId = ref(null)

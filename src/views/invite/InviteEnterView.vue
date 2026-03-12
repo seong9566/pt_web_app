@@ -97,7 +97,7 @@ const { validateInviteCode, redeemInviteCode, error: inviteError } = useInvite()
 const reservationsStore = useReservationsStore()
 const ptSessionsStore = usePtSessionsStore()
 const chatBadgeStore = useChatBadgeStore()
-const { showToast, toastMessage, toastType, showSuccess } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const codeDigits = ref(['', '', '', '', '', ''])
 const inputRefs = ref([])

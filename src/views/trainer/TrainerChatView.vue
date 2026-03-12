@@ -9,7 +9,9 @@
       </svg>
       <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
       <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
-      <button style="margin-top: 8px; padding: 14px 32px; background: var(--color-blue-primary); color: white; border: none; border-radius: var(--radius-medium); font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); cursor: pointer;" @click="router.back()">뒤로가기</button>
+      <div style="margin-top: 8px;">
+        <AppButton variant="primary" @click="router.back()">뒤로가기</AppButton>
+      </div>
     </div>
 
     <div v-else-if="hasActiveConnection === null" class="trainer-chat__connection-loading">
@@ -292,6 +294,7 @@ import { isActiveConnection } from '@/composables/useConnection'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
 import { useToast } from '@/composables/useToast'
+import AppButton from '@/components/AppButton.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -321,7 +324,7 @@ const {
   unsubscribe,
 } = useChat()
 
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 // ── 상태 ──
 const selectedPartnerId = ref(null)

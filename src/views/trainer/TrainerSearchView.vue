@@ -2,8 +2,8 @@
 <template>
   <div class="trainer-search">
     <div class="trainer-search__header">
-      <button class="trainer-search__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button class="trainer-search__back" @click="router.back()" style="color: var(--color-gray-900);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="trainer-search__title">PT 트레이너 찾기</h2>
       <button class="trainer-search__filter">

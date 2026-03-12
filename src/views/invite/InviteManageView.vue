@@ -2,8 +2,8 @@
 <template>
   <div class="invite-manage">
     <div class="invite-manage__header">
-      <button class="invite-manage__back" @click="router.back()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button class="invite-manage__back" @click="router.back()" style="color: var(--color-gray-900);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="invite-manage__title">초대 코드 관리</h2>
       <div style="width: 40px;" />
@@ -39,14 +39,14 @@
           </div>
         </template>
       </div>
-      <button class="invite-manage__kakao-banner">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M14 4C8.477 4 4 7.806 4 12.5c0 3.03 1.85 5.69 4.65 7.24L7.6 23.5a.286.286 0 0 0 .424.31L13.2 21.1c.264.022.53.04.8.04 5.523 0 10-3.806 10-8.5S19.523 4 14 4z" fill="#3C1E1E"/></svg>
-        <div class="invite-manage__kakao-text">
-          <span class="invite-manage__kakao-main">카카오톡으로 초대장 보내기</span>
-          <span class="invite-manage__kakao-sub">간편하게 회원님을 초대해보세요</span>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="#3C1E1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+       <button class="invite-manage__kakao-banner" style="color: #3C1E1E;">
+         <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M14 4C8.477 4 4 7.806 4 12.5c0 3.03 1.85 5.69 4.65 7.24L7.6 23.5a.286.286 0 0 0 .424.31L13.2 21.1c.264.022.53.04.8.04 5.523 0 10-3.806 10-8.5S19.523 4 14 4z" fill="currentColor"/></svg>
+         <div class="invite-manage__kakao-text">
+           <span class="invite-manage__kakao-main">카카오톡으로 초대장 보내기</span>
+           <span class="invite-manage__kakao-sub">간편하게 회원님을 초대해보세요</span>
+         </div>
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+       </button>
       <div class="invite-manage__members">
         <div class="invite-manage__members-header">
           <h3 class="invite-manage__members-title">최근 연결된 회원</h3>
@@ -81,9 +81,9 @@
                 <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
                 <p class="member-item__date">{{ formatDate(member.connected_at) }} 가입</p>
               </div>
-              <!-- <button class="member-item__more">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="#666666"/><circle cx="12" cy="12" r="1.5" fill="#666666"/><circle cx="12" cy="19" r="1.5" fill="#666666"/></svg>
-              </button> -->
+               <!-- <button class="member-item__more" style="color: var(--color-gray-600);">
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+               </button> -->
             </div>
           </template>
         </div>
@@ -103,15 +103,7 @@ import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
 const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
-const { showToast: showToastGlobal } = useToast()
-
-const toastMsg = ref('')
-const showToast = ref(false)
-
-function fireToast(msg) {
-  toastMsg.value = msg
-  showToast.value = true
-}
+const { showToast } = useToast()
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -125,7 +117,7 @@ function formatDate(dateStr) {
 function handleCopyCode() {
   if (inviteCode.value?.code) {
     navigator.clipboard.writeText(inviteCode.value.code)
-    fireToast('초대 코드가 복사되었습니다')
+    showToast('초대 코드가 복사되었습니다')
   }
 }
 
@@ -133,7 +125,7 @@ function handleShareLink() {
   if (!inviteCode.value?.code) return
   const url = `${window.location.origin}/invite/enter?code=${inviteCode.value.code}`
   navigator.clipboard.writeText(url)
-    fireToast('초대 링크가 복사되었습니다')
+  showToast('초대 링크가 복사되었습니다')
 }
 
 onMounted(async () => {
@@ -144,6 +136,6 @@ onMounted(async () => {
   fetchRecentMembers()
 })
 
-watch(error, (e) => { if (e) showToastGlobal(e, 'error') })
+watch(error, (e) => { if (e) showToast(e, 'error') })
 </script>
 <style src="./InviteManageView.css" scoped></style>

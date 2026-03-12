@@ -102,7 +102,7 @@ const auth = useAuthStore()
 
 const { workoutPlans, currentPlan, loading, fetchWorkoutPlan, fetchWorkoutPlans, error } = useWorkoutPlans()
 const { checkTrainerConnection } = useReservations()
-const { showToast, toastMessage, toastType, showError } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 const hasActiveConnection = ref(null)
 
 watch(error, (val) => {
