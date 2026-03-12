@@ -34,9 +34,9 @@
                <span v-for="tag in trainer.specialties" :key="tag" class="trainer-card__tag">{{ tag }}</span>
              </div>
            </div>
-            <div v-if="trainer.pending" class="trainer-card__badge trainer-card__badge--pending">
-              요청 중
-            </div>
+             <div v-if="trainer.pending" class="trainer-card__badge trainer-card__badge--pending">
+               승인 대기
+             </div>
             <div v-else-if="trainer.connected" class="trainer-card__badge trainer-card__badge--connected">
               연결됨
             </div>
@@ -70,7 +70,7 @@ const searchQuery = ref('')
 const requestingId = ref(null)
 
 const { trainers, loading, error, searchTrainers, requestConnection } = useTrainerSearch()
-const { showToast } = useToast()
+const { showToast, showSuccess } = useToast()
 
 /** 검색 쿼리 변경 시 debounce 적용하여 검색 */
 let searchTimeout
@@ -87,6 +87,7 @@ async function handleRequestConnection(trainerId) {
   try {
     const success = await requestConnection(trainerId)
     if (success) {
+      showSuccess('연결 요청을 보냈습니다')
       // 성공 시 목록 새로고침
       await searchTrainers(searchQuery.value)
     }
