@@ -374,8 +374,8 @@
 }
 
 .member-chat__file-btn {
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   background-color: var(--color-gray-100);
   display: flex;
@@ -406,8 +406,8 @@
 }
 
 .member-chat__send-btn {
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   background-color: var(--color-blue-primary);
   display: flex;

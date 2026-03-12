@@ -96,7 +96,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
+  min-height: 44px;
   padding: 0 14px;
   border-radius: 20px;
   font-size: var(--fs-body2);
@@ -289,8 +289,8 @@
 }
 
 .res-card__status--pending {
-  background-color: #FFF8E1;
-  color: #F59E0B;
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-icon);
 }
 
 .res-card__status--approved {

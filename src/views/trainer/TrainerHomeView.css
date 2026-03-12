@@ -106,7 +106,7 @@
   gap: var(--spacing-item);
   background: linear-gradient(135deg, var(--color-blue-primary) 0%, #3d9aff 100%);
   color: var(--color-white);
-  padding: 16px 18px;
+  padding: 16px var(--side-margin);
   border-radius: var(--radius-large);
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
@@ -158,7 +158,7 @@
 .trainer-home__stat-card {
   background-color: var(--color-white);
   border-radius: var(--radius-large);
-  padding: 18px 16px;
+  padding: var(--side-margin) 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;

@@ -49,8 +49,8 @@
   position: absolute;
   top: 16px;
   left: var(--side-margin);
-  width: 40px;
-  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;

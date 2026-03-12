@@ -190,8 +190,8 @@ function nextMonth() {
 }
 
 .app-calendar__arrow {
-  width: 32px;
-  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   background: none;
   cursor: pointer;

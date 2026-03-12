@@ -23,8 +23,9 @@
         <h3 class="member-profile__section-title">기본 정보</h3>
         <div class="member-profile__fields">
           <div class="member-profile__field">
-            <label class="member-profile__label">이름</label>
-            <AppInput v-model="form.name" placeholder="홍길동" />
+            <label class="member-profile__label">이름 <span style="color: var(--color-red);">*</span></label>
+            <AppInput v-model="form.name" placeholder="홍길동" @blur="validateName" :class="{ 'form-field--error': nameError }" />
+            <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
           </div>
           <div class="member-profile__field">
             <label class="member-profile__label">연락처</label>
@@ -54,23 +55,27 @@
             <label class="member-profile__label">키</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': heightError }]"
                 type="number"
                 v-model="form.height"
                 placeholder="0"
+                @blur="validateHeight"
               /><span class="body-input__unit">cm</span>
             </div>
+            <p v-if="heightError" class="form-error-text">{{ heightError }}</p>
           </div>
           <div class="member-profile__body-field">
             <label class="member-profile__label">몸무게</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': weightError }]"
                 type="number"
                 v-model="form.weight"
                 placeholder="0"
+                @blur="validateWeight"
               /><span class="body-input__unit">kg</span>
             </div>
+            <p v-if="weightError" class="form-error-text">{{ weightError }}</p>
           </div>
         </div>
       </section>
@@ -165,6 +170,33 @@ const goals = [
 const selectedGoals = ref([]);
 const isLoading = ref(false)
 const errorMsg = ref('')
+const nameError = ref('')
+const heightError = ref('')
+const weightError = ref('')
+function validateName() {
+  if (!form.value.name.trim()) {
+    nameError.value = '이름을 입력해주세요'
+  } else {
+    nameError.value = ''
+  }
+}
+
+function validateHeight() {
+  if (form.value.height && isNaN(Number(form.value.height))) {
+    heightError.value = '올바른 숫자를 입력해주세요'
+  } else {
+    heightError.value = ''
+  }
+}
+
+function validateWeight() {
+  if (form.value.weight && isNaN(Number(form.value.weight))) {
+    weightError.value = '올바른 숫자를 입력해주세요'
+  } else {
+    weightError.value = ''
+  }
+}
+
 /** 목표 선택 토글 처리 */
 function toggleGoal(id) {
   const idx = selectedGoals.value.indexOf(id);
@@ -188,8 +220,8 @@ async function handleFileSelect(event) {
 
 /** 회원 프로필 저장 및 다음 단계 진행 */
 async function handleComplete() {
-   if (!form.value.name.trim()) {
-     errorMsg.value = '이름을 입력해주세요.'
+   validateName()
+   if (nameError.value) {
      return
    }
 

@@ -356,8 +356,8 @@
   color: var(--color-green-dark);
 }
 .scard__badge--pending {
-  background-color: #fff8e6;
-  color: #e89a00;
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-icon);
 }
 .scard__badge--cancelled {
   background-color: var(--color-red-light);

@@ -18,10 +18,12 @@
           id="email"
           v-model="email"
           type="email"
-          class="password-reset__input"
+          :class="['password-reset__input', { 'form-field--error': emailError }]"
           placeholder="example@email.com"
           autocomplete="email"
+          @blur="validateEmail"
         />
+        <p v-if="emailError" class="form-error-text">{{ emailError }}</p>
       </div>
 
       <p v-if="errorMsg" class="password-reset__error">{{ errorMsg }}</p>
@@ -54,15 +56,23 @@ const router = useRouter()
 const email = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
+const emailError = ref('')
 const sent = ref(false)
+
+function validateEmail() {
+  if (!email.value) {
+    emailError.value = '이메일을 입력해주세요'
+  } else if (!email.value.includes('@')) {
+    emailError.value = '올바른 이메일 형식이 아닙니다'
+  } else {
+    emailError.value = ''
+  }
+}
 
 async function handleSubmit() {
   errorMsg.value = ''
-
-  if (!email.value) {
-    errorMsg.value = '이메일을 입력해주세요.'
-    return
-  }
+  validateEmail()
+  if (emailError.value) return
 
   isLoading.value = true
 

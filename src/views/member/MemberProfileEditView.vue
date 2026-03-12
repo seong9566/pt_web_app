@@ -36,8 +36,8 @@
         <div class="member-profile-edit__fields">
           <div class="member-profile-edit__field">
             <label class="member-profile-edit__label">이름 <span class="member-profile-edit__required">*</span></label>
-            <AppInput v-model="form.name" placeholder="이름을 입력해주세요" />
-            <p v-if="nameError" class="member-profile-edit__field-error">{{ nameError }}</p>
+            <AppInput v-model="form.name" placeholder="이름을 입력해주세요" @blur="validateName" :class="{ 'form-field--error': nameError }" />
+            <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
           </div>
           <div class="member-profile-edit__field">
             <label class="member-profile-edit__label">전화번호</label>
@@ -203,10 +203,17 @@ function toggleGoal(id) {
   else form.value.goals.splice(idx, 1)
 }
 
-async function handleSave() {
-  nameError.value = ''
+function validateName() {
   if (!form.value.name.trim()) {
-    nameError.value = '이름을 입력해주세요.'
+    nameError.value = '이름을 입력해주세요'
+  } else {
+    nameError.value = ''
+  }
+}
+
+async function handleSave() {
+  validateName()
+  if (nameError.value) {
     return
   }
   const success = await updateMemberProfile(

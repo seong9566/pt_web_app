@@ -45,10 +45,12 @@
           id="email"
           v-model="email"
           type="email"
-          class="email-login__input"
+          :class="['email-login__input', { 'form-field--error': emailError }]"
           placeholder="example@email.com"
           autocomplete="email"
+          @blur="validateEmail"
         />
+        <p v-if="emailError" class="form-error-text">{{ emailError }}</p>
       </div>
 
       <div class="email-login__field">
@@ -57,10 +59,12 @@
           id="password"
           v-model="password"
           type="password"
-          class="email-login__input"
+          :class="['email-login__input', { 'form-field--error': passwordError }]"
           placeholder="6자 이상 입력"
           :autocomplete="activeTab === 'login' ? 'current-password' : 'new-password'"
+          @blur="validatePassword"
         />
+        <p v-if="passwordError" class="form-error-text">{{ passwordError }}</p>
       </div>
 
       <p v-if="errorMsg" class="email-login__error">{{ errorMsg }}</p>
@@ -105,11 +109,35 @@ const password = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
+const emailError = ref('')
+const passwordError = ref('')
+
+function validateEmail() {
+  if (!email.value) {
+    emailError.value = '이메일을 입력해주세요'
+  } else if (!email.value.includes('@')) {
+    emailError.value = '올바른 이메일 형식이 아닙니다'
+  } else {
+    emailError.value = ''
+  }
+}
+
+function validatePassword() {
+  if (!password.value) {
+    passwordError.value = '비밀번호를 입력해주세요'
+  } else if (password.value.length < 6) {
+    passwordError.value = '비밀번호는 6자 이상이어야 합니다'
+  } else {
+    passwordError.value = ''
+  }
+}
 
 function switchTab(tab) {
   activeTab.value = tab
   errorMsg.value = ''
   successMsg.value = ''
+  emailError.value = ''
+  passwordError.value = ''
 }
 
 function validateInputs() {

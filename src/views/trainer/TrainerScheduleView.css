@@ -456,8 +456,8 @@
 }
 
 .scard__badge--pending {
-    background-color: #FFF8E6;
-    color: #E89A00;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning-icon);
 }
 
 /* Time */

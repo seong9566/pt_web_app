@@ -163,6 +163,7 @@
     </div>
 
     <!-- ── Bottom Action Bar ── -->
+    <p v-if="timeError" class="form-error-text" style="text-align: center; margin: 0 var(--side-margin) 8px;">{{ timeError }}</p>
     <div class="reservation-action">
       <div class="reservation-action__summary">
         <span class="reservation-action__label">선택된 시간</span>
@@ -170,7 +171,7 @@
       </div>
       <button 
         class="reservation-action__btn" 
-        :disabled="!selectedTime || isSubmitting || loading"
+        :disabled="isSubmitting || loading"
         @click="submitReservation"
       >
         {{ isSubmitting ? '예약 중...' : '예약 요청하기' }}
@@ -221,6 +222,7 @@ const selectedTime = ref(null)
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
 const isSubmitting = ref(false)
+const timeError = ref('')
 
 // Initialize trainer ID on mount
 onMounted(async () => {
@@ -337,7 +339,12 @@ const formattedSelection = computed(() => {
 })
 
 async function submitReservation() {
-  if (!selectedTime.value || !trainerId.value) return
+  timeError.value = ''
+  if (!selectedTime.value) {
+    timeError.value = '시간을 선택해주세요'
+    return
+  }
+  if (!trainerId.value) return
   
   isSubmitting.value = true
   const result = await createReservation(trainerId.value, selectedDate.value, selectedTime.value, 'PT')

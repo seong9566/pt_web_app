@@ -12,11 +12,13 @@
           id="password"
           v-model="newPassword"
           type="password"
-          class="password-update__input"
+          :class="['password-update__input', { 'form-field--error': passwordError }]"
           placeholder="6자 이상"
           minlength="6"
           autocomplete="new-password"
+          @blur="validatePassword"
         />
+        <p v-if="passwordError" class="form-error-text">{{ passwordError }}</p>
       </div>
 
       <div class="password-update__field">
@@ -25,10 +27,12 @@
           id="confirm"
           v-model="confirmPassword"
           type="password"
-          class="password-update__input"
+          :class="['password-update__input', { 'form-field--error': confirmError }]"
           placeholder="비밀번호를 다시 입력해주세요"
           autocomplete="new-password"
+          @blur="validateConfirm"
         />
+        <p v-if="confirmError" class="form-error-text">{{ confirmError }}</p>
       </div>
 
       <p v-if="errorMsg" class="password-update__error">{{ errorMsg }}</p>
@@ -60,25 +64,35 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 const isLoading = ref(false)
 const errorMsg = ref('')
+const passwordError = ref('')
+const confirmError = ref('')
 const done = ref(false)
+
+function validatePassword() {
+  if (!newPassword.value) {
+    passwordError.value = '비밀번호를 입력해주세요'
+  } else if (newPassword.value.length < 6) {
+    passwordError.value = '비밀번호는 6자 이상이어야 합니다'
+  } else {
+    passwordError.value = ''
+  }
+}
+
+function validateConfirm() {
+  if (!confirmPassword.value) {
+    confirmError.value = '비밀번호를 다시 입력해주세요'
+  } else if (newPassword.value !== confirmPassword.value) {
+    confirmError.value = '비밀번호가 일치하지 않습니다'
+  } else {
+    confirmError.value = ''
+  }
+}
 
 async function handleSubmit() {
   errorMsg.value = ''
-
-  if (!newPassword.value || !confirmPassword.value) {
-    errorMsg.value = '비밀번호를 입력해주세요.'
-    return
-  }
-
-  if (newPassword.value.length < 6) {
-    errorMsg.value = '비밀번호는 6자 이상이어야 합니다.'
-    return
-  }
-
-  if (newPassword.value !== confirmPassword.value) {
-    errorMsg.value = '비밀번호가 일치하지 않습니다.'
-    return
-  }
+  validatePassword()
+  validateConfirm()
+  if (passwordError.value || confirmError.value) return
 
   isLoading.value = true
 
