@@ -97,6 +97,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
+import { parseAuthError } from '@/utils/authErrors'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -154,15 +155,6 @@ function validateInputs() {
     return false
   }
   return true
-}
-
-function parseAuthError(code) {
-  const map = {
-    invalid_credentials: '이메일 또는 비밀번호가 올바르지 않습니다.',
-    user_already_registered: '이미 가입된 이메일입니다.',
-    weak_password: '비밀번호가 너무 약합니다. 6자 이상으로 다시 시도해주세요.',
-  }
-  return map[code] ?? null
 }
 
 async function handleSubmit() {
