@@ -146,7 +146,7 @@ import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { days, selectedUnit, loading, error, fetchWorkHours, saveWorkHours } = useWorkHours()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 // ── 예약 단위 ──
 const unitOptions = [
@@ -195,10 +195,10 @@ async function handleSave() {
 
   const success = await saveWorkHours(days.value, selectedUnit.value)
   if (success) {
-    showToast('근무시간이 저장되었습니다.')
+    showSuccess('저장되었습니다')
     setTimeout(() => {
       router.back()
-    }, 1000)
+    }, 800)
   }
 }
 

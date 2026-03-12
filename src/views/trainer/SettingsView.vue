@@ -152,11 +152,13 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
+import { useConfirm } from '@/composables/useConfirm'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { softDeleteAccount } = useProfile()
+const { confirm } = useConfirm()
 
 const roleBadge = computed(() => {
   return auth.role === 'trainer' ? '트레이너' : '회원'
@@ -195,7 +197,7 @@ async function handleDeleteAccount() {
 }
 
 async function handleLogout() {
-  if (confirm('로그아웃 하시겠습니까?')) {
+  if (await confirm('로그아웃 하시겠습니까?')) {
     await auth.signOut()
     router.push({ name: 'login' })
   }

@@ -143,7 +143,7 @@ import personIcon from '@/assets/icons/person.svg'
 const router = useRouter()
 const auth = useAuthStore()
 const { uploading, error: profileError, uploadAvatar, updateProfilePhoto, updateMemberProfile } = useProfile()
-const { showToast } = useToast()
+const { showToast, showSuccess } = useToast()
 
 const fileInput = ref(null)
 const avatarPreview = ref(null)
@@ -219,7 +219,8 @@ async function handleSave() {
     form.value.gender || null,
   )
   if (success) {
-    router.back()
+    showSuccess('저장되었습니다')
+    setTimeout(() => router.back(), 800)
   }
 }
 

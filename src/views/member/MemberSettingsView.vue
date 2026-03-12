@@ -199,6 +199,7 @@ import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useReservationsStore } from '@/stores/reservations'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import '@/views/trainer/SettingsView.css'
@@ -211,6 +212,7 @@ const { checkTrainerConnection } = useReservations()
 const ptSessionsStore = usePtSessionsStore()
 const reservationsStore = useReservationsStore()
 const chatBadgeStore = useChatBadgeStore()
+const { confirm } = useConfirm()
 const { showToast, showError, showSuccess } = useToast()
 
 const roleBadge = computed(() => {
@@ -289,7 +291,7 @@ async function handleDeleteAccount() {
 }
 
 async function handleLogout() {
-  if (!confirm('로그아웃 하시겠습니까?')) return
+  if (!await confirm('로그아웃 하시겠습니까?')) return
   await auth.signOut()
   router.push('/login')
 }

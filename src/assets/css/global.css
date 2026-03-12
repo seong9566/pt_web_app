@@ -134,10 +134,42 @@ input, textarea {
   overflow-x: hidden;
 }
 
+/* ── Micro-interactions ── */
+.press-effect {
+  transition: transform var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.press-effect:active {
+  transform: scale(0.97);
+}
+
+.stagger-fade-in {
+  animation: fadeSlideUp var(--animation-duration-normal) var(--animation-easing-default) backwards;
+  animation-delay: calc(var(--animation-stagger-delay) * var(--stagger-index, 0));
+}
+
+.fade-in {
+  animation: fadeIn var(--animation-duration-normal) var(--animation-easing-default);
+}
+
+/* ── Form Validation ── */
+.form-field--error {
+  border-color: var(--color-red) !important;
+}
+
+.form-error-text {
+  color: var(--color-red);
+  font-size: var(--fs-caption);
+  margin-top: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .press-effect:active {
+    transform: none;
   }
 }

@@ -289,6 +289,7 @@ import { useReservations } from "@/composables/useReservations";
 import { useWorkHours } from "@/composables/useWorkHours";
 import { useWorkoutPlans } from "@/composables/useWorkoutPlans";
 import { useToast } from "@/composables/useToast";
+import { useConfirm } from "@/composables/useConfirm";
 import { useReservationsStore } from "@/stores/reservations";
 import AppPullToRefresh from "@/components/AppPullToRefresh.vue";
 import AppSkeleton from "@/components/AppSkeleton.vue";
@@ -307,6 +308,7 @@ const {
 const { fetchWorkingDays } = useWorkHours();
 const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans();
 const { showToast } = useToast();
+const { confirm } = useConfirm();
 
 // ── Calendar state ──
 const now = new Date();
@@ -548,7 +550,7 @@ function goWorkoutDetail() {
 }
 
 async function handleCancel(session) {
-  if (confirm(`"${session.title}" 예약을 취소하시겠습니까?`)) {
+  if (await confirm(`"${session.title}" 예약을 취소하시겠습니까?`)) {
     const success = await updateReservationStatus(session.id, "cancelled");
     if (success) {
       await fetchMyReservations("member");

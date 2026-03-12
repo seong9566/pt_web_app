@@ -268,7 +268,10 @@ async function handleSave() {
       description: form.description,
       youtube_url: form.youtubeUrl || null,
     })
-    if (ok) router.back()
+    if (ok) {
+      showSuccess('저장되었습니다')
+      setTimeout(() => router.back(), 800)
+    }
   } else {
     const manualId = await createManual(
       form.title,
@@ -278,7 +281,8 @@ async function handleSave() {
       rawFiles.value,
     )
     if (manualId) {
-      router.push({ name: 'trainer-manual' })
+      showSuccess('저장되었습니다')
+      setTimeout(() => router.push({ name: 'trainer-manual' }), 800)
     }
   }
 }

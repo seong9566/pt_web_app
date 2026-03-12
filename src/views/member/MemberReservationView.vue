@@ -201,7 +201,7 @@ const { slots, loading, error, fetchAvailableSlots, createReservation, getConnec
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
 const { holidays, fetchHolidays } = useHolidays()
-const { showToast } = useToast()
+const { showToast, showSuccess } = useToast()
 
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
 const workingDays = ref(new Set())
@@ -346,7 +346,8 @@ async function submitReservation() {
     reservationsStore.invalidate()
     isSubmitting.value = false
     // Success: navigate back
-    router.back()
+    showSuccess('예약이 신청되었습니다')
+    setTimeout(() => router.back(), 800)
   } else {
     // 슬롯 자동 갱신 — 충돌 시간 마감 반영
     selectedTime.value = null

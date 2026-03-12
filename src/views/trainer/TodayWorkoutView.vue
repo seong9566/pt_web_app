@@ -167,7 +167,6 @@
         </button>
 
         <p v-if="error" class="today-workout__error-inline">{{ error }}</p>
-        <p v-if="saveSuccess" class="today-workout__success-inline">저장되었습니다</p>
       </section>
 
       <!-- ④ 배정 이력 -->
@@ -257,7 +256,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const {
   workoutPlans,
@@ -277,7 +276,6 @@ const _now = new Date()
 const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
 const selectedDate = ref(route.query.date || todayStr)
 const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
-const saveSuccess = ref(false)
 const isSaving = ref(false)
 const historyLoading = ref(false)
 const expandedHistoryId = ref(null)
@@ -304,7 +302,6 @@ async function selectDate(date) {
   if (hasActiveConnection.value !== true) return
   if (selectedDate.value === date) return
   selectedDate.value = date
-  saveSuccess.value = false
   const memberId = route.query.memberId
   if (!memberId) return
   await fetchWorkoutPlan(memberId, date)
@@ -332,11 +329,11 @@ async function handleSave() {
   const validExercises = exercises.value.filter(e => e.name.trim())
   if (!memberId || validExercises.length === 0 || isSaving.value) return
   isSaving.value = true
-  saveSuccess.value = false
   const success = await saveWorkoutPlan(memberId, selectedDate.value, validExercises)
   isSaving.value = false
   if (success) {
-    saveSuccess.value = true
+    showSuccess('저장되었습니다')
+    setTimeout(() => router.back(), 800)
     await fetchWorkoutPlans(memberId)
   }
 }
@@ -355,7 +352,6 @@ function copyFromHistory(plan) {
     reps: e.reps ?? 10,
     memo: e.memo || '',
   }))
-  saveSuccess.value = false
 }
 
 function toggleHistoryExpand(planId) {
@@ -370,7 +366,6 @@ function copySingleExercise(exercise) {
     reps: exercise.reps ?? 10,
     memo: exercise.memo || '',
   })
-  saveSuccess.value = false
 }
 
 function removeExercise(index) {

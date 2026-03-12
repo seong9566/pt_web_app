@@ -121,7 +121,7 @@ const memberId = route.params.id || route.query.memberId
 const hasActiveConnection = ref(null)
 
 const { createPayment, loading, error } = usePayments()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const amount = ref('')
 const amountError = ref('')
@@ -160,7 +160,8 @@ async function handleSave() {
   )
 
   if (success) {
-    router.back()
+    showSuccess('저장되었습니다')
+    setTimeout(() => router.back(), 800)
   }
 }
 

@@ -280,7 +280,7 @@ const {
 } = usePtSessions()
 
 const { createPayment, loading: paymentLoading, error: paymentError } = usePayments()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 // ── 바텀 시트 상태 ──
 const showAddSheet = ref(false)
@@ -380,6 +380,7 @@ async function handleAdd() {
     }
   }
 
+  showSuccess('저장되었습니다')
   showAddSheet.value = false
 }
 
@@ -400,6 +401,7 @@ async function handleDeduct() {
     ptSessionsStore.invalidate()
     membersStore.invalidate()
     await fetchPtHistory(memberId)
+    showSuccess('저장되었습니다')
     showDeductSheet.value = false
   } else {
     deductError.value = error.value || '남은 횟수보다 많이 차감할 수 없습니다'
@@ -419,6 +421,7 @@ async function handleEdit() {
   if (success) {
     await fetchPtHistory(memberId)
     await getRemainingCount(memberId)
+    showSuccess('저장되었습니다')
     showEditSheet.value = false
   } else {
     editError.value = error.value || '수정에 실패했습니다'

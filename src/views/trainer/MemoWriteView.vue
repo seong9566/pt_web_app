@@ -171,7 +171,7 @@ const isEditMode = computed(() => !!memoId)
 const hasActiveConnection = ref(null)
 
 const { createMemo, updateMemo, fetchMemoById, currentMemo, loading, error } = useMemos()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -270,10 +270,16 @@ async function handleSave() {
 
   if (isEditMode.value) {
     const success = await updateMemo(memoId, content.value.trim(), [...selectedTags.value])
-    if (success) router.back()
+    if (success) {
+      showSuccess('저장되었습니다')
+      setTimeout(() => router.back(), 800)
+    }
   } else {
     const success = await createMemo(memberId, content.value.trim(), [...selectedTags.value])
-    if (success) router.back()
+    if (success) {
+      showSuccess('저장되었습니다')
+      setTimeout(() => router.back(), 800)
+    }
   }
 }
 

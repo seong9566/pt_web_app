@@ -212,6 +212,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 import { isActiveConnection } from '@/composables/useConnection'
 import { usePayments } from '@/composables/usePayments'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -222,6 +223,7 @@ const hasActiveConnection = ref(null)
 
 const { payments, totalAmount, loading, error, fetchPayments, updatePayment, deletePayment } = usePayments()
 const { showToast } = useToast()
+const { confirm } = useConfirm()
 
 // ── 수정 폼 ──
 const showEditSheet = ref(false)
@@ -287,7 +289,7 @@ async function handleEdit() {
 
 async function handleDelete(id) {
   if (hasActiveConnection.value !== true) return
-  if (!confirm('이 수납 기록을 삭제하시겠습니까?')) return
+  if (!await confirm('이 수납 기록을 삭제하시겠습니까?')) return
   await deletePayment(id)
 }
 

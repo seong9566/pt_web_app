@@ -136,7 +136,7 @@ const router = useRouter();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, saveMemberProfileBasic, saveMemberProfileDetails } = useProfile()
 const { redeemInviteCode } = useInvite()
-const { showToast } = useToast()
+const { showToast, showSuccess } = useToast()
 const reservationsStore = useReservationsStore()
 const ptSessionsStore = usePtSessionsStore()
 const chatBadgeStore = useChatBadgeStore()
@@ -217,22 +217,26 @@ async function handleComplete() {
      return
    }
 
-   await auth.fetchProfile()
-   isLoading.value = false
+    await auth.fetchProfile()
+    isLoading.value = false
 
-   const pendingCode = localStorage.getItem('pending_invite_code')
-   if (pendingCode) {
-     const result = await redeemInviteCode(pendingCode)
-     if (result) {
-       localStorage.removeItem('pending_invite_code')
-       reservationsStore.invalidate()
-       ptSessionsStore.invalidate()
-       chatBadgeStore.loadUnreadCount(true)
-     }
-     router.push('/member/home')
-   } else {
-      router.push('/search')
-    }
+    showSuccess('프로필이 저장되었습니다')
+    setTimeout(() => {
+      const pendingCode = localStorage.getItem('pending_invite_code')
+      if (pendingCode) {
+        redeemInviteCode(pendingCode).then((result) => {
+          if (result) {
+            localStorage.removeItem('pending_invite_code')
+            reservationsStore.invalidate()
+            ptSessionsStore.invalidate()
+            chatBadgeStore.loadUnreadCount(true)
+          }
+          router.push('/member/home')
+        })
+      } else {
+         router.push('/search')
+       }
+    }, 800)
 }
 
 watch(uploadError, (e) => { if (e) showToast(e, 'error') })

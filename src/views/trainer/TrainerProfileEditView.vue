@@ -98,7 +98,7 @@ import personIcon from '@/assets/icons/person.svg'
 const router = useRouter()
 const auth = useAuthStore()
 const { uploading, error: profileError, uploadAvatar, updateProfilePhoto, updateTrainerProfile } = useProfile()
-const { showToast } = useToast()
+const { showToast, showError, showSuccess } = useToast()
 
 const fileInput = ref(null)
 const avatarPreview = ref(null)
@@ -155,7 +155,8 @@ async function handleSave() {
   }
   const success = await updateTrainerProfile(form.value.name, form.value.specialties, form.value.bio, form.value.phone || null)
   if (success) {
-    router.back()
+    showSuccess('저장되었습니다')
+    setTimeout(() => router.back(), 800)
   }
 }
 
