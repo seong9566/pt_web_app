@@ -88,7 +88,7 @@
     </div>
 
     <!-- ── Holiday Toggle ── -->
-    <!-- <div class="holiday-toggle">
+    <div class="holiday-toggle">
       <button 
         v-if="!isHolidaySelected" 
         class="holiday-toggle__btn holiday-toggle__btn--set"
@@ -105,7 +105,7 @@
       >
         {{ holidayProcessing ? '처리 중...' : '휴무 해제' }}
       </button>
-    </div> -->
+    </div>
 
     <!-- ── Session Cards ── -->
     <div class="schedule-list">
@@ -195,7 +195,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
-const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday } = useHolidays()
+const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday, getReservationCountForDate } = useHolidays()
 const { fetchWorkingDays } = useWorkHours()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 const { showToast } = useToast()
@@ -315,11 +315,19 @@ const selectedDateStr = computed(() => {
 const isHolidaySelected = computed(() => isHoliday(selectedDateStr.value))
 
 async function handleSetHoliday() {
+  const count = await getReservationCountForDate(auth.user.id, selectedDateStr.value)
+
+  if (count > 0) {
+    const confirmed = confirm(`이 날짜에 ${count}건의 예약이 있습니다. 휴무 설정 시 모든 예약이 자동 거절됩니다. 계속하시겠습니까?`)
+    if (!confirmed) return
+  }
+
   holidayProcessing.value = true
-  try {
-    await setHoliday(selectedDateStr.value)
-  } finally {
-    holidayProcessing.value = false
+  const success = await setHoliday(selectedDateStr.value)
+  holidayProcessing.value = false
+
+  if (success) {
+    await fetchMyReservations('trainer')
   }
 }
 

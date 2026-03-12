@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useReservationsStore } from '@/stores/reservations'
 
 export function useHolidays() {
   const auth = useAuthStore()
@@ -63,6 +64,7 @@ export function useHolidays() {
         holidays.value.push(date)
         holidays.value.sort()
       }
+      useReservationsStore().invalidate()
       return true
     } catch (e) {
       error.value = e?.message ?? '휴무일 설정에 실패했습니다'
@@ -105,6 +107,27 @@ export function useHolidays() {
     return holidays.value.includes(date)
   }
 
+  /**
+   * 특정 날짜의 예약 건수 조회 (pending + approved)
+   * @param {string} trainerId - 트레이너 ID
+   * @param {string} date - 날짜 (YYYY-MM-DD)
+   * @returns {number} 예약 건수
+   */
+  async function getReservationCountForDate(trainerId, date) {
+    try {
+      const { count, error: err } = await supabase
+        .from('reservations')
+        .select('id', { count: 'exact', head: true })
+        .eq('trainer_id', trainerId)
+        .eq('date', date)
+        .in('status', ['pending', 'approved'])
+      if (err) throw err
+      return count ?? 0
+    } catch {
+      return 0
+    }
+  }
+
   return {
     holidays,
     loading,
@@ -113,5 +136,6 @@ export function useHolidays() {
     setHoliday,
     removeHoliday,
     isHoliday,
+    getReservationCountForDate,
   }
 }
