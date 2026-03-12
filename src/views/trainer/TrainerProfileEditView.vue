@@ -105,7 +105,7 @@ import personIcon from '@/assets/icons/person.svg'
 const router = useRouter()
 const auth = useAuthStore()
 const { uploading, error: profileError, uploadAvatar, updateProfilePhoto, updateTrainerProfile } = useProfile()
-const { showToast, showError, showSuccess } = useToast()
+const { showToast, showSuccess } = useToast()
 
 const fileInput = ref(null)
 const avatarPreview = ref(null)

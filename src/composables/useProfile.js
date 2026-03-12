@@ -270,7 +270,9 @@ export function useProfile() {
             await createNotification(otherUserId, 'account_deleted', '연결된 사용자가 탈퇴 예정입니다', `${userName}님이 탈퇴 예정입니다. 30일 후 계정이 완전히 삭제됩니다.`)
           }
         }
-      } catch (e) {}
+      } catch (_e) {
+        // 알림 전송 실패는 계정 삭제 흐름을 중단하지 않음
+      }
 
       const { error: rpcError } = await supabase.rpc('soft_delete_user_account')
       if (rpcError) throw rpcError
