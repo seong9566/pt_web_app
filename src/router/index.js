@@ -319,9 +319,13 @@ router.beforeEach(async (to) => {
       return '/account-delete-pending'
     }
 
-    // Onboarding routes: require auth but no role check
-    if (isOnboarding) {
-      return;
+    // 온보딩 + 트레이너 프로필 생성 페이지: role이 이미 있으면 재진입 차단
+    const isOnboardingOrTrainerProfile = isOnboarding || to.path === '/trainer/profile'
+    if (isOnboardingOrTrainerProfile) {
+      if (isAuthenticated && auth.role) {
+        return auth.role === 'trainer' ? '/trainer/home' : '/member/home'
+      }
+      return
     }
 
     // Role-based access control (only for authenticated users with a role)

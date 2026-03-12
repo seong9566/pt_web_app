@@ -106,9 +106,9 @@ async function handleNext() {
   isLoading.value = false
 
   if (selectedRole.value === 'trainer')
-    router.push('/trainer/profile')
+    router.replace('/trainer/profile')
   else if (selectedRole.value === 'member')
-    router.push('/onboarding/member-profile')
+    router.replace('/onboarding/member-profile')
 }
 
 watch(roleError, (e) => { if (e) showToast(e, 'error') })
