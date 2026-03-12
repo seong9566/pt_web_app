@@ -641,6 +641,15 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
+  if exists (
+    select 1
+    from public.trainer_holidays
+    where trainer_id = p_trainer_id
+      and date = p_date
+  ) then
+    raise exception '해당 날짜는 트레이너 휴무일입니다';
+  end if;
+
   insert into public.reservations (
     id,
     trainer_id,
@@ -1082,6 +1091,15 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
+  if exists (
+    select 1
+    from public.trainer_holidays
+    where trainer_id = p_trainer_id
+      and date = p_date
+  ) then
+    raise exception '해당 날짜는 트레이너 휴무일입니다';
+  end if;
+
   -- PT 잔여 횟수 확인 (0이면 예약 불가)
   select coalesce(sum(change_amount), 0) into v_remaining
   from public.pt_sessions
@@ -1237,6 +1255,46 @@ create trigger trg_auto_reject_competing
 after update on public.reservations
 for each row
 execute function public.auto_reject_competing_reservations();
+
+create or replace function public.fn_auto_reject_on_holiday()
+returns trigger as $$
+declare
+  v_trainer_name text;
+  v_reservation record;
+begin
+  select name into v_trainer_name
+  from public.profiles
+  where id = new.trainer_id;
+
+  for v_reservation in
+    select r.id, r.member_id
+    from public.reservations r
+    where r.trainer_id = new.trainer_id
+      and r.date = new.date
+      and r.status in ('pending', 'approved')
+  loop
+    update public.reservations
+    set status = 'rejected'
+    where id = v_reservation.id;
+
+    insert into public.notifications (user_id, type, title, body)
+    values (
+      v_reservation.member_id,
+      'reservation_rejected',
+      '예약이 거절되었습니다',
+      v_trainer_name || '님이 ' || to_char(new.date, 'YYYY년 MM월 DD일') || '을 휴무일로 설정하여 예약이 자동 거절되었습니다'
+    );
+  end loop;
+
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists trg_auto_reject_on_holiday on public.trainer_holidays;
+create trigger trg_auto_reject_on_holiday
+after insert on public.trainer_holidays
+for each row
+execute function public.fn_auto_reject_on_holiday();
 
 -- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
