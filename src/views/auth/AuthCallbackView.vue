@@ -15,12 +15,13 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
+import { parseAuthCallbackError } from '@/utils/authCallbackErrors'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -31,14 +32,28 @@ const loading = ref(true)
 const error = ref(null)
 
 let authListener = null
+let timeoutId = null
+let stopErrorWatch = null
+
+function resolveUrlError() {
+  const url = new URL(window.location.href)
+  const errorDescription = url.searchParams.get('error_description')
+  const errorCode = url.searchParams.get('error')
+
+  return errorDescription || errorCode || null
+}
+
+function failAuth(sourceError) {
+  error.value = parseAuthCallbackError(sourceError)
+  loading.value = false
+}
 
 /**
  * 역할에 따라 최종 리다이렉트 처리
  */
 async function handleRedirect(session) {
   if (!session) {
-    error.value = '세션 정보를 가져올 수 없습니다. 다시 로그인해 주세요.'
-    loading.value = false
+    failAuth('세션 정보를 가져올 수 없습니다. 다시 로그인해 주세요.')
     return
   }
 
@@ -46,33 +61,57 @@ async function handleRedirect(session) {
     // store 상태 동기화 (이미 onAuthStateChange에서 처리됐을 수 있지만, 명시적으로 실행)
     await auth.hydrateFromSession(session)
   } catch (e) {
-    error.value = '인증 처리 중 오류가 발생했습니다. 다시 시도해 주세요.'
-    loading.value = false
+    console.error('[AuthCallback] handleRedirect 실패:', e)
+    failAuth(e)
     return
   }
 
-  const pendingCode = localStorage.getItem('pending_invite_code')
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+    timeoutId = null
+  }
 
-  if (!auth.role) {
-    if (pendingCode) {
-      await saveRole(auth.user.id, 'member')
-      auth.setRole('member')
-      router.replace('/onboarding/member-profile')
+  try {
+    const pendingCode = localStorage.getItem('pending_invite_code')
+
+    if (!auth.role) {
+      if (pendingCode) {
+        await saveRole(auth.user.id, 'member')
+        auth.setRole('member')
+        router.replace('/onboarding/member-profile')
+      } else {
+        router.replace('/onboarding/role')
+      }
+    } else if (auth.role === 'trainer') {
+      router.replace('/trainer/home')
     } else {
-      router.replace('/onboarding/role')
+      if (pendingCode) {
+        const result = await redeemInviteCode(pendingCode)
+        if (result) localStorage.removeItem('pending_invite_code')
+      }
+      router.replace('/member/home')
     }
-  } else if (auth.role === 'trainer') {
-    router.replace('/trainer/home')
-  } else {
-    if (pendingCode) {
-      const result = await redeemInviteCode(pendingCode)
-      if (result) localStorage.removeItem('pending_invite_code')
-    }
-    router.replace('/member/home')
+  } catch (e) {
+    console.error('[AuthCallback] 최종 라우팅 실패:', e)
+    failAuth(e)
   }
 }
 
 onMounted(async () => {
+  const urlError = resolveUrlError()
+  if (urlError) {
+    failAuth(urlError)
+    return
+  }
+
+  stopErrorWatch = watch(
+    () => auth.error,
+    (nextError) => {
+      if (!nextError || !loading.value) return
+      failAuth(nextError)
+    }
+  )
+
   // Supabase SDK가 detectSessionInUrl: true에 의해 URL의 code를 자동 교환함
   // SIGNED_IN 이벤트가 오면 리다이렉트를 처리함
   const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -88,7 +127,13 @@ onMounted(async () => {
   authListener = data
 
   // 이미 세션이 있는 경우(재진입 시) 즉시 처리
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+  if (sessionError) {
+    console.error('[AuthCallback] getSession 실패:', sessionError)
+    failAuth(sessionError)
+    return
+  }
 
   if (session) {
     // 이미 세션이 있으므로 리스너를 정리하고 바로 리다이렉트
@@ -100,18 +145,30 @@ onMounted(async () => {
     return
   }
 
-  // 3분 타임아웃: 세션이 오지 않으면 에러 표시
-  setTimeout(() => {
+  if (auth.error) {
+    failAuth(auth.error)
+    return
+  }
+
+  // 콜백 처리는 즉시 끝나야 하므로 장시간 대기하지 않는다.
+  timeoutId = window.setTimeout(() => {
     if (authListener) {
       authListener.subscription.unsubscribe()
       authListener = null
-      error.value = '로그인 시간이 초과되었습니다. 다시 시도해 주세요.'
-      loading.value = false
     }
-  }, 180000)
+    failAuth(auth.error || '로그인 시간이 초과되었습니다. 다시 시도해 주세요.')
+  }, 15000)
 })
 
 onUnmounted(() => {
+  stopErrorWatch?.()
+  stopErrorWatch = null
+
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+    timeoutId = null
+  }
+
   if (authListener) {
     authListener.subscription.unsubscribe()
     authListener = null

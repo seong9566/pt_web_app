@@ -211,6 +211,7 @@ export const useAuthStore = defineStore('auth', () => {
         await hydrateFromSession(activeSession)
         _initialized = true
       } catch (e) {
+        console.error('[AuthStore] initialize 실패:', e)
         error.value = e?.message ?? 'Auth initialization failed'
         resetAuthState()
       } finally {

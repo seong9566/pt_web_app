@@ -24,11 +24,11 @@ pt_web_app/
 
 ### 환경변수 목록
 
-| 변수명 | 용도 | 사용 위치 |
-|--------|------|-----------|
-| `VITE_SUPABASE_URL` | Supabase 프로젝트 REST API URL | `src/lib/supabase.js` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase 퍼블릭 anon 키 (RLS 기반 접근) | `src/lib/supabase.js` |
-| `VITE_KAKAO_REST_API_KEY` | 카카오 REST API 키 (카카오톡 공유 등 클라이언트 기능) | 카카오 SDK 초기화 |
+| 변수명                    | 용도                                                  | 사용 위치             |
+| ------------------------- | ----------------------------------------------------- | --------------------- |
+| `VITE_SUPABASE_URL`       | Supabase 프로젝트 REST API URL                        | `src/lib/supabase.js` |
+| `VITE_SUPABASE_ANON_KEY`  | Supabase 퍼블릭 anon 키 (RLS 기반 접근)               | `src/lib/supabase.js` |
+| `VITE_KAKAO_REST_API_KEY` | 카카오 REST API 키 (카카오톡 공유 등 클라이언트 기능) | 카카오 SDK 초기화     |
 
 > **참고**: 카카오 OAuth 로그인 자체는 Supabase Auth가 서버 사이드에서 처리하므로
 > `VITE_KAKAO_REST_API_KEY`는 OAuth 로그인이 아닌 카카오톡 공유 등 클라이언트 SDK 기능에 사용됩니다.
@@ -61,11 +61,11 @@ pt_web_app/
 # Vite 로딩 조건: 항상 (dev/build 모두)
 ```
 
-| 변수 | 연결 대상 |
-|------|-----------|
-| `VITE_SUPABASE_URL` | FitLink-KR 프로젝트 (`hprcudkmysjjhghnpoit`, 서울 리전) |
-| `VITE_SUPABASE_ANON_KEY` | FitLink-KR 프로젝트의 anon 키 |
-| `VITE_KAKAO_REST_API_KEY` | 카카오 REST API 키 |
+| 변수                      | 연결 대상                                               |
+| ------------------------- | ------------------------------------------------------- |
+| `VITE_SUPABASE_URL`       | FitLink-KR 프로젝트 (`hprcudkmysjjhghnpoit`, 서울 리전) |
+| `VITE_SUPABASE_ANON_KEY`  | FitLink-KR 프로젝트의 anon 키                           |
+| `VITE_KAKAO_REST_API_KEY` | 카카오 REST API 키                                      |
 
 - `npm run dev`와 `npm run build` 모두 이 파일의 값을 사용
 - **Supabase 프로젝트는 단일 프로젝트** (FitLink-KR, 서울 리전)로 dev/prod 구분 없이 사용
@@ -167,13 +167,13 @@ develop → main 으로 Pull Request 생성
 }
 ```
 
-| 설정 | 역할 |
-|------|------|
-| `rewrites` | 모든 URL을 `index.html`로 리다이렉트 (Vue Router 히스토리 모드 지원) |
-| `X-Frame-Options: DENY` | 클릭재킹 방지 — iframe 삽입 차단 |
-| `X-Content-Type-Options: nosniff` | MIME 타입 스니핑 방지 |
-| `X-XSS-Protection: 1; mode=block` | XSS 필터 활성화 |
-| `/assets/*` Cache-Control | Vite 빌드 에셋에 1년 캐시 (파일명에 해시 포함되어 안전) |
+| 설정                              | 역할                                                                 |
+| --------------------------------- | -------------------------------------------------------------------- |
+| `rewrites`                        | 모든 URL을 `index.html`로 리다이렉트 (Vue Router 히스토리 모드 지원) |
+| `X-Frame-Options: DENY`           | 클릭재킹 방지 — iframe 삽입 차단                                     |
+| `X-Content-Type-Options: nosniff` | MIME 타입 스니핑 방지                                                |
+| `X-XSS-Protection: 1; mode=block` | XSS 필터 활성화                                                      |
+| `/assets/*` Cache-Control         | Vite 빌드 에셋에 1년 캐시 (파일명에 해시 포함되어 안전)              |
 
 ### Vercel 브랜치 배포 전략
 
