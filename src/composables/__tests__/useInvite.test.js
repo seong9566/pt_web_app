@@ -86,12 +86,12 @@ describe('useInvite', () => {
   })
 
   it('redeemInviteCode RPC 오류 시 null을 반환하고 error를 설정한다', async () => {
-    mockEnv.supabase.rpc.mockResolvedValue({ data: null, error: { message: '코드 오류' } })
+    mockEnv.supabase.rpc.mockResolvedValue({ data: null, error: { message: '알 수 없는 오류' } })
 
     const { redeemInviteCode, error } = useInvite()
     const result = await redeemInviteCode('INVALID')
 
     expect(result).toBeNull()
-    expect(error.value).toBe('코드 오류')
+    expect(error.value).toBe('초대 코드 인증에 실패했습니다')
   })
 })

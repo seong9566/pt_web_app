@@ -409,7 +409,7 @@ describe('useChat', () => {
     const result = await uploadChatFile(file)
 
     expect(upload).toHaveBeenCalledTimes(1)
-    expect(upload.mock.calls[0][0]).toMatch(/^user-me\/\d+-photo\.jpg$/)
+    expect(upload.mock.calls[0][0]).toMatch(/^user-me\/\d+-[a-f0-9-]+\.jpg$/)
     expect(upload.mock.calls[0][1]).toBe(file)
     expect(getPublicUrl).toHaveBeenCalledWith(upload.mock.calls[0][0])
     expect(result).toEqual({

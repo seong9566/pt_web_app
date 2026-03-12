@@ -78,7 +78,7 @@ describe('useProfile', () => {
     const result = await softDeleteAccount()
 
     expect(result).toBe(true)
-    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('delete_user_account')
+    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('soft_delete_user_account')
     expect(mockEnv.supabase.auth.signOut).toHaveBeenCalled()
   })
 
@@ -110,8 +110,8 @@ describe('useProfile', () => {
     expect(mockCreateNotification).toHaveBeenCalledWith(
       'member-2',
       'account_deleted',
-      '연결된 사용자가 탈퇴했습니다',
-      '사용자님이 탈퇴했습니다.'
+      '연결된 사용자가 탈퇴 예정입니다',
+      expect.stringContaining('탈퇴 예정')
     )
   })
 
@@ -138,7 +138,7 @@ describe('useProfile', () => {
     const result = await softDeleteAccount()
 
     expect(result).toBe(true)
-    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('delete_user_account')
+    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('soft_delete_user_account')
   })
 
   it('softDeleteAccount에서 RPC 실패 시 false를 반환하고 error를 설정한다', async () => {
@@ -168,7 +168,7 @@ describe('useProfile', () => {
     expect(mockEnv.supabase.auth.signOut).not.toHaveBeenCalled()
   })
 
-  it('softDeleteAccount 성공 시 Storage 파일이 있으면 remove가 호출된다', async () => {
+  it('softDeleteAccount 성공 시 RPC 호출 후 signOut이 실행된다', async () => {
     const builder = createBuilder()
     builder.select.mockReturnValue(builder)
     builder.or.mockReturnValue(builder)
@@ -191,8 +191,10 @@ describe('useProfile', () => {
     mockEnv.supabase.rpc.mockResolvedValue({ error: null })
 
     const { softDeleteAccount } = useProfile()
-    await softDeleteAccount()
+    const result = await softDeleteAccount()
 
-    expect(avatarBucket.remove).toHaveBeenCalledWith(['user-1/photo.jpg'])
+    expect(result).toBe(true)
+    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('soft_delete_user_account')
+    expect(mockEnv.supabase.auth.signOut).toHaveBeenCalled()
   })
 })
