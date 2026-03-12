@@ -257,6 +257,9 @@ export function useReservations() {
       if (updateError) throw updateError
       const store = useReservationsStore()
       store.invalidate()
+      if (auth.role === 'trainer' || auth.role === 'member') {
+        await store.loadReservations(auth.role, true)
+      }
       return true
     } catch (e) {
       error.value = e?.message ?? '예약 상태 변경에 실패했습니다'
@@ -280,6 +283,9 @@ export function useReservations() {
       if (updateError) throw updateError
       const store = useReservationsStore()
       store.invalidate()
+      if (auth.role === 'trainer' || auth.role === 'member') {
+        await store.loadReservations(auth.role, true)
+      }
       return true
     } catch (e) {
       error.value = e?.message ?? '예약 거절에 실패했습니다'
