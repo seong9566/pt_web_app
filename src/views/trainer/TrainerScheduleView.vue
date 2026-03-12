@@ -147,13 +147,15 @@
             </svg>
             {{ session.time }}
           </div>
-          <template v-if="formatWorkoutSummary(workoutMap[session.member_id])">
-            <div class="scard__workout-divider" />
-            <div class="scard__workout">
-              <span class="scard__workout-label">배정된 운동</span>
-              <p class="scard__workout-text">{{ formatWorkoutSummary(workoutMap[session.member_id]) }}</p>
-            </div>
-          </template>
+          <!-- 배정된 운동 요약 -->
+          <div v-if="formatWorkoutSummary(workoutMap[session.member_id])" class="scard__workout-summary">
+            <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14"/>
+            <span>{{ formatWorkoutSummary(workoutMap[session.member_id]) }}</span>
+          </div>
+          <div v-else-if="session.status === 'approved'" class="scard__workout-summary scard__workout-summary--empty">
+            <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14" />
+            <span>아직 운동이 배정되지 않았습니다</span>
+          </div>
           <button
             v-if="session.status === 'approved'"
             class="scard__action"
@@ -401,7 +403,7 @@ function formatWorkoutSummary(exercises) {
   if (!exercises || exercises.length === 0) return null
   return exercises
     .filter(e => e.name)
-    .map(e => `${e.name} ${e.sets}x${e.reps}`)
+    .map(e => `${e.name} ${e.sets}×${e.reps}`)
     .join(', ')
 }
 

@@ -422,7 +422,7 @@
 /* Workout summary row */
 .scard__workout-summary {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   padding: 8px 10px;
   background-color: var(--color-blue-light);
@@ -432,9 +432,8 @@
   line-height: var(--lh-body);
 }
 
-.scard__workout-summary svg {
+.scard__workout-summary img {
   flex-shrink: 0;
-  margin-top: 1px;
 }
 
 .scard__workout-summary--empty {

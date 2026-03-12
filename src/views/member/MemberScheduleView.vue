@@ -204,19 +204,11 @@
             </div>
             <!-- 배정된 운동 요약 -->
             <div v-if="session.workoutSummary" class="scard__workout-summary">
-              <svg v-if="session.status === 'completed'" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" fill="rgba(0,122,255,0.08)" stroke="var(--color-blue-primary)" stroke-width="1.4"/>
-                <path d="M8 12L11 15L16 9" stroke="var(--color-blue-primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
+              <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14" />
               <span>{{ session.workoutSummary }}</span>
             </div>
             <div v-else-if="session.status === 'approved'" class="scard__workout-summary scard__workout-summary--empty">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
+              <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14" />
               <span>아직 운동이 배정되지 않았습니다</span>
             </div>
             <div

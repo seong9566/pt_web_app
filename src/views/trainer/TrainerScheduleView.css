@@ -599,22 +599,24 @@
     background-color: var(--color-blue-light);
 }
 
-.scard__workout-divider {
-  height: 1px;
-  background-color: var(--color-gray-100);
-  margin: 12px 0;
-}
-
-.scard__workout-label {
+/* Workout summary row (동일 UI: MemberScheduleView) */
+.scard__workout-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: var(--color-blue-light);
+  border-radius: var(--radius-small);
   font-size: var(--fs-caption);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-600);
-  margin-bottom: 4px;
-}
-
-.scard__workout-text {
-  font-size: var(--fs-caption);
-  color: var(--color-gray-900);
+  color: var(--color-blue-primary);
   line-height: var(--lh-body);
-  margin: 0;
+}
+
+.scard__workout-summary img {
+  flex-shrink: 0;
+}
+
+.scard__workout-summary--empty {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
 }

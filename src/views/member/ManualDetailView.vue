@@ -99,11 +99,11 @@
         </section>
 
         <!-- 미디어 갤러리 -->
-        <section v-if="manual.media && manual.media.length > 0" class="manual-detail__section">
+        <section v-if="visibleMedia.length > 0" class="manual-detail__section">
           <h2 class="manual-detail__section-title">미디어</h2>
           <div class="manual-detail__media-grid">
             <div
-              v-for="(item, idx) in manual.media"
+              v-for="(item, idx) in visibleMedia"
               :key="item.id || idx"
               class="manual-detail__media-box"
             >
@@ -191,9 +191,13 @@ const { showToast } = useToast()
 
 const showDeleteDialog = ref(false)
 
+const visibleMedia = computed(() => {
+  if (!manual.value?.media) return []
+  return manual.value.media.filter(m => m.sort_order !== -1)
+})
+
 const heroPhotoUrl = computed(() => {
-  if (!manual.value?.media) return null
-  const sorted = [...manual.value.media].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  const sorted = [...visibleMedia.value].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   const photo = sorted.find(m => !m.file_type?.startsWith('video/'))
   return photo?.file_url || null
 })
