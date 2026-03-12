@@ -29,3 +29,36 @@ export function formatPhone(value) {
 export function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
+
+/**
+ * 나이 유효성 검사
+ * 빈 값은 통과 (선택 필드), 입력된 경우 14~100 사이 정수만 허용
+ */
+export function isValidAge(value) {
+  if (value === '' || value === null || value === undefined) return true
+  const num = Number(value)
+  if (isNaN(num) || !Number.isInteger(num)) return false
+  return num >= 14 && num <= 100
+}
+
+/**
+ * 키 유효성 검사
+ * 빈 값은 통과 (선택 필드), 입력된 경우 100~250 사이 숫자 허용
+ */
+export function isValidHeight(value) {
+  if (value === '' || value === null || value === undefined) return true
+  const num = Number(value)
+  if (isNaN(num)) return false
+  return num >= 100 && num <= 250
+}
+
+/**
+ * 몸무게 유효성 검사
+ * 빈 값은 통과 (선택 필드), 입력된 경우 20~300 사이 숫자 허용
+ */
+export function isValidWeight(value) {
+  if (value === '' || value === null || value === undefined) return true
+  const num = Number(value)
+  if (isNaN(num)) return false
+  return num >= 20 && num <= 300
+}
