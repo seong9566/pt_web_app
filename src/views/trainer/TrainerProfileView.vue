@@ -28,11 +28,12 @@
         </button>
       </div>
       <div class="trainer-profile__field">
-        <label class="trainer-profile__label">이름 (활동명)</label>
-        <AppInput v-model="name" placeholder="예: 김헬스" />
+        <label class="trainer-profile__label">이름 (활동명) <span style="color: var(--color-red);">*</span></label>
+        <AppInput v-model="name" placeholder="예: 김헬스" @blur="validateName" :class="{ 'form-field--error': nameError }" />
+        <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
       </div>
       <div class="trainer-profile__field">
-        <label class="trainer-profile__label">전문 분야</label>
+        <label class="trainer-profile__label">전문 분야 <span style="color: var(--color-red);">*</span></label>
         <div class="trainer-profile__chips">
           <button
             v-for="spec in specialties"
@@ -45,6 +46,7 @@
             <span class="spec-chip__label">{{ spec.label }}</span>
           </button>
         </div>
+        <p v-if="specialtyError" class="form-error-text">{{ specialtyError }}</p>
       </div>
       <div v-if="errorMsg" class="trainer-profile__error">
         {{ errorMsg }}
@@ -80,6 +82,8 @@ const { showToast } = useToast()
 const name = ref("");
 const isLoading = ref(false)
 const errorMsg = ref(null)
+const nameError = ref('')
+const specialtyError = ref('')
 
 const specialties = [
   {
@@ -115,7 +119,28 @@ const toggleSpecialty = (id) => {
   }
 }
 
+function validateName() {
+  if (!name.value.trim()) {
+    nameError.value = '이름을 입력해주세요'
+  } else {
+    nameError.value = ''
+  }
+}
+
+function validateSpecialties() {
+  if (selectedSpecialties.value.length === 0) {
+    specialtyError.value = '전문 분야를 최소 1개 선택해주세요'
+  } else {
+    specialtyError.value = ''
+  }
+}
+
 async function handleSave() {
+  validateName()
+  validateSpecialties()
+  if (nameError.value || specialtyError.value) {
+    return
+  }
   errorMsg.value = null
   isLoading.value = true
 
@@ -133,7 +158,7 @@ async function handleSave() {
 
   await auth.fetchProfile()
   isLoading.value = false
-  router.push('/trainer/home')
+  router.replace('/trainer/home')
 }
 
 watch(profileError, (e) => { if (e) showToast(e, 'error') })
