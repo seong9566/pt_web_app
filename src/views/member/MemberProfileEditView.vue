@@ -59,34 +59,40 @@
             <label class="member-profile-edit__label">나이</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': ageError }]"
                 type="number"
                 v-model="form.age"
                 placeholder="0"
+                @blur="validateAge"
               /><span class="body-input__unit">세</span>
             </div>
+            <p v-if="ageError" class="form-error-text">{{ ageError }}</p>
           </div>
           <div class="member-profile-edit__body-field">
             <label class="member-profile-edit__label">키</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': heightError }]"
                 type="number"
                 v-model="form.height"
                 placeholder="0"
+                @blur="validateHeight"
               /><span class="body-input__unit">cm</span>
             </div>
+            <p v-if="heightError" class="form-error-text">{{ heightError }}</p>
           </div>
           <div class="member-profile-edit__body-field">
             <label class="member-profile-edit__label">몸무게</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': weightError }]"
                 type="number"
                 v-model="form.weight"
                 placeholder="0"
+                @blur="validateWeight"
               /><span class="body-input__unit">kg</span>
             </div>
+            <p v-if="weightError" class="form-error-text">{{ weightError }}</p>
           </div>
         </div>
       </section>
@@ -142,7 +148,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
-import { isValidPhone, formatPhone } from '@/utils/validators'
+import { isValidPhone, formatPhone, isValidAge, isValidHeight, isValidWeight } from '@/utils/validators'
 import AppInput from '@/components/AppInput.vue'
 import AppButton from '@/components/AppButton.vue'
 import personIcon from '@/assets/icons/person.svg'
@@ -156,6 +162,9 @@ const fileInput = ref(null)
 const avatarPreview = ref(null)
 const nameError = ref('')
 const phoneError = ref('')
+const ageError = ref('')
+const heightError = ref('')
+const weightError = ref('')
 
 const genderOptions = [
   { id: 'male', label: '남성' },
@@ -219,6 +228,30 @@ function validateName() {
   }
 }
 
+function validateAge() {
+  if (form.value.age && !isValidAge(form.value.age)) {
+    ageError.value = '14세 ~ 100세 범위의 정수를 입력해주세요'
+  } else {
+    ageError.value = ''
+  }
+}
+
+function validateHeight() {
+  if (form.value.height && !isValidHeight(form.value.height)) {
+    heightError.value = '100cm ~ 250cm 범위로 입력해주세요'
+  } else {
+    heightError.value = ''
+  }
+}
+
+function validateWeight() {
+  if (form.value.weight && !isValidWeight(form.value.weight)) {
+    weightError.value = '20kg ~ 300kg 범위로 입력해주세요'
+  } else {
+    weightError.value = ''
+  }
+}
+
 async function handleSave() {
   validateName()
   if (nameError.value) {
@@ -230,6 +263,13 @@ async function handleSave() {
     return
   }
   phoneError.value = ''
+  
+  validateAge()
+  validateHeight()
+  validateWeight()
+  if (ageError.value || heightError.value || weightError.value) {
+    return
+  }
   
   const success = await updateMemberProfile(
     form.value.name,
