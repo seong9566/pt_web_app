@@ -33,7 +33,11 @@
               v-model="form.phone"
               placeholder="010-0000-0000"
               type="tel"
+              @input="handlePhoneInput"
+              @blur="validatePhone"
+              :class="{ 'form-field--error': phoneError }"
             />
+            <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
           </div>
         </div>
       </section>
@@ -44,12 +48,14 @@
             <label class="member-profile__label">나이</label>
             <div class="body-input-wrap">
               <input
-                class="body-input"
+                :class="['body-input', { 'form-field--error': ageError }]"
                 type="number"
                 v-model="form.age"
                 placeholder="0"
+                @blur="validateAge"
               /><span class="body-input__unit">세</span>
             </div>
+            <p v-if="ageError" class="form-error-text">{{ ageError }}</p>
           </div>
           <div class="member-profile__body-field">
             <label class="member-profile__label">키</label>
@@ -137,6 +143,7 @@ import { useReservationsStore } from '@/stores/reservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import personIcon from '@/assets/icons/person.svg'
+import { isValidPhone, formatPhone, isValidAge, isValidHeight, isValidWeight } from '@/utils/validators'
 const router = useRouter();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, saveMemberProfileBasic, saveMemberProfileDetails } = useProfile()
@@ -171,6 +178,8 @@ const selectedGoals = ref([]);
 const isLoading = ref(false)
 const errorMsg = ref('')
 const nameError = ref('')
+const phoneError = ref('')
+const ageError = ref('')
 const heightError = ref('')
 const weightError = ref('')
 function validateName() {
@@ -181,17 +190,37 @@ function validateName() {
   }
 }
 
+function validatePhone() {
+  if (form.value.phone && !isValidPhone(form.value.phone)) {
+    phoneError.value = '올바른 전화번호 형식이 아닙니다 (010-0000-0000)'
+  } else {
+    phoneError.value = ''
+  }
+}
+
+function handlePhoneInput() {
+  form.value.phone = formatPhone(form.value.phone)
+}
+
+function validateAge() {
+  if (form.value.age && !isValidAge(form.value.age)) {
+    ageError.value = '14세 ~ 100세 범위의 정수를 입력해주세요'
+  } else {
+    ageError.value = ''
+  }
+}
+
 function validateHeight() {
-  if (form.value.height && isNaN(Number(form.value.height))) {
-    heightError.value = '올바른 숫자를 입력해주세요'
+  if (form.value.height && !isValidHeight(form.value.height)) {
+    heightError.value = '100cm ~ 250cm 범위로 입력해주세요'
   } else {
     heightError.value = ''
   }
 }
 
 function validateWeight() {
-  if (form.value.weight && isNaN(Number(form.value.weight))) {
-    weightError.value = '올바른 숫자를 입력해주세요'
+  if (form.value.weight && !isValidWeight(form.value.weight)) {
+    weightError.value = '20kg ~ 300kg 범위로 입력해주세요'
   } else {
     weightError.value = ''
   }
@@ -221,7 +250,11 @@ async function handleFileSelect(event) {
 /** 회원 프로필 저장 및 다음 단계 진행 */
 async function handleComplete() {
    validateName()
-   if (nameError.value) {
+   validatePhone()
+   validateAge()
+   validateHeight()
+   validateWeight()
+   if (nameError.value || phoneError.value || ageError.value || heightError.value || weightError.value) {
      return
    }
 
@@ -263,10 +296,10 @@ async function handleComplete() {
             ptSessionsStore.invalidate()
             chatBadgeStore.loadUnreadCount(true)
           }
-          router.push('/member/home')
+          router.replace('/member/home')
         })
       } else {
-         router.push('/search')
+         router.replace('/member/home')
        }
     }, 800)
 }
