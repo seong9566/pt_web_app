@@ -509,3 +509,40 @@ watch(errorVar, (e) => { if (e) showToast(e, 'error') })
 - F4 1:1 검증은 단순 파일 존재 확인만으로 부족하고, 계획 Acceptance 명령 + 실제 파일 내용(예: AppSkeleton type validator) 교차 확인이 필요하다.
 - Task 11/12는 지시된 최소 명령만 보면 통과처럼 보일 수 있으나, 계획 원문 grep 기준(뷰 CSS hex/px 잔존) 추가 점검에서 미준수(색상 20건, px 다수)가 드러났다.
 - 스코프 검증 시 git status 기반으로 계획 외 파일 변동(.sisyphus/plans/mvp-polish.md 등)을 별도 오염/미계상 항목으로 분리 집계해야 최종 판정 일관성이 유지된다.
+
+## F3 Real Manual QA — 2026-03-12
+
+### 테스트 결과
+- 개발 서버: http://localhost:5173 정상 응답 (HTTP 200)
+- 앱 타이틀: "FitLink"
+
+### 시나리오 테스트 결과
+
+**S1: 홈 페이지 로드**
+- PASS: 앱이 정상 로드되어 /member/home으로 라우팅됨
+- 회원 홈 "환영합니다, 테스트 회원 님" 표시 (기존 세션 유지)
+- 스크린샷 저장: .sisyphus/evidence/f3-home-redirect.png
+
+**S2: 로그인 페이지**
+- PASS: 인증된 상태로 /login 접속 시 /member/home으로 리다이렉트 (라우터 가드 정상 동작)
+- 스크린샷 저장: .sisyphus/evidence/f3-login-page.png
+
+**S3: CSS 변수 검증**
+- PASS: --animation-duration-fast = 0.2s
+- PASS: --color-warning-bg = #FFF9E5
+- PASS: --color-blue-primary = #007AFF (기본 디자인 토큰)
+- PASS: --color-red = #FF3B30
+- 새로 추가된 변수들: --animation-duration-normal, --animation-duration-slow, --animation-easing-default 등
+
+**S4: AppConfirmDialog 마운트 확인**
+- PASS: Teleport comment 노드("teleport start", "teleport end") DOM에 존재
+- PASS: Pinia confirm store 초기화됨 (confirmStoreExists: true)
+- PASS: confirmStore.visible = false (숨겨진 상태 - 정상)
+
+**S5: JavaScript 에러 없음**
+- PASS: 콘솔 에러 0건
+- WARNING 1건: "[Vue warn]: Async component loader resolved to undefined" — 에러 아님, lazy loading 관련 경고
+
+### 주의사항
+- Playwright 세션에 기존 인증 쿠키가 유지되어 테스트 회원 계정으로 로그인된 상태였음
+- 로그인 페이지는 인증된 사용자에게 보이지 않는 것이 정상 동작

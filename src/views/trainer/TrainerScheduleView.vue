@@ -214,16 +214,19 @@ async function loadData() {
 
 async function handleRefresh() {
   await reservationsStore.loadReservations('trainer', true)
+  await fetchMyReservations('trainer')
+  await fetchDayWorkoutPlans(selectedDateStr.value)
 }
 
 onMounted(() => { if (!loaded.value) loadData() })
 onActivated(async () => {
   if (!loaded.value) return
+  await fetchMyReservations('trainer')
+  await fetchDayWorkoutPlans(selectedDateStr.value)
   if (reservationsStore.isStale()) {
-    loadData()
-  } else {
-    workingDays.value = await fetchWorkingDays(auth.user?.id)
+    await fetchHolidays(auth.user?.id)
   }
+  workingDays.value = await fetchWorkingDays(auth.user?.id)
 })
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)

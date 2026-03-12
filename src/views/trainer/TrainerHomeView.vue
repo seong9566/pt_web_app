@@ -320,6 +320,10 @@ async function handleRefresh() {
     reservationsStore.loadReservations('trainer', true),
     membersStore.loadMembers(true),
   ])
+  await Promise.all([
+    fetchMyReservations('trainer'),
+    fetchMembers(),
+  ])
 }
 
 watch(selectedDate, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
@@ -328,9 +332,17 @@ watch(membersError, (e) => { if (e) showToast(e, 'error') })
 watch(chatError, (e) => { if (e) showToast(e, 'error') })
 
 onMounted(() => { if (!loaded.value) loadData() })
-onActivated(() => {
-  if (loaded.value && (reservationsStore.isStale() || membersStore.isStale())) {
-    loadData()
+onActivated(async () => {
+  if (!loaded.value) return
+
+  await Promise.all([
+    fetchMyReservations('trainer'),
+    fetchMembers(),
+  ])
+
+  if (reservationsStore.isStale() || membersStore.isStale()) {
+    const pending = await fetchPendingRequests()
+    pendingConnectionCount.value = (pending || []).length
   }
 })
 </script>

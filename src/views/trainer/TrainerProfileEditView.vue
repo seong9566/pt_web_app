@@ -41,7 +41,13 @@
           </div>
           <div class="trainer-profile-edit__field">
             <label class="trainer-profile-edit__label">전화번호</label>
-            <AppInput v-model="form.phone" placeholder="010-0000-0000" type="tel" />
+            <AppInput 
+              v-model="form.phone" 
+              placeholder="010-0000-0000" 
+              type="tel"
+              @input="form.phone = formatPhone(form.phone)"
+            />
+            <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
           </div>
         </div>
       </section>
@@ -91,6 +97,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
+import { isValidPhone, formatPhone } from '@/utils/validators'
 import AppInput from '@/components/AppInput.vue'
 import AppButton from '@/components/AppButton.vue'
 import personIcon from '@/assets/icons/person.svg'
@@ -103,6 +110,7 @@ const { showToast, showError, showSuccess } = useToast()
 const fileInput = ref(null)
 const avatarPreview = ref(null)
 const nameError = ref('')
+const phoneError = ref('')
 
 const specialtyOptions = [
   { id: 'rehab', label: '재활' },
@@ -161,6 +169,13 @@ async function handleSave() {
     nameError.value = '이름을 입력해주세요.'
     return
   }
+  
+  if (form.value.phone && !isValidPhone(form.value.phone)) {
+    phoneError.value = '올바른 전화번호 형식이 아닙니다 (010-0000-0000)'
+    return
+  }
+  phoneError.value = ''
+  
   const success = await updateTrainerProfile(form.value.name, form.value.specialties, form.value.bio, form.value.phone || null)
   if (success) {
     showSuccess('저장되었습니다')

@@ -75,7 +75,13 @@
             />
           </div>
           <p v-if="emailError" class="account-manage__error">{{ emailError }}</p>
-          <p v-if="emailSuccess" class="account-manage__success">{{ emailSuccess }}</p>
+          <div v-if="emailSuccess" class="account-manage__success-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink: 0; margin-top: 1px;">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <p>{{ emailSuccess }}</p>
+          </div>
           <button
             class="account-manage__btn"
             :disabled="emailLoading"
@@ -130,6 +136,8 @@ import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
+import { parseAuthError } from '@/utils/authErrors'
+import { isValidEmail } from '@/utils/validators'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -158,14 +166,19 @@ async function handleEmailChange() {
      return
    }
 
+   if (!isValidEmail(newEmail.value)) {
+     emailError.value = '올바른 이메일 형식이 아닙니다'
+     return
+   }
+
    emailLoading.value = true
 
    const success = await updateUserEmail(newEmail.value)
    if (success) {
-     emailSuccess.value = '확인 이메일을 발송했습니다.'
+     emailSuccess.value = '새 이메일로 확인 메일이 발송되었습니다. 메일함에서 확인 링크를 클릭해주세요.'
      newEmail.value = ''
    } else {
-     emailError.value = profileError.value || '이메일 변경 중 오류가 발생했습니다.'
+     emailError.value = parseAuthError({ message: profileError.value })
    }
 
    emailLoading.value = false

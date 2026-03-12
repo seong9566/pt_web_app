@@ -1,8 +1,8 @@
 {
-  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/mvp-polish.md",
-  "started_at": "2026-03-11T05:53:37.104Z",
-  "session_ids": ["ses_3248accd9ffeSgd4V9uLd8ZHlC"],
-  "plan_name": "mvp-polish",
+  "active_plan": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/.sisyphus/plans/bugfix-infra-batch.md",
+  "started_at": "2026-03-12T06:21:05.110Z",
+  "session_ids": ["ses_31f4b7243ffeEmH3qyiNyi9kS0"],
+  "plan_name": "bugfix-infra-batch",
   "worktree_path": "/Users/stecdev/Desktop/workspace/vue_project/pt_web_app",
   "agent": "atlas",
   "completed_plans": [
@@ -17,6 +17,22 @@
     {
       "plan_name": "reservation-ux-fix",
       "completed_at": "2026-03-11T01:57:57.410Z"
+    },
+    {
+      "plan_name": "mvp-polish",
+      "completed_at": "2026-03-11T23:00:00.000Z"
+    },
+    {
+      "plan_name": "schedule-workout-display",
+      "completed_at": "2026-03-12T01:00:00.000Z"
+    },
+    {
+      "plan_name": "deploy-readiness",
+      "completed_at": "2026-03-12T04:00:00.000Z"
+    },
+    {
+      "plan_name": "ux-polish",
+      "completed_at": "2026-03-12T06:20:00.000Z"
     }
   ]
 }

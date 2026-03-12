@@ -160,8 +160,8 @@ export function useProfile() {
     }
   }
 
-  /** 회원 프로필 수정 (이름, 나이, 키, 몸무게, 목표, 메모) */
-  async function updateMemberProfile(name, age = null, height = null, weight = null, goals = [], notes = null, gender = null) {
+  /** 회원 프로필 수정 (이름, 나이, 키, 몸무게, 목표, 메모, 성별, 전화번호) */
+  async function updateMemberProfile(name, age = null, height = null, weight = null, goals = [], notes = null, gender = null, phone = null) {
     if (!name || !name.trim()) {
       error.value = '이름을 입력해주세요'
       return false
@@ -172,9 +172,12 @@ export function useProfile() {
       const userId = (await supabase.auth.getUser()).data.user?.id
       if (!userId) throw new Error('인증이 필요합니다')
 
+      const profileUpdate = { name: name.trim() }
+      if (phone !== undefined && phone !== null) profileUpdate.phone = phone
+
       const { error: profileErr } = await supabase
         .from('profiles')
-        .update({ name: name.trim() })
+        .update(profileUpdate)
         .eq('id', userId)
       if (profileErr) throw profileErr
 
