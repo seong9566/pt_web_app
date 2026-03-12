@@ -5,10 +5,17 @@ const mockEnv = vi.hoisted(() => {
   const authStore = {
     user: { id: 'member-1' },
     profile: { name: '테스트 사용자' },
+    role: 'trainer',
+  }
+
+  const reservationsStore = {
+    invalidate: vi.fn(),
+    loadReservations: vi.fn(),
   }
 
   return {
     authStore,
+    reservationsStore,
     supabase: {
       from: vi.fn(),
       rpc: vi.fn(),
@@ -27,10 +34,15 @@ vi.mock('@/lib/supabase', () => ({
   supabase: mockEnv.supabase,
 }))
 
+vi.mock('@/stores/reservations', () => ({
+  useReservationsStore: () => mockEnv.reservationsStore,
+}))
+
 function createBuilder() {
   const builder = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
+    update: vi.fn(() => builder),
     in: vi.fn(),
     maybeSingle: vi.fn(),
   }
@@ -181,5 +193,18 @@ describe('useReservations', () => {
 
     expect(result).toBeNull()
     expect(error.value).toBe('해당 시간은 이미 예약이 확정되었습니다. 다른 시간을 선택해주세요.')
+  })
+
+  it('updateReservationStatus 성공 시 store.invalidate()와 store.loadReservations()를 호출한다', async () => {
+    const builder = createBuilder()
+    builder.eq.mockResolvedValue({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { updateReservationStatus } = useReservations()
+    const result = await updateReservationStatus('reservation-1', 'approved')
+
+    expect(result).toBe(true)
+    expect(mockEnv.reservationsStore.invalidate).toHaveBeenCalled()
+    expect(mockEnv.reservationsStore.loadReservations).toHaveBeenCalledWith('trainer', true)
   })
 })

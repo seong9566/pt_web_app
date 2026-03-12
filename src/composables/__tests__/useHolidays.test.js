@@ -3,14 +3,21 @@ import { useHolidays } from '@/composables/useHolidays'
 
 const mockEnv = vi.hoisted(() => {
   const authStore = { user: { id: 'trainer-1' } }
+  const reservationsStore = {
+    invalidate: vi.fn(),
+  }
   return {
     authStore,
+    reservationsStore,
     supabase: { from: vi.fn() },
   }
 })
 
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => mockEnv.authStore }))
 vi.mock('@/lib/supabase', () => ({ supabase: mockEnv.supabase }))
+vi.mock('@/stores/reservations', () => ({
+  useReservationsStore: () => mockEnv.reservationsStore,
+}))
 
 function createBuilder() {
   const builder = {
@@ -124,5 +131,47 @@ describe('useHolidays', () => {
     expect(result).toBe(false)
     expect(error.value).toBe('휴무일 설정에 실패했습니다')
     expect(holidays.value).toHaveLength(0)
+  })
+
+  it('setHoliday 성공 시 useReservationsStore().invalidate()를 호출한다', async () => {
+    const builder = createBuilder()
+    builder.insert.mockResolvedValue({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { setHoliday } = useHolidays()
+    await setHoliday('2026-03-10')
+
+    expect(mockEnv.reservationsStore.invalidate).toHaveBeenCalled()
+  })
+
+  it('getReservationCountForDate는 pending과 approved 예약 건수를 반환한다', async () => {
+    const builder = createBuilder()
+    builder.in.mockResolvedValue({
+      count: 3,
+      error: null,
+    })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { getReservationCountForDate } = useHolidays()
+    const count = await getReservationCountForDate('trainer-1', '2026-03-10')
+
+    expect(count).toBe(3)
+    expect(builder.eq).toHaveBeenCalledWith('trainer_id', 'trainer-1')
+    expect(builder.eq).toHaveBeenCalledWith('date', '2026-03-10')
+    expect(builder.in).toHaveBeenCalledWith('status', ['pending', 'approved'])
+  })
+
+  it('getReservationCountForDate 오류 시 0을 반환한다', async () => {
+    const builder = createBuilder()
+    builder.in.mockResolvedValue({
+      count: null,
+      error: { message: 'DB error' },
+    })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { getReservationCountForDate } = useHolidays()
+    const count = await getReservationCountForDate('trainer-1', '2026-03-10')
+
+    expect(count).toBe(0)
   })
 })
