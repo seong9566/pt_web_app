@@ -21,9 +21,21 @@ describe('parseAuthError', () => {
     expect(parseAuthError({ message: 'email change already in progress' }))
       .toBe('이메일 변경이 진행 중입니다. 메일함을 확인해주세요.')
   })
-  it('알 수 없는 에러 → fallback', () => {
+  it('알 수 없는 에러 → null', () => {
     expect(parseAuthError({ message: 'some unknown error' }))
-      .toBe('이메일 변경 중 오류가 발생했습니다.')
+      .toBeNull()
+  })
+  it('error code string — email_address_invalid', () => {
+    expect(parseAuthError('email_address_invalid'))
+      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
+  })
+  it('error object — email_address_invalid code', () => {
+    expect(parseAuthError({ code: 'email_address_invalid', message: 'Email address is invalid' }))
+      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
+  })
+  it('Invalid API key → 서비스 연결 에러', () => {
+    expect(parseAuthError({ message: 'Invalid API key' }))
+      .toBe('서비스 연결에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.')
   })
   it('error code string — invalid_credentials', () => {
     expect(parseAuthError('invalid_credentials'))

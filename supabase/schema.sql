@@ -39,6 +39,7 @@ create table if not exists public.member_profiles (
   age int,
   height numeric,
   weight numeric,
+  gender text,
   goals text[] not null default '{}'::text[],
   notes text
 );
