@@ -7,7 +7,7 @@
       :class="{ 'trainer-nav__item--active': activeId === item.id }"
       @click="handleNav(item)"
     >
-      <span class="trainer-nav__icon" :style="{ maskImage: `url(${item.icon})`, WebkitMaskImage: `url(${item.icon})` }" />
+      <span class="trainer-nav__icon" v-html="item.icon" />
       <span v-if="item.id === 'chat' && chatUnreadCount > 0" class="trainer-nav__badge">
         {{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}
       </span>
@@ -23,11 +23,7 @@ import { storeToRefs } from 'pinia'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useNotificationBadgeStore } from '@/stores/notificationBadge'
 
-import IconHome from '@/assets/icons/home.svg'
-import IconMembers from '@/assets/icons/people.svg'
-import IconSchedule from '@/assets/icons/calendar.svg'
-import IconChat from '@/assets/icons/chat.svg'
-import IconSettings from '@/assets/icons/setting.svg'
+
 
 const router = useRouter()
 const route = useRoute()
@@ -57,11 +53,52 @@ onUnmounted(() => {
 })
 
 const navItems = [
-  { id: 'home',     label: '홈',    to: '/trainer/home',     icon: IconHome },
-  { id: 'members',  label: '회원',  to: '/trainer/members',  icon: IconMembers },
-  { id: 'schedule', label: '일정',  to: '/trainer/schedule', icon: IconSchedule },
-  { id: 'chat',     label: '채팅',  to: '/trainer/chat',     icon: IconChat },
-  { id: 'settings', label: '설정',  to: '/trainer/settings', icon: IconSettings },
+  {
+    id: 'home',
+    label: '홈',
+    to: '/trainer/home',
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H15V15H9V21H4C3.44772 21 3 20.5523 3 20V9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>`,
+  },
+  {
+    id: 'members',
+    label: '회원',
+    to: '/trainer/members',
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M2 20C2 17.2386 5.13401 15 9 15C12.866 15 16 17.2386 16 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="17.5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M15 20C15 18.3431 16.3431 17 17.5 17C18.6569 17 21 18.3431 21 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>`,
+  },
+  {
+    id: 'schedule',
+    label: '일정',
+    to: '/trainer/schedule',
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M3 9H21" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>`,
+  },
+  {
+    id: 'chat',
+    label: '채팅',
+    to: '/trainer/chat',
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>`,
+  },
+  {
+    id: 'settings',
+    label: '설정',
+    to: '/trainer/settings',
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="1.8"/>
+    </svg>`,
+  },
 ]
 
 // 현재 route path 기반으로 active 탭 자동 판단
@@ -117,19 +154,11 @@ function handleNav(item) {
 }
 
 .trainer-nav__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 24px;
   height: 24px;
-  background-color: var(--color-gray-600);
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-}
-
-.trainer-nav__item--active .trainer-nav__icon {
-  background-color: var(--color-blue-primary);
 }
 
 .trainer-nav__label {

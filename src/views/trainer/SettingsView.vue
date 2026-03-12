@@ -95,7 +95,10 @@
         <div class="settings__card">
           <button class="settings__row" @click="handleNav('manual')">
             <span class="settings__row-icon">
-              <span style="display: block; width: 22px; height: 22px; background-color: currentColor;" :style="{ maskImage: `url(${IconManual})`, WebkitMaskImage: `url(${IconManual})`, maskSize: 'contain', WebkitMaskSize: 'contain', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskPosition: 'center' }" />
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M6.5 2H20V22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
             </span>
             <span class="settings__row-label">메뉴얼 관리</span>
             <svg class="settings__row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -150,8 +153,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
-
-import IconManual from '@/assets/icons/menual.svg'
 
 const router = useRouter()
 const auth = useAuthStore()
