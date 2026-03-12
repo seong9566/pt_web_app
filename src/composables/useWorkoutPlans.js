@@ -189,13 +189,13 @@ export function useWorkoutPlans() {
     try {
       const now = new Date()
       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-      const { data, error: rErr } = await supabase
-        .from('reservations')
-        .select('date')
-        .eq('trainer_id', auth.user.id)
-        .eq('member_id', memberId)
-        .in('status', ['approved', 'pending'])
-        .gte('date', today)
+       const { data, error: rErr } = await supabase
+         .from('reservations')
+         .select('date')
+         .eq('trainer_id', auth.user.id)
+         .eq('member_id', memberId)
+         .in('status', ['approved'])
+         .gte('date', today)
         .order('date', { ascending: true })
       if (rErr) throw rErr
 
