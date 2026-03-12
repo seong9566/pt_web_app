@@ -147,7 +147,7 @@ async function handleSubmit() {
 
   try {
     if (activeTab.value === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error } = await supabase.auth.signInWithPassword({
         email: email.value,
         password: password.value,
       })
@@ -157,7 +157,7 @@ async function handleSubmit() {
         return
       }
 
-      await auth.initialize()
+      await auth.hydrateFromSession(loginData.session)
 
       const pendingCode = localStorage.getItem('pending_invite_code')
 
@@ -184,7 +184,7 @@ async function handleSubmit() {
       }
 
       if (data?.session) {
-        await auth.initialize()
+        await auth.hydrateFromSession(data.session)
         const pendingCode = localStorage.getItem('pending_invite_code')
         if (pendingCode) {
           await saveRole(auth.user.id, 'member')
