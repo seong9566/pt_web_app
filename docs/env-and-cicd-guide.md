@@ -104,11 +104,12 @@ npm run dev 또는 npm run build 실행 시:
 
 ```
 트리거 조건:
-  ✅ develop 브랜치에 push          → CI 실행
-  ✅ main 브랜치로의 Pull Request    → CI 실행 (머지 전 검증)
+  ✅ dev 브랜치로의 Pull Request     → CI 실행 (기능 브랜치 검증)
+  ✅ main 브랜치로의 Pull Request    → CI 실행 (배포 전 검증)
+  ✅ dev 브랜치에 push              → CI 실행 (머지 후 통합 검증)
 
   ❌ main 브랜치에 직접 push         → CI 실행 안 됨
-  ❌ feature/* 브랜치에 push         → CI 실행 안 됨
+  ❌ feature/* 브랜치에 push         → CI 실행 안 됨 (PR 기준으로 검증)
 
 동시성 제어:
   - 같은 브랜치에서 중복 실행 시 이전 실행 자동 취소
@@ -145,14 +146,14 @@ GitHub Actions CI
 #### 프로덕션 배포 트리거
 
 ```
-develop → main 으로 Pull Request 생성
+dev → main 으로 Pull Request 생성
   → GitHub Actions CI 실행 (빌드 + 테스트 검증)
   → CI 통과 + 코드 리뷰 완료
   → PR 머지 (main에 코드 반영)
   → Vercel이 main 브랜치 변경 감지 → Production 배포
 ```
 
-> **핵심**: main 브랜치에 직접 push하지 않고, 반드시 develop에서 PR을 통해 머지합니다.
+> **핵심**: main 브랜치에 직접 push하지 않고, 반드시 dev에서 PR을 통해 머지합니다.
 
 ---
 
@@ -180,8 +181,8 @@ develop → main 으로 Pull Request 생성
 ```
 Git 브랜치          Vercel 환경        배포 트리거
 ─────────────────  ────────────────  ──────────────────────
-main               Production        develop → main PR 머지 시
-develop            Preview           develop에 push 시
+main               Production        dev → main PR 머지 시
+dev                Preview           dev에 push 시
 feature/*          Preview           push 시 (Vercel 자동)
 ```
 
@@ -230,7 +231,7 @@ Vercel Dashboard > Project Settings > Environment Variables
 ```
 코드 변경
 │
-├── git push (develop 브랜치)
+├── git push (dev 브랜치)
 │   │
 │   ├──── GitHub Actions 트리거 ────────────────────────┐
 │   │     ├── build job: npm ci → npm run build          │
@@ -241,7 +242,7 @@ Vercel Dashboard > Project Settings > Environment Variables
 │         ├── npm run build (FitLink-KR 연결)            │  │
 │         └── → preview URL에 배포                       │  │
 │                                                        │  │
-└── Pull Request 생성 (develop → main)                   │  │
+└── Pull Request 생성 (dev → main)                       │  │
     │                                                    │  │
     ├── GitHub Actions CI 자동 실행 ─────────────────────┘  │
     │   ├── ✅ 통과 → PR에 체크 표시                         │
