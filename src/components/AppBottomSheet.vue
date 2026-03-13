@@ -71,7 +71,7 @@ function close() {
 }
 
 .app-bottom-sheet__content {
-  padding: 16px var(--side-margin) 24px;
+  padding: 24px var(--side-margin) 32px;
   overflow-y: auto;
 }
 
