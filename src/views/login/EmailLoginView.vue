@@ -197,6 +197,9 @@ async function handleSubmit() {
       const { data, error } = await supabase.auth.signUp({
         email: email.value,
         password: password.value,
+        options: {
+          emailRedirectTo: undefined,
+        },
       })
 
       if (error) {
@@ -204,21 +207,30 @@ async function handleSubmit() {
         return
       }
 
-      if (data?.session) {
-        await auth.hydrateFromSession(data.session)
-        const pendingCode = localStorage.getItem('pending_invite_code')
-        if (pendingCode) {
-          await saveRole(auth.user.id, 'member')
-          auth.setRole('member')
-          router.replace('/onboarding/member-profile')
-        } else {
-          router.replace('/onboarding/role')
+      if (data?.user && !data.session) {
+        // Supabase에서 email confirm이 활성화된 경우에도 자동 로그인 시도
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: email.value,
+          password: password.value,
+        })
+        if (loginError) {
+          errorMsg.value = '회원가입은 완료되었으나 자동 로그인에 실패했습니다. 로그인 탭에서 직접 로그인해주세요.'
+          switchTab('login')
+          return
         }
-        return
+        await auth.hydrateFromSession(loginData.session)
+      } else if (data?.session) {
+        await auth.hydrateFromSession(data.session)
       }
 
-      successMsg.value = '이메일 인증이 필요합니다. 메일함을 확인해주세요.'
-      switchTab('login')
+      const pendingCode = localStorage.getItem('pending_invite_code')
+      if (pendingCode) {
+        await saveRole(auth.user.id, 'member')
+        auth.setRole('member')
+        router.replace('/onboarding/member-profile')
+      } else {
+        router.replace('/onboarding/role')
+      }
     }
   } catch (e) {
     errorMsg.value = e.message ?? '오류가 발생했습니다. 다시 시도해주세요.'

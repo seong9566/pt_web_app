@@ -229,8 +229,6 @@
   border-color: var(--color-gray-200);
   background-color: var(--color-gray-100);
   color: var(--color-gray-600);
-  text-decoration: line-through;
-  text-decoration-color: var(--color-gray-600);
 }
 
 .wt-calendar-card {
@@ -352,11 +350,11 @@
 }
 
 .wt-date-sheet__time-row {
-  margin-top: var(--wt-space-lg);
+  margin-top: 0;
 }
 
 .wt-override-warning {
-  margin-top: var(--wt-space-lg);
+  margin-top: 0;
   padding: var(--wt-space-md) var(--wt-space-lg);
   border: var(--wt-border-thin) solid var(--color-warning-icon);
   border-radius: var(--radius-medium);
@@ -367,13 +365,25 @@
 }
 
 .wt-date-sheet__actions {
-  margin-top: var(--wt-space-xl);
+  margin-top: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--wt-space-sm);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--wt-space-md);
+}
+
+.wt-override-toggle + .wt-date-sheet__time-row,
+.wt-override-toggle + .wt-override-warning {
+  margin-top: var(--wt-space-xl);
+}
+
+.wt-date-sheet__time-row + .wt-date-sheet__actions,
+.wt-override-warning + .wt-date-sheet__actions,
+.wt-override-toggle + .wt-date-sheet__actions {
+  margin-top: var(--wt-space-2xl);
 }
 
 .wt-date-sheet__action {
+  width: 100%;
   height: var(--btn-height);
   border-radius: var(--radius-medium);
   font-size: var(--fs-body1);
@@ -388,8 +398,10 @@
 }
 
 .wt-date-sheet__action--primary {
+  border: var(--wt-border-thin) solid var(--color-blue-primary);
   background-color: var(--color-blue-primary);
   color: var(--color-white);
+  box-shadow: var(--shadow-card);
 }
 
 .wt-date-sheet__action--ghost {
