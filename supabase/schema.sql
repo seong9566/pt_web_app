@@ -644,9 +644,10 @@ begin
 
   if exists (
     select 1
-    from public.trainer_holidays
+    from public.daily_schedule_overrides
     where trainer_id = p_trainer_id
       and date = p_date
+      and is_working = false
   ) then
     raise exception '해당 날짜는 트레이너 휴무일입니다';
   end if;
@@ -968,6 +969,45 @@ create policy "Holidays readable by connected members" on public.trainer_holiday
   )
 );
 
+-- T7-B: daily_schedule_overrides table (날짜별 스케줄 오버라이드)
+create table if not exists daily_schedule_overrides (
+  id uuid primary key default gen_random_uuid(),
+  trainer_id uuid not null references profiles(id) on delete cascade,
+  date date not null,
+  is_working boolean not null default true,
+  start_time time,
+  end_time time,
+  created_at timestamptz default now(),
+  unique (trainer_id, date),
+  check (
+    (is_working = false) or
+    (is_working = true and (start_time is null or (start_time is not null and end_time is not null and start_time < end_time)))
+  )
+);
+
+create index if not exists idx_daily_schedule_overrides_trainer_id on daily_schedule_overrides(trainer_id);
+create index if not exists idx_daily_schedule_overrides_trainer_date on daily_schedule_overrides(trainer_id, date);
+
+alter table daily_schedule_overrides enable row level security;
+
+create policy "Trainers can manage their own overrides"
+  on daily_schedule_overrides
+  for all
+  using (trainer_id = auth.uid())
+  with check (trainer_id = auth.uid());
+
+create policy "Members can read overrides of their trainer"
+  on daily_schedule_overrides
+  for select
+  using (
+    exists (
+      select 1 from trainer_members
+      where trainer_members.trainer_id = daily_schedule_overrides.trainer_id
+        and trainer_members.member_id = auth.uid()
+        and trainer_members.status = 'active'
+    )
+  );
+
 -- T8: connection_status enum 'pending' 추가
 alter type public.connection_status add value if not exists 'pending';
 
@@ -1094,9 +1134,10 @@ begin
 
   if exists (
     select 1
-    from public.trainer_holidays
+    from public.daily_schedule_overrides
     where trainer_id = p_trainer_id
       and date = p_date
+      and is_working = false
   ) then
     raise exception '해당 날짜는 트레이너 휴무일입니다';
   end if;
@@ -1296,6 +1337,25 @@ create trigger trg_auto_reject_on_holiday
 after insert on public.trainer_holidays
 for each row
 execute function public.fn_auto_reject_on_holiday();
+
+create or replace function auto_reject_on_override()
+returns trigger as $$
+begin
+  if new.is_working = false then
+    update reservations
+    set status = 'rejected', rejection_reason = '트레이너 휴무일로 인해 자동 거절되었습니다.'
+    where trainer_id = new.trainer_id
+      and date = new.date
+      and status in ('pending', 'approved');
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists trg_auto_reject_on_override on daily_schedule_overrides;
+create trigger trg_auto_reject_on_override
+  after insert or update on daily_schedule_overrides
+  for each row execute function auto_reject_on_override();
 
 -- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
