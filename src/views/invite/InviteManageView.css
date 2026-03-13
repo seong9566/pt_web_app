@@ -45,42 +45,7 @@
   gap: 16px;
 }
 
-.invite-manage__qr-area {
-  background-color: var(--color-white);
-  border-radius: var(--radius-large);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  box-shadow: var(--shadow-card);
-}
 
-.invite-manage__qr-box {
-  width: 88px;
-  height: 88px;
-  background-color: var(--color-blue-light);
-  border-radius: var(--radius-medium);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.invite-manage__qr-text {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
-  text-align: center;
-  margin: 0;
-}
-
-.invite-manage__qr-sub {
-  font-size: var(--fs-body2);
-  color: var(--color-gray-600);
-  text-align: center;
-  margin: 0;
-  line-height: 1.5;
-}
 
 .invite-manage__code-card {
   background-color: var(--color-white);
@@ -147,8 +112,8 @@
   border: none;
 }
 
-.invite-manage__kakao-banner {
-  background-color: #fee500;
+.invite-manage__share-btn {
+  background-color: var(--color-blue-primary);
   border-radius: var(--radius-medium);
   padding: 16px;
   display: flex;
@@ -158,9 +123,14 @@
   border: none;
   cursor: pointer;
   font-family: inherit;
+  color: var(--color-white);
 }
 
-.invite-manage__kakao-text {
+.invite-manage__share-btn:active {
+  opacity: 0.8;
+}
+
+.invite-manage__share-text {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -168,15 +138,15 @@
   text-align: left;
 }
 
-.invite-manage__kakao-main {
+.invite-manage__share-main {
   font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
-  color: #3c1e1e;
+  color: var(--color-white);
 }
 
-.invite-manage__kakao-sub {
+.invite-manage__share-sub {
   font-size: var(--fs-caption);
-  color: #3c1e1e;
+  color: var(--color-white);
 }
 
 .invite-manage__members {

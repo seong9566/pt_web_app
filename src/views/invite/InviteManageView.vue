@@ -9,13 +9,6 @@
       <div style="width: 40px;" />
     </div>
     <div class="invite-manage__content">
-      <div class="invite-manage__qr-area">
-        <div class="invite-manage__qr-box">
-          <img src="@/assets/icons/qr.svg" alt="qr" width="56" height="56" />
-        </div>
-        <p class="invite-manage__qr-text">회원을 초대하고 관리를 시작해보세요</p>
-        <p class="invite-manage__qr-sub">코드를 공유하면 회원이 가입 시 자동으로 연결됩니다.</p>
-      </div>
       <div class="invite-manage__code-card">
         <template v-if="loading && !inviteCode">
           <AppSkeleton type="line" width="88px" />
@@ -38,15 +31,21 @@
             </button>
           </div>
         </template>
-      </div>
-       <button class="invite-manage__kakao-banner" style="color: #3C1E1E;">
-         <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M14 4C8.477 4 4 7.806 4 12.5c0 3.03 1.85 5.69 4.65 7.24L7.6 23.5a.286.286 0 0 0 .424.31L13.2 21.1c.264.022.53.04.8.04 5.523 0 10-3.806 10-8.5S19.523 4 14 4z" fill="currentColor"/></svg>
-         <div class="invite-manage__kakao-text">
-           <span class="invite-manage__kakao-main">카카오톡으로 초대장 보내기</span>
-           <span class="invite-manage__kakao-sub">간편하게 회원님을 초대해보세요</span>
-         </div>
-         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-       </button>
+       </div>
+        <button class="invite-manage__share-btn" @click="handleShare">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <div class="invite-manage__share-text">
+            <span class="invite-manage__share-main">초대 링크 공유</span>
+            <span class="invite-manage__share-sub">회원님을 초대해보세요</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       <div class="invite-manage__members">
         <div class="invite-manage__members-header">
           <h3 class="invite-manage__members-title">최근 연결된 회원</h3>
@@ -126,6 +125,26 @@ function handleShareLink() {
   const url = `${window.location.origin}/invite/enter?code=${inviteCode.value.code}`
   navigator.clipboard.writeText(url)
   showToast('초대 링크가 복사되었습니다')
+}
+
+function handleShare() {
+  if (!inviteCode.value?.code) return
+  const url = `${window.location.origin}/invite/enter?code=${inviteCode.value.code}`
+  const shareData = {
+    title: 'PT 매니저 초대',
+    text: `초대 코드: ${inviteCode.value.code}`,
+    url: url
+  }
+
+  if (navigator.share) {
+    navigator.share(shareData).catch(() => {
+      // 사용자가 공유를 취소한 경우 무시
+    })
+  } else {
+    // Web Share API 미지원 시 클립보드에 복사
+    navigator.clipboard.writeText(url)
+    showToast('초대 링크가 복사되었습니다')
+  }
 }
 
 onMounted(async () => {

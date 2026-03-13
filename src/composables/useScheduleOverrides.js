@@ -23,7 +23,9 @@ export function useScheduleOverrides() {
     error.value = null
     try {
       const startDate = `${month}-01`
-      const endDate = `${month}-31`
+      const [year, mon] = month.split('-').map(Number)
+      const lastDay = new Date(year, mon, 0).getDate()
+      const endDate = `${month}-${String(lastDay).padStart(2, '0')}`
       const { data, error: err } = await supabase
         .from('daily_schedule_overrides')
         .select('*')
