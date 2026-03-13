@@ -161,10 +161,6 @@
     background-color: var(--color-blue-primary);
 }
 
-.cal-cell__inner--holiday {
-    background-color: var(--color-gray-100);
-}
-
 .cal-cell__inner--today {
     background-color: var(--color-blue-50, rgba(0, 122, 255, 0.08));
 }
@@ -237,8 +233,6 @@
     background-color: var(--color-gray-400);
 }
 
-
-
 /* Legend */
 .calendar-card__legend {
     display: flex;
@@ -293,42 +287,6 @@
     font-size: var(--fs-body2);
     color: var(--color-gray-600);
     margin: 0;
-}
-
-/* ── Holiday Toggle ── */
-.holiday-toggle {
-    padding: 0 var(--side-margin);
-    margin-bottom: 8px;
-}
-
-.holiday-toggle__btn {
-    width: 100%;
-    padding: 6px 12px;
-    border-radius: var(--radius-small);
-    font-size: var(--fs-caption);
-    font-weight: var(--fw-body1-bold);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
-    font-family: inherit;
-}
-
-.holiday-toggle__btn--set {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-600);
-}
-
-.holiday-toggle__btn--set:active {
-    background-color: var(--color-gray-200);
-}
-
-.holiday-toggle__btn--remove {
-    background-color: var(--color-blue-light);
-    color: var(--color-blue-primary);
-}
-
-.holiday-toggle__btn--remove:active {
-    background-color: var(--color-blue-light);
 }
 
 /* ── Schedule List ── */

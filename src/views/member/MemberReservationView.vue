@@ -48,7 +48,9 @@
             <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          <p>트레이너가 아직 근무시간을 설정하지 않았습니다.</p>
+          <p v-if="noSlotsReason === 'holiday'">해당 날짜는 트레이너의 휴무일입니다.</p>
+          <p v-else-if="noSlotsReason === 'non-working-day'">해당 요일은 트레이너의 근무일이 아닙니다.</p>
+          <p v-else>트레이너가 아직 근무시간을 설정하지 않았습니다.</p>
         </div>
 
         <!-- AM Times -->
@@ -191,17 +193,17 @@ import { useRouter, useRoute } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { useWorkHours } from '@/composables/useWorkHours'
-import { useHolidays } from '@/composables/useHolidays'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
+const { slots, loading, error, noSlotsReason, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
-const { holidays, fetchHolidays } = useHolidays()
+const { overrides, fetchOverrides } = useScheduleOverrides()
 const { showToast, showSuccess } = useToast()
 
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
@@ -238,7 +240,7 @@ onMounted(async () => {
     const currentMonth = initialDate.slice(0, 7)
     const [days] = await Promise.all([
       fetchWorkingDays(connectedTrainerId),
-      fetchHolidays(connectedTrainerId, currentMonth),
+      fetchOverrides(connectedTrainerId, currentMonth),
       fetchAvailableSlots(connectedTrainerId, selectedDate.value),
     ])
     workingDays.value = days
@@ -265,15 +267,18 @@ async function handleDateChange(newDate) {
 async function handleMonthChange(yearMonth) {
   displayedMonth.value = yearMonth
   if (trainerId.value) {
-    await fetchHolidays(trainerId.value, yearMonth)
+    await fetchOverrides(trainerId.value, yearMonth)
   }
 }
 
 /**
- * 비근무일 + 휴무일을 합산하여 캘린더에 회색 표시할 날짜 배열 계산.
+ * 휴무일만 캘린더에 회색 표시할 날짜 배열 계산.
  * 현재 표시 중인 달의 모든 날짜 중:
- *   - 해당 요일이 근무 요일이 아닌 날
- *   - 휴무일(trainer_holidays)로 등록된 날
+ *   - 휴무 오버라이드(daily_schedule_overrides, is_working=false)로 등록된 날
+ * 
+ * 비근무일(근무 요일이 아닌 날)은 선택 가능하며,
+ * 선택 시 시간 슬롯이 비어있음 (fetchAvailableSlots에서 schedule이 null이므로).
+ * workingDays는 Task 4에서 noSlotsReason 메시지 분기에 사용됨.
  */
 const disabledDates = computed(() => {
   if (!trainerId.value) return []
@@ -285,15 +290,9 @@ const disabledDates = computed(() => {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${pad(month)}-${pad(d)}`
-    const dayOfWeek = new Date(year, month - 1, d).getDay()
 
-    // 해당 요일이 근무 요일이 아닌 경우
-    if (!workingDays.value.has(dayOfWeek)) {
-      disabled.push(dateStr)
-      continue
-    }
-    // 휴무일인 경우
-    if (holidays.value.includes(dateStr)) {
+    // 휴무 오버라이드(is_working=false)인 경우만 disabled
+    if (overrides.value.some(o => o.date === dateStr && o.is_working === false)) {
       disabled.push(dateStr)
     }
   }

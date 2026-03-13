@@ -48,7 +48,7 @@
           :class="{ 'cal-cell--empty': !cell.date }"
           @click="cell.date && selectDate(cell.date)"
         >
-          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date), 'cal-cell__inner--holiday': isHolidayCell(cell.date) }">
+          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date) }">
             <span
               class="cal-cell__num"
               :class="{
@@ -85,26 +85,6 @@
     <div class="schedule-date-header">
       <h2 class="schedule-date-header__title">{{ selectedDateLabel }}</h2>
       <p class="schedule-date-header__count">{{ sessions.length }}개의 예약이 있습니다</p>
-    </div>
-
-    <!-- ── Holiday Toggle ── -->
-    <div class="holiday-toggle">
-      <button 
-        v-if="!isHolidaySelected" 
-        class="holiday-toggle__btn holiday-toggle__btn--set"
-        :disabled="holidayProcessing"
-        @click="handleSetHoliday"
-      >
-        {{ holidayProcessing ? '처리 중...' : '휴무 설정' }}
-      </button>
-      <button 
-        v-else 
-        class="holiday-toggle__btn holiday-toggle__btn--remove"
-        :disabled="holidayProcessing"
-        @click="handleRemoveHoliday"
-      >
-        {{ holidayProcessing ? '처리 중...' : '휴무 해제' }}
-      </button>
     </div>
 
     <!-- ── Session Cards ── -->
@@ -182,7 +162,6 @@ import { ref, computed, onMounted, onActivated, watch } from 'vue'
 defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
-import { useHolidays } from '@/composables/useHolidays'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
@@ -195,18 +174,16 @@ const router = useRouter()
 const auth = useAuthStore()
 const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
-const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday, getReservationCountForDate } = useHolidays()
-const { fetchWorkingDays } = useWorkHours()
+const { days: workHours, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 const { showToast } = useToast()
 
 const loaded = ref(false)
 const workingDays = ref(new Set())
-const holidayProcessing = ref(false)
 
 async function loadData() {
   await fetchMyReservations('trainer')
-  await fetchHolidays(auth.user?.id)
+  await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
   await fetchDayWorkoutPlans(selectedDateStr.value)
   loaded.value = true
@@ -223,9 +200,7 @@ onActivated(async () => {
   if (!loaded.value) return
   await fetchMyReservations('trainer')
   await fetchDayWorkoutPlans(selectedDateStr.value)
-  if (reservationsStore.isStale()) {
-    await fetchHolidays(auth.user?.id)
-  }
+  await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
 })
 
@@ -296,12 +271,7 @@ function selectDate(date) {
   selectedDate.value = date
 }
 
-// ── Holiday / 비근무일 helpers ──
-function isHolidayCell(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
-  return isHoliday(dateStr)
-}
-
+// ── 비근무일 helpers ──
 function isNonWorkingDay(date) {
   if (workingDays.value.size === 0) return false
   const dow = new Date(currentYear.value, currentMonth.value - 1, date).getDay()
@@ -312,33 +282,7 @@ const selectedDateStr = computed(() => {
   return `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(selectedDate.value).padStart(2, '0')}`
 })
 
-const isHolidaySelected = computed(() => isHoliday(selectedDateStr.value))
-
-async function handleSetHoliday() {
-  const count = await getReservationCountForDate(auth.user.id, selectedDateStr.value)
-
-  if (count > 0) {
-    const confirmed = confirm(`이 날짜에 ${count}건의 예약이 있습니다. 휴무 설정 시 모든 예약이 자동 거절됩니다. 계속하시겠습니까?`)
-    if (!confirmed) return
-  }
-
-  holidayProcessing.value = true
-  const success = await setHoliday(selectedDateStr.value)
-  holidayProcessing.value = false
-
-  if (success) {
-    await fetchMyReservations('trainer')
-  }
-}
-
-async function handleRemoveHoliday() {
-  holidayProcessing.value = true
-  try {
-    await removeHoliday(selectedDateStr.value)
-  } finally {
-    holidayProcessing.value = false
-  }
-}
+const dayIdByDow = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 // Build calendar cells (including leading empty cells for day-of-week offset)
 const calendarCells = computed(() => {

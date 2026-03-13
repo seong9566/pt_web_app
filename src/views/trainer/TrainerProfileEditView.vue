@@ -39,16 +39,19 @@
             <AppInput v-model="form.name" placeholder="이름을 입력해주세요" @blur="validateName" :class="{ 'form-field--error': nameError }" />
             <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
           </div>
-          <div class="trainer-profile-edit__field">
-            <label class="trainer-profile-edit__label">전화번호</label>
-            <AppInput 
-              v-model="form.phone" 
-              placeholder="010-0000-0000" 
-              type="tel"
-              @input="form.phone = formatPhone(form.phone)"
-            />
-            <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
-          </div>
+           <div class="trainer-profile-edit__field">
+             <label class="trainer-profile-edit__label">전화번호</label>
+             <AppInput 
+               v-model="form.phone" 
+               placeholder="010-0000-0000" 
+               type="tel"
+               inputmode="numeric"
+               @input="form.phone = formatPhone(form.phone)"
+               @blur="validatePhone"
+               :class="{ 'form-field--error': phoneError }"
+             />
+             <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
+           </div>
         </div>
       </section>
 
@@ -160,6 +163,14 @@ function validateName() {
     nameError.value = '이름을 입력해주세요.'
   } else {
     nameError.value = ''
+  }
+}
+
+function validatePhone() {
+  if (form.value.phone && !isValidPhone(form.value.phone)) {
+    phoneError.value = '올바른 전화번호 형식이 아닙니다 (010-0000-0000)'
+  } else {
+    phoneError.value = ''
   }
 }
 

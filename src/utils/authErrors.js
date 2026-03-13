@@ -10,7 +10,7 @@ export function parseAuthError(error) {
     invalid_credentials: '이메일 또는 비밀번호가 올바르지 않습니다.',
     user_already_registered: '이미 가입된 이메일입니다.',
     weak_password: '비밀번호가 너무 약합니다. 6자 이상으로 다시 시도해주세요.',
-    email_address_invalid: '유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.',
+    email_address_invalid: '올바른 이메일 형식을 입력해주세요. (예: example@email.com)',
     validation_failed: '입력한 정보가 올바르지 않습니다. 다시 확인해주세요.',
     over_request_rate_limit: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
   }

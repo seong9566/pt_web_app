@@ -610,7 +610,7 @@ create or replace function public.create_reservation(
   p_date date,
   p_start_time time,
   p_end_time time,
-  p_session_type text
+  p_session_type text default 'PT'
 )
 returns uuid
 language plpgsql
@@ -618,18 +618,15 @@ security definer
 set search_path = public
 as $$
 declare
-  v_member_id uuid := auth.uid();
-  v_trainer_id uuid;
-  v_used_code text;
-  v_connection_id uuid;
-  v_existing_reservation uuid;
+  v_member_id uuid;
+  v_reservation_id uuid;
+  v_override_record record;
+  v_schedule_record record;
 begin
+  v_member_id := auth.uid();
+
   if v_member_id is null then
     raise exception 'Authentication required';
-  end if;
-
-  if p_start_time >= p_end_time then
-    raise exception 'End time must be later than start time';
   end if;
 
   if not exists (
@@ -642,39 +639,63 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
-  if exists (
-    select 1
-    from public.trainer_holidays
-    where trainer_id = p_trainer_id
-      and date = p_date
-  ) then
-    raise exception '해당 날짜는 트레이너 휴무일입니다';
+  if (
+    select coalesce(sum(change_amount), 0)
+    from public.pt_sessions
+    where member_id = v_member_id and trainer_id = p_trainer_id
+  ) <= 0 then
+    raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
   end if;
 
-  insert into public.reservations (
-    id,
-    trainer_id,
-    member_id,
-    date,
-    start_time,
-    end_time,
-    status,
-    session_type,
-    created_at,
-    updated_at
-  )
-  values (
-    gen_random_uuid(),
-    p_trainer_id,
-    v_member_id,
-    p_date,
-    p_start_time,
-    p_end_time,
-    'pending',
-    p_session_type,
-    now(),
-    now()
-  )
+  if p_end_time <= p_start_time then
+    raise exception 'End time must be later than start time';
+  end if;
+
+  select * into v_override_record
+  from public.daily_schedule_overrides
+  where trainer_id = p_trainer_id and date = p_date;
+
+  if found then
+    if v_override_record.is_working = false then
+      raise exception '해당 날짜는 트레이너 휴무일입니다';
+    end if;
+  else
+    select * into v_schedule_record
+    from public.work_schedules
+    where trainer_id = p_trainer_id
+      and day_of_week = extract(dow from p_date)::int
+      and is_enabled = true;
+
+    if not found then
+      raise exception '해당 요일은 트레이너의 근무일이 아닙니다';
+    end if;
+  end if;
+
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and date = p_date
+      and status in ('approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
+  ) then
+    raise exception 'Reservation time slot is already booked';
+  end if;
+
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and member_id = v_member_id
+      and date = p_date
+      and status in ('pending', 'approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
+  ) then
+    raise exception 'Already requested this time slot';
+  end if;
+
+  insert into public.reservations (trainer_id, member_id, date, start_time, end_time, session_type, status)
+  values (p_trainer_id, v_member_id, p_date, p_start_time, p_end_time, p_session_type, 'pending')
   returning id into v_reservation_id;
 
   return v_reservation_id;
@@ -949,24 +970,44 @@ create policy "Notifications insertable by authenticated" on public.notification
 create policy "Notifications updatable by owner" on public.notifications for update to authenticated using (auth.uid() = user_id);
 create policy "Notifications deletable by owner" on public.notifications for delete to authenticated using (auth.uid() = user_id);
 
--- T7: trainer_holidays table (휴무일)
-create table if not exists public.trainer_holidays (
+-- T7: daily_schedule_overrides table (날짜별 스케줄 오버라이드)
+create table if not exists daily_schedule_overrides (
   id uuid primary key default gen_random_uuid(),
-  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  trainer_id uuid not null references profiles(id) on delete cascade,
   date date not null,
-  created_at timestamptz not null default now(),
-  unique (trainer_id, date)
-);
-alter table public.trainer_holidays enable row level security;
-create policy "Holidays manageable by trainer" on public.trainer_holidays for all to authenticated using (auth.uid() = trainer_id) with check (auth.uid() = trainer_id);
-create policy "Holidays readable by connected members" on public.trainer_holidays for select to authenticated using (
-  exists (
-    select 1 from public.trainer_members tm
-    where tm.trainer_id = trainer_holidays.trainer_id
-      and tm.member_id = auth.uid()
-      and tm.status = 'active'
+  is_working boolean not null default true,
+  start_time time,
+  end_time time,
+  created_at timestamptz default now(),
+  unique (trainer_id, date),
+  check (
+    (is_working = false) or
+    (is_working = true and (start_time is null or (start_time is not null and end_time is not null and start_time < end_time)))
   )
 );
+
+create index if not exists idx_daily_schedule_overrides_trainer_id on daily_schedule_overrides(trainer_id);
+create index if not exists idx_daily_schedule_overrides_trainer_date on daily_schedule_overrides(trainer_id, date);
+
+alter table daily_schedule_overrides enable row level security;
+
+create policy "Trainers can manage their own overrides"
+  on daily_schedule_overrides
+  for all
+  using (trainer_id = auth.uid())
+  with check (trainer_id = auth.uid());
+
+create policy "Members can read overrides of their trainer"
+  on daily_schedule_overrides
+  for select
+  using (
+    exists (
+      select 1 from trainer_members
+      where trainer_members.trainer_id = daily_schedule_overrides.trainer_id
+        and trainer_members.member_id = auth.uid()
+        and trainer_members.status = 'active'
+    )
+  );
 
 -- T8: connection_status enum 'pending' 추가
 alter type public.connection_status add value if not exists 'pending';
@@ -1062,7 +1103,7 @@ create or replace function public.create_reservation(
   p_date date,
   p_start_time time,
   p_end_time time,
-  p_session_type text
+  p_session_type text default 'PT'
 )
 returns uuid
 language plpgsql
@@ -1070,16 +1111,15 @@ security definer
 set search_path = public
 as $$
 declare
-  v_member_id uuid := auth.uid();
+  v_member_id uuid;
   v_reservation_id uuid;
-  v_remaining int;
+  v_override_record record;
+  v_schedule_record record;
 begin
+  v_member_id := auth.uid();
+
   if v_member_id is null then
     raise exception 'Authentication required';
-  end if;
-
-  if p_start_time >= p_end_time then
-    raise exception 'End time must be later than start time';
   end if;
 
   if not exists (
@@ -1092,71 +1132,63 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
-  if exists (
-    select 1
-    from public.trainer_holidays
-    where trainer_id = p_trainer_id
-      and date = p_date
-  ) then
-    raise exception '해당 날짜는 트레이너 휴무일입니다';
-  end if;
-
-  -- PT 잔여 횟수 확인 (0이면 예약 불가)
-  select coalesce(sum(change_amount), 0) into v_remaining
-  from public.pt_sessions
-  where member_id = v_member_id and trainer_id = p_trainer_id;
-
-  if v_remaining <= 0 then
+  if (
+    select coalesce(sum(change_amount), 0)
+    from public.pt_sessions
+    where member_id = v_member_id and trainer_id = p_trainer_id
+  ) <= 0 then
     raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
   end if;
 
-  -- approved 슬롯 충돌 확인
+  if p_end_time <= p_start_time then
+    raise exception 'End time must be later than start time';
+  end if;
+
+  select * into v_override_record
+  from public.daily_schedule_overrides
+  where trainer_id = p_trainer_id and date = p_date;
+
+  if found then
+    if v_override_record.is_working = false then
+      raise exception '해당 날짜는 트레이너 휴무일입니다';
+    end if;
+  else
+    select * into v_schedule_record
+    from public.work_schedules
+    where trainer_id = p_trainer_id
+      and day_of_week = extract(dow from p_date)::int
+      and is_enabled = true;
+
+    if not found then
+      raise exception '해당 요일은 트레이너의 근무일이 아닙니다';
+    end if;
+  end if;
+
   if exists (
     select 1 from public.reservations
     where trainer_id = p_trainer_id
       and date = p_date
-      and start_time = p_start_time
-      and status = 'approved'
+      and status in ('approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
   ) then
     raise exception 'Reservation time slot is already booked';
   end if;
 
-  -- 동일 회원 중복 pending 확인
   if exists (
     select 1 from public.reservations
     where trainer_id = p_trainer_id
       and member_id = v_member_id
       and date = p_date
-      and start_time = p_start_time
-      and status = 'pending'
+      and status in ('pending', 'approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
   ) then
     raise exception 'Already requested this time slot';
   end if;
 
-  insert into public.reservations (
-    id,
-    trainer_id,
-    member_id,
-    date,
-    start_time,
-    end_time,
-    status,
-    session_type,
-    created_at,
-    updated_at
-  )
-  values (
-    gen_random_uuid(),
-    p_trainer_id,
-    v_member_id,
-    p_date,
-    p_start_time,
-    p_end_time,
-    'pending',
-    p_session_type,
-    now(),
-    now()
-  )
+  insert into public.reservations (trainer_id, member_id, date, start_time, end_time, session_type, status)
+  values (p_trainer_id, v_member_id, p_date, p_start_time, p_end_time, p_session_type, 'pending')
   returning id into v_reservation_id;
 
   return v_reservation_id;
@@ -1257,45 +1289,24 @@ after update on public.reservations
 for each row
 execute function public.auto_reject_competing_reservations();
 
-create or replace function public.fn_auto_reject_on_holiday()
+create or replace function auto_reject_on_override()
 returns trigger as $$
-declare
-  v_trainer_name text;
-  v_reservation record;
 begin
-  select name into v_trainer_name
-  from public.profiles
-  where id = new.trainer_id;
-
-  for v_reservation in
-    select r.id, r.member_id
-    from public.reservations r
-    where r.trainer_id = new.trainer_id
-      and r.date = new.date
-      and r.status in ('pending', 'approved')
-  loop
-    update public.reservations
-    set status = 'rejected'
-    where id = v_reservation.id;
-
-    insert into public.notifications (user_id, type, title, body)
-    values (
-      v_reservation.member_id,
-      'reservation_rejected',
-      '예약이 거절되었습니다',
-      v_trainer_name || '님이 ' || to_char(new.date, 'YYYY년 MM월 DD일') || '을 휴무일로 설정하여 예약이 자동 거절되었습니다'
-    );
-  end loop;
-
+  if new.is_working = false then
+    update reservations
+    set status = 'rejected', rejection_reason = '트레이너 휴무일로 인해 자동 거절되었습니다.'
+    where trainer_id = new.trainer_id
+      and date = new.date
+      and status in ('pending', 'approved');
+  end if;
   return new;
 end;
-$$ language plpgsql security definer set search_path = public;
+$$ language plpgsql security definer;
 
-drop trigger if exists trg_auto_reject_on_holiday on public.trainer_holidays;
-create trigger trg_auto_reject_on_holiday
-after insert on public.trainer_holidays
-for each row
-execute function public.fn_auto_reject_on_holiday();
+drop trigger if exists trg_auto_reject_on_override on daily_schedule_overrides;
+create trigger trg_auto_reject_on_override
+  after insert or update on daily_schedule_overrides
+  for each row execute function auto_reject_on_override();
 
 -- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
