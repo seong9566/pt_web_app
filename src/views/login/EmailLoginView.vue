@@ -217,7 +217,7 @@ async function handleSubmit() {
         return
       }
 
-      successMsg.value = '이메일 인증이 필요합니다. 메일함을 확인해주세요.'
+      successMsg.value = '회원가입이 완료되었습니다. 로그인해주세요.'
       switchTab('login')
     }
   } catch (e) {

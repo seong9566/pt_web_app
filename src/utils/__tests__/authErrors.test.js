@@ -19,7 +19,7 @@ describe('parseAuthError', () => {
   })
   it('이메일 변경 진행 중', () => {
     expect(parseAuthError({ message: 'email change already in progress' }))
-      .toBe('이메일 변경이 진행 중입니다. 메일함을 확인해주세요.')
+      .toBe('이메일 변경이 진행 중입니다. 잠시 후 다시 시도해주세요.')
   })
   it('알 수 없는 에러 → null', () => {
     expect(parseAuthError({ message: 'some unknown error' }))
