@@ -164,6 +164,7 @@ import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
@@ -176,15 +177,19 @@ const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
 const { days: workHours, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
+const { overrides, fetchOverrides, isHoliday } = useScheduleOverrides()
 const { showToast } = useToast()
 
 const loaded = ref(false)
 const workingDays = ref(new Set())
 
+const pad = (n) => String(n).padStart(2, '0')
+
 async function loadData() {
   await fetchMyReservations('trainer')
   await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
+  await fetchOverrides(auth.user?.id, `${currentYear.value}-${pad(currentMonth.value)}`)
   await fetchDayWorkoutPlans(selectedDateStr.value)
   loaded.value = true
 }
@@ -202,6 +207,7 @@ onActivated(async () => {
   await fetchDayWorkoutPlans(selectedDateStr.value)
   await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
+  await fetchOverrides(auth.user?.id, `${currentYear.value}-${pad(currentMonth.value)}`)
 })
 
 // 대기 중 예약 건수 (실제 데이터에서 계산)
@@ -229,6 +235,7 @@ const legend = [
   { status: 'pending',   label: '대기중' },
   { status: 'approved',  label: '승인됨' },
   { status: 'done',      label: '완료' },
+  { status: 'off',       label: '휴무' },
 ]
 
 // ── Compute dots from real reservations ──
@@ -253,8 +260,12 @@ const dotsData = computed(() => {
 
 // date: day number (1-31) → full date string으로 변환하여 dotsData 조회
 function getDots(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
-  return dotsData.value[dateStr] || []
+  const dateStr = `${currentYear.value}-${pad(currentMonth.value)}-${pad(date)}`
+  const reservationDots = dotsData.value[dateStr] || []
+  if (isHoliday(dateStr)) {
+    return ['off', ...reservationDots]
+  }
+  return reservationDots
 }
 
 function isSelected(date) {
@@ -273,6 +284,10 @@ function selectDate(date) {
 
 // ── 비근무일 helpers ──
 function isNonWorkingDay(date) {
+  // 1. 오버라이드 확인 (우선순위 높음)
+  const dateStr = `${currentYear.value}-${pad(currentMonth.value)}-${pad(date)}`
+  if (isHoliday(dateStr)) return true
+  // 2. 기본 요일별 체크
   if (workingDays.value.size === 0) return false
   const dow = new Date(currentYear.value, currentMonth.value - 1, date).getDay()
   return !workingDays.value.has(dow)
@@ -311,6 +326,7 @@ function prevMonth() {
   } else {
     currentMonth.value--
   }
+  fetchOverrides(auth.user?.id, `${currentYear.value}-${pad(currentMonth.value)}`)
 }
 
 function nextMonth() {
@@ -320,6 +336,7 @@ function nextMonth() {
   } else {
     currentMonth.value++
   }
+  fetchOverrides(auth.user?.id, `${currentYear.value}-${pad(currentMonth.value)}`)
 }
 
 // ── Selected date label ──

@@ -233,6 +233,10 @@
     background-color: var(--color-gray-400);
 }
 
+.cal-cell__dot--off {
+    background-color: var(--color-red);
+}
+
 /* Legend */
 .calendar-card__legend {
     display: flex;
@@ -269,7 +273,9 @@
     background-color: var(--color-gray-400);
 }
 
-
+.legend-item__dot--off {
+    background-color: var(--color-red);
+}
 
 /* ── Date Header ── */
 .schedule-date-header {
