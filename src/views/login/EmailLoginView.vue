@@ -98,6 +98,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
 import { parseAuthError } from '@/utils/authErrors'
+import { isValidEmail } from '@/utils/validators'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -116,8 +117,8 @@ const passwordError = ref('')
 function validateEmail() {
   if (!email.value) {
     emailError.value = '이메일을 입력해주세요'
-  } else if (!email.value.includes('@')) {
-    emailError.value = '올바른 이메일 형식이 아닙니다'
+  } else if (!isValidEmail(email.value)) {
+    emailError.value = '올바른 이메일 형식을 입력해주세요. (예: example@email.com)'
   } else {
     emailError.value = ''
   }
@@ -146,8 +147,8 @@ function validateInputs() {
     errorMsg.value = '이메일과 비밀번호를 입력해주세요.'
     return false
   }
-  if (!email.value.includes('@')) {
-    errorMsg.value = '올바른 이메일 형식이 아닙니다.'
+  if (!isValidEmail(email.value)) {
+    errorMsg.value = '올바른 이메일 형식을 입력해주세요. (예: example@email.com)'
     return false
   }
   if (password.value.length < 6) {
@@ -216,7 +217,7 @@ async function handleSubmit() {
         return
       }
 
-      successMsg.value = '가입이 완료되었습니다. 로그인해주세요.'
+      successMsg.value = '이메일 인증이 필요합니다. 메일함을 확인해주세요.'
       switchTab('login')
     }
   } catch (e) {

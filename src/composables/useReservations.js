@@ -62,11 +62,13 @@ export function useReservations() {
   const loading = ref(false)
   const error = ref(null)
   const slotDuration = ref(60)
+  const noSlotsReason = ref(null) // 'holiday' | 'non-working-day' | 'no-schedule' | null
 
   /** 특정 트레이너의 특정 날짜 예약 가능 시간 슬롯 조회 */
   async function fetchAvailableSlots(trainerId, dateStr) {
     loading.value = true
     error.value = null
+    noSlotsReason.value = null
 
     try {
       if (!trainerId || !dateStr) {
@@ -74,40 +76,77 @@ export function useReservations() {
         return slots.value
       }
 
-      // 휴일 확인
+      // 휴일 확인 (daily_schedule_overrides에서 is_working=false인 레코드)
       const { data: holidayData } = await supabase
-        .from('trainer_holidays')
+        .from('daily_schedule_overrides')
         .select('id')
         .eq('trainer_id', trainerId)
         .eq('date', dateStr)
+        .eq('is_working', false)
         .maybeSingle()
       if (holidayData) {
+        noSlotsReason.value = 'holiday'
         slots.value = resetSlots()
         return slots.value
       }
 
-      const dayOfWeek = getDayOfWeek(dateStr)
-      const { data: schedule, error: scheduleError } = await supabase
-        .from('work_schedules')
-        .select('start_time, end_time, slot_duration_minutes')
+      const { data: workOverride, error: workOverrideError } = await supabase
+        .from('daily_schedule_overrides')
+        .select('is_working, start_time, end_time')
         .eq('trainer_id', trainerId)
-        .eq('day_of_week', dayOfWeek)
-        .eq('is_enabled', true)
+        .eq('date', dateStr)
+        .eq('is_working', true)
         .maybeSingle()
 
-      if (scheduleError) throw scheduleError
+      if (workOverrideError) throw workOverrideError
 
-      if (!schedule) {
-        slotDuration.value = 60
-        slots.value = resetSlots()
-        return slots.value
+      const dayOfWeek = getDayOfWeek(dateStr)
+      let effectiveSchedule = null
+
+      if (workOverride && workOverride.start_time && workOverride.end_time) {
+        const { data: baseSchedule, error: baseScheduleError } = await supabase
+          .from('work_schedules')
+          .select('slot_duration_minutes')
+          .eq('trainer_id', trainerId)
+          .eq('day_of_week', dayOfWeek)
+          .eq('is_enabled', true)
+          .maybeSingle()
+
+        if (baseScheduleError) throw baseScheduleError
+
+        effectiveSchedule = {
+          start_time: workOverride.start_time,
+          end_time: workOverride.end_time,
+          slot_duration_minutes: baseSchedule?.slot_duration_minutes ?? 60,
+        }
       }
 
-      const duration = schedule.slot_duration_minutes ?? 60
+      if (!effectiveSchedule) {
+        const { data: schedule, error: scheduleError } = await supabase
+          .from('work_schedules')
+          .select('start_time, end_time, slot_duration_minutes')
+          .eq('trainer_id', trainerId)
+          .eq('day_of_week', dayOfWeek)
+          .eq('is_enabled', true)
+          .maybeSingle()
+
+        if (scheduleError) throw scheduleError
+
+        if (!schedule) {
+          noSlotsReason.value = 'non-working-day'
+          slotDuration.value = 60
+          slots.value = resetSlots()
+          return slots.value
+        }
+
+        effectiveSchedule = schedule
+      }
+
+      const duration = effectiveSchedule.slot_duration_minutes ?? 60
       slotDuration.value = duration
 
-      const startMinutes = toMinutes(schedule.start_time)
-      const endMinutes = toMinutes(schedule.end_time)
+      const startMinutes = toMinutes(effectiveSchedule.start_time)
+      const endMinutes = toMinutes(effectiveSchedule.end_time)
       const generatedSlots = []
 
       for (let current = startMinutes; current + duration <= endMinutes; current += duration) {
@@ -173,6 +212,11 @@ export function useReservations() {
         },
         { am: [], pm: [], evening: [] }
       )
+
+      // 슬롯이 비어있으면 no-schedule 설정
+      if (slots.value.am.length === 0 && slots.value.pm.length === 0 && slots.value.evening.length === 0) {
+        noSlotsReason.value = 'no-schedule'
+      }
 
       return slots.value
     } catch (e) {
@@ -351,6 +395,7 @@ export function useReservations() {
     loading,
     error,
     slotDuration,
+    noSlotsReason,
     fetchAvailableSlots,
     createReservation,
     fetchMyReservations,

@@ -27,18 +27,19 @@
             <AppInput v-model="form.name" placeholder="홍길동" @blur="validateName" :class="{ 'form-field--error': nameError }" />
             <p v-if="nameError" class="form-error-text">{{ nameError }}</p>
           </div>
-          <div class="member-profile__field">
-            <label class="member-profile__label">연락처</label>
-            <AppInput
-              v-model="form.phone"
-              placeholder="010-0000-0000"
-              type="tel"
-              @input="handlePhoneInput"
-              @blur="validatePhone"
-              :class="{ 'form-field--error': phoneError }"
-            />
-            <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
-          </div>
+           <div class="member-profile__field">
+             <label class="member-profile__label">연락처</label>
+             <AppInput
+               v-model="form.phone"
+               placeholder="010-0000-0000"
+               type="tel"
+               inputmode="numeric"
+               @input="form.phone = formatPhone(form.phone)"
+               @blur="validatePhone"
+               :class="{ 'form-field--error': phoneError }"
+             />
+             <p v-if="phoneError" class="form-error-text">{{ phoneError }}</p>
+           </div>
         </div>
       </section>
       <section class="member-profile__section">
@@ -191,16 +192,12 @@ function validateName() {
 }
 
 function validatePhone() {
-  if (form.value.phone && !isValidPhone(form.value.phone)) {
-    phoneError.value = '올바른 전화번호 형식이 아닙니다 (010-0000-0000)'
-  } else {
-    phoneError.value = ''
-  }
-}
-
-function handlePhoneInput() {
-  form.value.phone = formatPhone(form.value.phone)
-}
+   if (form.value.phone && !isValidPhone(form.value.phone)) {
+     phoneError.value = '올바른 전화번호 형식이 아닙니다 (010-0000-0000)'
+   } else {
+     phoneError.value = ''
+   }
+ }
 
 function validateAge() {
   if (form.value.age && !isValidAge(form.value.age)) {
