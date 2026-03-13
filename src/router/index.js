@@ -319,10 +319,10 @@ router.beforeEach(async (to) => {
       return '/account-delete-pending'
     }
 
-    // 온보딩 + 트레이너 프로필 생성 페이지: role이 이미 있으면 재진입 차단
+    // 온보딩 + 트레이너 프로필 생성 페이지: role + 프로필 완성 시에만 재진입 차단
     const isOnboardingOrTrainerProfile = isOnboarding || to.path === '/trainer/profile'
     if (isOnboardingOrTrainerProfile) {
-      if (isAuthenticated && auth.role) {
+      if (isAuthenticated && auth.role && auth.profile?.name) {
         return auth.role === 'trainer' ? '/trainer/home' : '/member/home'
       }
       return
