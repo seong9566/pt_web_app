@@ -27,11 +27,11 @@ describe('parseAuthError', () => {
   })
   it('error code string — email_address_invalid', () => {
     expect(parseAuthError('email_address_invalid'))
-      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
+      .toBe('올바른 이메일 형식을 입력해주세요. (예: example@email.com)')
   })
   it('error object — email_address_invalid code', () => {
     expect(parseAuthError({ code: 'email_address_invalid', message: 'Email address is invalid' }))
-      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
+      .toBe('올바른 이메일 형식을 입력해주세요. (예: example@email.com)')
   })
   it('Invalid API key → 서비스 연결 에러', () => {
     expect(parseAuthError({ message: 'Invalid API key' }))

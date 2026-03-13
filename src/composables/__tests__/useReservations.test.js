@@ -73,11 +73,11 @@ describe('useReservations', () => {
   })
 
   it('근무시간과 기존 예약을 기반으로 슬롯 상태를 계산한다', async () => {
-    const holidayQuery = createBuilder()
+    const overrideQuery = createBuilder()
     const scheduleQuery = createBuilder()
     const bookedQuery = createBuilder()
 
-    holidayQuery.maybeSingle.mockResolvedValue({ data: null, error: null })
+    overrideQuery.maybeSingle.mockResolvedValue({ data: null, error: null })
     scheduleQuery.maybeSingle.mockResolvedValue({
       data: {
         start_time: '09:00:00',
@@ -92,7 +92,7 @@ describe('useReservations', () => {
     })
 
     mockEnv.supabase.from.mockImplementation((table) => {
-      if (table === 'trainer_holidays') return holidayQuery
+      if (table === 'daily_schedule_overrides') return overrideQuery
       if (table === 'work_schedules') return scheduleQuery
       if (table === 'reservations') return bookedQuery
       throw new Error(`unexpected table: ${table}`)
@@ -111,11 +111,11 @@ describe('useReservations', () => {
   })
 
   it('휴일이면 예약 가능한 슬롯을 비운다', async () => {
-    const holidayQuery = createBuilder()
-    holidayQuery.maybeSingle.mockResolvedValue({ data: { id: 'holiday-1' }, error: null })
+    const overrideQuery = createBuilder()
+    overrideQuery.maybeSingle.mockResolvedValue({ data: { id: 'override-1', is_working: false }, error: null })
 
     mockEnv.supabase.from.mockImplementation((table) => {
-      if (table === 'trainer_holidays') return holidayQuery
+      if (table === 'daily_schedule_overrides') return overrideQuery
       throw new Error(`unexpected table: ${table}`)
     })
 
@@ -126,11 +126,11 @@ describe('useReservations', () => {
   })
 
   it('pending 예약만 있는 슬롯은 대기중 상태와 pendingCount를 반환한다', async () => {
-    const holidayQuery = createBuilder()
+    const overrideQuery = createBuilder()
     const scheduleQuery = createBuilder()
     const bookedQuery = createBuilder()
 
-    holidayQuery.maybeSingle.mockResolvedValue({ data: null, error: null })
+    overrideQuery.maybeSingle.mockResolvedValue({ data: null, error: null })
     scheduleQuery.maybeSingle.mockResolvedValue({
       data: {
         start_time: '09:00:00',
@@ -148,7 +148,7 @@ describe('useReservations', () => {
     })
 
     mockEnv.supabase.from.mockImplementation((table) => {
-      if (table === 'trainer_holidays') return holidayQuery
+      if (table === 'daily_schedule_overrides') return overrideQuery
       if (table === 'work_schedules') return scheduleQuery
       if (table === 'reservations') return bookedQuery
       throw new Error(`unexpected table: ${table}`)
