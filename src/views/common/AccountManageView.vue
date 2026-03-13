@@ -173,10 +173,10 @@ async function handleEmailChange() {
 
    emailLoading.value = true
 
-   const success = await updateUserEmail(newEmail.value)
-   if (success) {
-     emailSuccess.value = '새 이메일로 확인 메일이 발송되었습니다. 메일함에서 확인 링크를 클릭해주세요.'
-     newEmail.value = ''
+    const success = await updateUserEmail(newEmail.value)
+    if (success) {
+      emailSuccess.value = '이메일이 변경되었습니다.'
+      newEmail.value = ''
    } else {
      emailError.value = parseAuthError({ message: profileError.value })
    }
