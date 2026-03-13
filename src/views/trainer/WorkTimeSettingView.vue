@@ -184,7 +184,7 @@
       </div>
 
       <p v-if="!overrideIsWorking && reservationCount > 0" class="wt-override-warning">
-        ⚠️ {{ reservationCount }}건 예약이 있습니다. 회원에게 일정 변경 안내가 필요합니다.
+        ⚠️ 이 날짜에 {{ reservationCount }}건의 예약이 있습니다. 휴무로 변경하면 예약이 자동 거절됩니다.
       </p>
 
       <div class="wt-date-sheet__actions">
