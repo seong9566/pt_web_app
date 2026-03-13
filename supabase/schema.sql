@@ -610,7 +610,7 @@ create or replace function public.create_reservation(
   p_date date,
   p_start_time time,
   p_end_time time,
-  p_session_type text
+  p_session_type text default 'PT'
 )
 returns uuid
 language plpgsql
@@ -618,18 +618,15 @@ security definer
 set search_path = public
 as $$
 declare
-  v_member_id uuid := auth.uid();
-  v_trainer_id uuid;
-  v_used_code text;
-  v_connection_id uuid;
-  v_existing_reservation uuid;
+  v_member_id uuid;
+  v_reservation_id uuid;
+  v_override_record record;
+  v_schedule_record record;
 begin
+  v_member_id := auth.uid();
+
   if v_member_id is null then
     raise exception 'Authentication required';
-  end if;
-
-  if p_start_time >= p_end_time then
-    raise exception 'End time must be later than start time';
   end if;
 
   if not exists (
@@ -642,40 +639,63 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
-  if exists (
-    select 1
-    from public.daily_schedule_overrides
-    where trainer_id = p_trainer_id
-      and date = p_date
-      and is_working = false
-  ) then
-    raise exception '해당 날짜는 트레이너 휴무일입니다';
+  if (
+    select coalesce(sum(change_amount), 0)
+    from public.pt_sessions
+    where member_id = v_member_id and trainer_id = p_trainer_id
+  ) <= 0 then
+    raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
   end if;
 
-  insert into public.reservations (
-    id,
-    trainer_id,
-    member_id,
-    date,
-    start_time,
-    end_time,
-    status,
-    session_type,
-    created_at,
-    updated_at
-  )
-  values (
-    gen_random_uuid(),
-    p_trainer_id,
-    v_member_id,
-    p_date,
-    p_start_time,
-    p_end_time,
-    'pending',
-    p_session_type,
-    now(),
-    now()
-  )
+  if p_end_time <= p_start_time then
+    raise exception 'End time must be later than start time';
+  end if;
+
+  select * into v_override_record
+  from public.daily_schedule_overrides
+  where trainer_id = p_trainer_id and date = p_date;
+
+  if found then
+    if v_override_record.is_working = false then
+      raise exception '해당 날짜는 트레이너 휴무일입니다';
+    end if;
+  else
+    select * into v_schedule_record
+    from public.work_schedules
+    where trainer_id = p_trainer_id
+      and day_of_week = extract(dow from p_date)::int
+      and is_enabled = true;
+
+    if not found then
+      raise exception '해당 요일은 트레이너의 근무일이 아닙니다';
+    end if;
+  end if;
+
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and date = p_date
+      and status in ('approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
+  ) then
+    raise exception 'Reservation time slot is already booked';
+  end if;
+
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and member_id = v_member_id
+      and date = p_date
+      and status in ('pending', 'approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
+  ) then
+    raise exception 'Already requested this time slot';
+  end if;
+
+  insert into public.reservations (trainer_id, member_id, date, start_time, end_time, session_type, status)
+  values (p_trainer_id, v_member_id, p_date, p_start_time, p_end_time, p_session_type, 'pending')
   returning id into v_reservation_id;
 
   return v_reservation_id;
@@ -1083,7 +1103,7 @@ create or replace function public.create_reservation(
   p_date date,
   p_start_time time,
   p_end_time time,
-  p_session_type text
+  p_session_type text default 'PT'
 )
 returns uuid
 language plpgsql
@@ -1091,16 +1111,15 @@ security definer
 set search_path = public
 as $$
 declare
-  v_member_id uuid := auth.uid();
+  v_member_id uuid;
   v_reservation_id uuid;
-  v_remaining int;
+  v_override_record record;
+  v_schedule_record record;
 begin
+  v_member_id := auth.uid();
+
   if v_member_id is null then
     raise exception 'Authentication required';
-  end if;
-
-  if p_start_time >= p_end_time then
-    raise exception 'End time must be later than start time';
   end if;
 
   if not exists (
@@ -1113,72 +1132,63 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
-  if exists (
-    select 1
-    from public.daily_schedule_overrides
-    where trainer_id = p_trainer_id
-      and date = p_date
-      and is_working = false
-  ) then
-    raise exception '해당 날짜는 트레이너 휴무일입니다';
-  end if;
-
-  -- PT 잔여 횟수 확인 (0이면 예약 불가)
-  select coalesce(sum(change_amount), 0) into v_remaining
-  from public.pt_sessions
-  where member_id = v_member_id and trainer_id = p_trainer_id;
-
-  if v_remaining <= 0 then
+  if (
+    select coalesce(sum(change_amount), 0)
+    from public.pt_sessions
+    where member_id = v_member_id and trainer_id = p_trainer_id
+  ) <= 0 then
     raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
   end if;
 
-  -- approved 슬롯 충돌 확인
+  if p_end_time <= p_start_time then
+    raise exception 'End time must be later than start time';
+  end if;
+
+  select * into v_override_record
+  from public.daily_schedule_overrides
+  where trainer_id = p_trainer_id and date = p_date;
+
+  if found then
+    if v_override_record.is_working = false then
+      raise exception '해당 날짜는 트레이너 휴무일입니다';
+    end if;
+  else
+    select * into v_schedule_record
+    from public.work_schedules
+    where trainer_id = p_trainer_id
+      and day_of_week = extract(dow from p_date)::int
+      and is_enabled = true;
+
+    if not found then
+      raise exception '해당 요일은 트레이너의 근무일이 아닙니다';
+    end if;
+  end if;
+
   if exists (
     select 1 from public.reservations
     where trainer_id = p_trainer_id
       and date = p_date
-      and start_time = p_start_time
-      and status = 'approved'
+      and status in ('approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
   ) then
     raise exception 'Reservation time slot is already booked';
   end if;
 
-  -- 동일 회원 중복 pending 확인
   if exists (
     select 1 from public.reservations
     where trainer_id = p_trainer_id
       and member_id = v_member_id
       and date = p_date
-      and start_time = p_start_time
-      and status = 'pending'
+      and status in ('pending', 'approved')
+      and start_time < p_end_time
+      and end_time > p_start_time
   ) then
     raise exception 'Already requested this time slot';
   end if;
 
-  insert into public.reservations (
-    id,
-    trainer_id,
-    member_id,
-    date,
-    start_time,
-    end_time,
-    status,
-    session_type,
-    created_at,
-    updated_at
-  )
-  values (
-    gen_random_uuid(),
-    p_trainer_id,
-    v_member_id,
-    p_date,
-    p_start_time,
-    p_end_time,
-    'pending',
-    p_session_type,
-    now(),
-    now()
-  )
+  insert into public.reservations (trainer_id, member_id, date, start_time, end_time, session_type, status)
+  values (p_trainer_id, v_member_id, p_date, p_start_time, p_end_time, p_session_type, 'pending')
   returning id into v_reservation_id;
 
   return v_reservation_id;

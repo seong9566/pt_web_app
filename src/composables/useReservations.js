@@ -90,29 +90,63 @@ export function useReservations() {
         return slots.value
       }
 
-      const dayOfWeek = getDayOfWeek(dateStr)
-      const { data: schedule, error: scheduleError } = await supabase
-        .from('work_schedules')
-        .select('start_time, end_time, slot_duration_minutes')
+      const { data: workOverride, error: workOverrideError } = await supabase
+        .from('daily_schedule_overrides')
+        .select('is_working, start_time, end_time')
         .eq('trainer_id', trainerId)
-        .eq('day_of_week', dayOfWeek)
-        .eq('is_enabled', true)
+        .eq('date', dateStr)
+        .eq('is_working', true)
         .maybeSingle()
 
-      if (scheduleError) throw scheduleError
+      if (workOverrideError) throw workOverrideError
 
-      if (!schedule) {
-        noSlotsReason.value = 'non-working-day'
-        slotDuration.value = 60
-        slots.value = resetSlots()
-        return slots.value
+      const dayOfWeek = getDayOfWeek(dateStr)
+      let effectiveSchedule = null
+
+      if (workOverride && workOverride.start_time && workOverride.end_time) {
+        const { data: baseSchedule, error: baseScheduleError } = await supabase
+          .from('work_schedules')
+          .select('slot_duration_minutes')
+          .eq('trainer_id', trainerId)
+          .eq('day_of_week', dayOfWeek)
+          .eq('is_enabled', true)
+          .maybeSingle()
+
+        if (baseScheduleError) throw baseScheduleError
+
+        effectiveSchedule = {
+          start_time: workOverride.start_time,
+          end_time: workOverride.end_time,
+          slot_duration_minutes: baseSchedule?.slot_duration_minutes ?? 60,
+        }
       }
 
-      const duration = schedule.slot_duration_minutes ?? 60
+      if (!effectiveSchedule) {
+        const { data: schedule, error: scheduleError } = await supabase
+          .from('work_schedules')
+          .select('start_time, end_time, slot_duration_minutes')
+          .eq('trainer_id', trainerId)
+          .eq('day_of_week', dayOfWeek)
+          .eq('is_enabled', true)
+          .maybeSingle()
+
+        if (scheduleError) throw scheduleError
+
+        if (!schedule) {
+          noSlotsReason.value = 'non-working-day'
+          slotDuration.value = 60
+          slots.value = resetSlots()
+          return slots.value
+        }
+
+        effectiveSchedule = schedule
+      }
+
+      const duration = effectiveSchedule.slot_duration_minutes ?? 60
       slotDuration.value = duration
 
-      const startMinutes = toMinutes(schedule.start_time)
-      const endMinutes = toMinutes(schedule.end_time)
+      const startMinutes = toMinutes(effectiveSchedule.start_time)
+      const endMinutes = toMinutes(effectiveSchedule.end_time)
       const generatedSlots = []
 
       for (let current = startMinutes; current + duration <= endMinutes; current += duration) {
