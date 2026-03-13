@@ -26,13 +26,13 @@ const DAY_ID_TO_NUM = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 }
 /** 기본 근무시간 배열 생성 (모든 요일 비활성화, 09:00-18:00) */
 function buildDefaultDays() {
   return [
+    { id: 'sun', label: '일요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'mon', label: '월요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'tue', label: '화요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'wed', label: '수요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'thu', label: '목요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'fri', label: '금요일', enabled: false, start: '09:00', end: '18:00' },
     { id: 'sat', label: '토요일', enabled: false, start: '09:00', end: '18:00' },
-    { id: 'sun', label: '일요일', enabled: false, start: '09:00', end: '18:00' },
   ]
 }
 
@@ -83,7 +83,7 @@ export function useWorkHours() {
       }
 
       // 기본 요일 배열에 DB 데이터 병합
-      const uiOrder = [1, 2, 3, 4, 5, 6, 0] // 월~토,일
+      const uiOrder = [0, 1,2, 3, 4, 5, 6] // 일~토
       days.value = uiOrder.map(dow => {
         const info = DAY_MAP_TO_UI[dow]
         const row = dbMap[dow]

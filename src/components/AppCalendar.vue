@@ -305,7 +305,7 @@ function nextMonth() {
 }
 
 .app-calendar__num--past {
-  color: var(--color-gray-200);
+  color: var(--color-gray-400);
 }
 
 .app-calendar__inner--disabled {
@@ -314,7 +314,7 @@ function nextMonth() {
 }
 
 .app-calendar__num--disabled {
-  color: var(--color-gray-200);
+  color: var(--color-gray-400);
 }
 
 /* ── Dots ── */

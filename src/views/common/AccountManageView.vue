@@ -136,7 +136,6 @@ import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
-import { parseAuthError } from '@/utils/authErrors'
 import { isValidEmail } from '@/utils/validators'
 
 const router = useRouter()
@@ -178,8 +177,8 @@ async function handleEmailChange() {
       emailSuccess.value = '이메일이 변경되었습니다.'
       newEmail.value = ''
    } else {
-     emailError.value = parseAuthError({ message: profileError.value })
-   }
+      emailError.value = profileError.value || '이메일 변경 중 오류가 발생했습니다.'
+    }
 
    emailLoading.value = false
 }

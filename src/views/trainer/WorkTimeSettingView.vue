@@ -38,13 +38,7 @@
 
       <template v-else>
         <section class="wt-section">
-          <h2 class="wt-section__title">
-            <svg class="wt-section__title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
-              <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            예약 단위
-          </h2>
+          <h2 class="wt-section__title">예약 단위</h2>
           <div class="wt-unit-grid">
             <button
               v-for="unit in unitOptions"
@@ -59,14 +53,7 @@
         </section>
 
         <section class="wt-section">
-          <h2 class="wt-section__title">
-            <svg class="wt-section__title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M4 7H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.8" />
-              <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-            기본 근무시간
-          </h2>
+          <h2 class="wt-section__title">기본 근무시간</h2>
 
           <div class="wt-default-time">
             <div class="wt-default-time__row">
@@ -84,21 +71,14 @@
         </section>
 
         <section class="wt-section">
-          <h2 class="wt-section__title">
-            <svg class="wt-section__title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M4 7H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              <path d="M4 12H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              <path d="M4 17H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-            반복 휴무 요일
-          </h2>
+          <h2 class="wt-section__title">반복 휴무 요일</h2>
 
           <div class="wt-weekday-chips">
             <button
               v-for="day in days"
               :key="day.id"
               class="wt-weekday-chip"
-              :class="day.enabled ? 'wt-weekday-chip--active' : 'wt-weekday-chip--off'"
+              :class="!day.enabled ? 'wt-weekday-chip--active' : 'wt-weekday-chip--off'"
               @click="toggleDay(day)"
             >
               {{ toShortLabel(day.label) }}
@@ -107,14 +87,7 @@
         </section>
 
         <section class="wt-section">
-          <h2 class="wt-section__title">
-            <svg class="wt-section__title-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8" />
-              <path d="M3 9H21" stroke="currentColor" stroke-width="1.8" />
-              <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-            날짜별 스케줄 관리
-          </h2>
+          <h2 class="wt-section__title">날짜별 스케줄 관리</h2>
 
           <div class="wt-calendar-card">
             <div class="wt-calendar-legend">
@@ -145,51 +118,82 @@
 
     <div class="wt-setting__footer">
       <button class="wt-setting__submit" @click="handleSave" :disabled="loading || isInitialLoading">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M17 21V13H7V21M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        {{ loading && !isInitialLoading ? '저장 중...' : '일정 업데이트' }}
+        {{ loading && !isInitialLoading ? '저장 중...' : '설정 저장' }}
       </button>
     </div>
 
-    <AppBottomSheet v-model="showDateSheet" :title="dateSheetTitle">
-      <div class="wt-override-toggle">
+    <AppBottomSheet v-model="showDateSheet">
+      <header class="wt-sheet-head">
+        <button class="wt-sheet-head__close" @click="showDateSheet = false" aria-label="닫기">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <h3 class="wt-sheet-head__title">일정 관리</h3>
+        <div class="wt-sheet-head__close" style="visibility: hidden;"></div>
+      </header>
+
+      <h2 class="wt-sheet-date">{{ dateSheetTitle }}</h2>
+
+      <div class="wt-sheet-toggle">
         <button
-          class="wt-override-toggle__btn"
-          :class="{ 'wt-override-toggle__btn--active': overrideIsWorking }"
+          class="wt-sheet-toggle__btn"
+          :class="{ 'wt-sheet-toggle__btn--active': overrideIsWorking }"
           @click="overrideIsWorking = true"
         >
           근무
         </button>
         <button
-          class="wt-override-toggle__btn"
-          :class="{ 'wt-override-toggle__btn--active': !overrideIsWorking }"
+          class="wt-sheet-toggle__btn"
+          :class="{ 'wt-sheet-toggle__btn--active': !overrideIsWorking }"
           @click="overrideIsWorking = false"
         >
           휴무
         </button>
       </div>
 
-      <div v-if="overrideIsWorking" class="wt-date-sheet__time-row">
-        <button class="wt-default-time__btn" @click="openTimePicker('overrideStart', overrideStart)">
-          <span class="wt-default-time__label">시작</span>
-          <strong class="wt-default-time__value">{{ overrideStart }}</strong>
-        </button>
-        <span class="wt-default-time__dash">~</span>
-        <button class="wt-default-time__btn" @click="openTimePicker('overrideEnd', overrideEnd)">
-          <span class="wt-default-time__label">종료</span>
-          <strong class="wt-default-time__value">{{ overrideEnd }}</strong>
-        </button>
+      <div class="wt-sheet-time-area">
+        <div class="wt-sheet-time-col">
+          <span class="wt-sheet-time-label">시작</span>
+          <button
+            class="wt-sheet-time-btn"
+            :disabled="!overrideIsWorking"
+            @click="overrideIsWorking && openTimePicker('overrideStart', overrideStart)"
+          >
+            {{ overrideStart }}
+          </button>
+        </div>
+        <div class="wt-sheet-time-dash-wrap">
+          <span class="wt-sheet-time-dash">~</span>
+        </div>
+        <div class="wt-sheet-time-col">
+          <span class="wt-sheet-time-label">종료</span>
+          <button
+            class="wt-sheet-time-btn"
+            :disabled="!overrideIsWorking"
+            @click="overrideIsWorking && openTimePicker('overrideEnd', overrideEnd)"
+          >
+            {{ overrideEnd }}
+          </button>
+        </div>
       </div>
 
-      <p v-if="!overrideIsWorking && reservationCount > 0" class="wt-override-warning">
+      <p v-if="!overrideIsWorking && reservationCount > 0" class="wt-sheet-warning">
         ⚠️ 이 날짜에 {{ reservationCount }}건의 예약이 있습니다. 휴무로 변경하면 예약이 자동 거절됩니다.
       </p>
+      <div v-else class="wt-sheet-info">
+        <svg class="wt-sheet-info-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="8" fill="var(--color-gray-400)"/>
+          <rect x="7.2" y="7" width="1.6" height="4.5" rx="0.8" fill="white"/>
+          <circle cx="8" cy="5" r="0.9" fill="white"/>
+        </svg>
+        <p class="wt-sheet-info-text">
+          선택한 날짜의 근무 시간이 기본 설정과 다를 경우 이곳에서 개별적으로 수정할 수 있습니다.
+        </p>
+      </div>
 
-      <div class="wt-date-sheet__actions">
-        <button class="wt-date-sheet__action wt-date-sheet__action--primary" @click="confirmOverride">확인</button>
-        <button class="wt-date-sheet__action wt-date-sheet__action--ghost" @click="restoreDefault">기본값 복원</button>
+      <div class="wt-sheet-actions">
+        <button class="wt-sheet-action-confirm" @click="confirmOverride">확인</button>
       </div>
     </AppBottomSheet>
 

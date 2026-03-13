@@ -5,9 +5,9 @@ describe('parseAuthError', () => {
   it('null → null', () => {
     expect(parseAuthError(null)).toBeNull()
   })
-  it('이메일 형식 오류 메시지 → 한글', () => {
+  it('이메일 주소 무효 메시지 → 한글', () => {
     expect(parseAuthError({ message: 'Email address "test@test1.com" is invalid' }))
-      .toBe('올바른 이메일 형식이 아닙니다.')
+      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
   })
   it('이미 사용 중인 이메일 (already in use)', () => {
     expect(parseAuthError({ message: 'email already in use' }))
@@ -27,11 +27,11 @@ describe('parseAuthError', () => {
   })
   it('error code string — email_address_invalid', () => {
     expect(parseAuthError('email_address_invalid'))
-      .toBe('올바른 이메일 형식을 입력해주세요. (예: example@email.com)')
+      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
   })
   it('error object — email_address_invalid code', () => {
     expect(parseAuthError({ code: 'email_address_invalid', message: 'Email address is invalid' }))
-      .toBe('올바른 이메일 형식을 입력해주세요. (예: example@email.com)')
+      .toBe('유효하지 않은 이메일 주소입니다. 실제 사용 가능한 이메일을 입력해주세요.')
   })
   it('Invalid API key → 서비스 연결 에러', () => {
     expect(parseAuthError({ message: 'Invalid API key' }))

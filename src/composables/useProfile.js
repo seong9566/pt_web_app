@@ -336,15 +336,28 @@ export function useProfile() {
     }
   }
 
-  /** 사용자 이메일 변경 */
+  /** 사용자 이메일 변경 (RPC로 즉시 반영) */
   async function updateUserEmail(newEmail) {
     error.value = null
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ email: newEmail })
-      if (updateError) throw updateError
+      const { error: rpcError } = await supabase.rpc('change_user_email', { new_email: newEmail })
+      if (rpcError) throw rpcError
+
+      if (auth.user) {
+        auth.user.email = newEmail.toLowerCase().trim()
+      }
       return true
     } catch (e) {
-      error.value = e?.message ?? '이메일 변경 중 오류가 발생했습니다.'
+      const msg = e?.message ?? ''
+      if (msg.includes('email_already_exists')) {
+        error.value = '이미 사용 중인 이메일입니다.'
+      } else if (msg.includes('invalid_email_format')) {
+        error.value = '올바른 이메일 형식이 아닙니다.'
+      } else if (msg.includes('authentication_required')) {
+        error.value = '로그인이 필요합니다.'
+      } else {
+        error.value = msg || '이메일 변경 중 오류가 발생했습니다.'
+      }
       return false
     }
   }
