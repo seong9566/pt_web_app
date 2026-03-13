@@ -182,7 +182,7 @@ import { ref, computed, onMounted, onActivated, watch } from 'vue'
 defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
-import { useHolidays } from '@/composables/useHolidays'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
@@ -195,7 +195,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
-const { holidays, fetchHolidays, setHoliday, removeHoliday, isHoliday, getReservationCountForDate } = useHolidays()
+const { overrides, fetchOverrides, setOverride, removeOverride, isHoliday, getOverride, getReservationCountForDate } = useScheduleOverrides()
 const { fetchWorkingDays } = useWorkHours()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 const { showToast } = useToast()
@@ -206,7 +206,7 @@ const holidayProcessing = ref(false)
 
 async function loadData() {
   await fetchMyReservations('trainer')
-  await fetchHolidays(auth.user?.id)
+  await fetchOverrides(auth.user?.id, currentMonthStr.value)
   workingDays.value = await fetchWorkingDays(auth.user?.id)
   await fetchDayWorkoutPlans(selectedDateStr.value)
   loaded.value = true
@@ -224,7 +224,7 @@ onActivated(async () => {
   await fetchMyReservations('trainer')
   await fetchDayWorkoutPlans(selectedDateStr.value)
   if (reservationsStore.isStale()) {
-    await fetchHolidays(auth.user?.id)
+    await fetchOverrides(auth.user?.id, currentMonthStr.value)
   }
   workingDays.value = await fetchWorkingDays(auth.user?.id)
 })
@@ -239,6 +239,8 @@ const now = new Date()
 const currentYear  = ref(now.getFullYear())
 const currentMonth = ref(now.getMonth() + 1)
 const selectedDate = ref(now.getDate())
+// 현재 캘린더에 표시 중인 월 (YYYY-MM) — fetchOverrides 호출 기준
+const currentMonthStr = computed(() => `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}`)
 
 const weekdays = [
   { label: '일', cls: 'calendar-card__weekday--sun' },
@@ -323,7 +325,7 @@ async function handleSetHoliday() {
   }
 
   holidayProcessing.value = true
-  const success = await setHoliday(selectedDateStr.value)
+  const success = await setOverride(auth.user.id, selectedDateStr.value, false)
   holidayProcessing.value = false
 
   if (success) {
@@ -334,7 +336,7 @@ async function handleSetHoliday() {
 async function handleRemoveHoliday() {
   holidayProcessing.value = true
   try {
-    await removeHoliday(selectedDateStr.value)
+    await removeOverride(auth.user.id, selectedDateStr.value)
   } finally {
     holidayProcessing.value = false
   }
@@ -431,6 +433,12 @@ function goWorkout(session) {
 
 watch(selectedDateStr, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
 watch(error, (e) => { if (e) showToast(e, 'error') })
+// 월 변경 시 해당 월의 오버라이드 재조회
+watch(currentMonthStr, (monthStr) => {
+  if (loaded.value && auth.user?.id) {
+    fetchOverrides(auth.user.id, monthStr)
+  }
+})
 </script>
 
 <style src="./TrainerScheduleView.css" scoped></style>

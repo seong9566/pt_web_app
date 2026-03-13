@@ -193,7 +193,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { useWorkHours } from '@/composables/useWorkHours'
-import { useHolidays } from '@/composables/useHolidays'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -203,7 +203,7 @@ const route = useRoute()
 const { slots, loading, error, noSlotsReason, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
-const { holidays, fetchHolidays } = useHolidays()
+const { overrides, fetchOverrides } = useScheduleOverrides()
 const { showToast, showSuccess } = useToast()
 
 // 트레이너 근무 요일 Set (0-6) — 캘린더 비근무일 회색 표시용
@@ -240,7 +240,7 @@ onMounted(async () => {
     const currentMonth = initialDate.slice(0, 7)
     const [days] = await Promise.all([
       fetchWorkingDays(connectedTrainerId),
-      fetchHolidays(connectedTrainerId, currentMonth),
+      fetchOverrides(connectedTrainerId, currentMonth),
       fetchAvailableSlots(connectedTrainerId, selectedDate.value),
     ])
     workingDays.value = days
@@ -267,14 +267,14 @@ async function handleDateChange(newDate) {
 async function handleMonthChange(yearMonth) {
   displayedMonth.value = yearMonth
   if (trainerId.value) {
-    await fetchHolidays(trainerId.value, yearMonth)
+    await fetchOverrides(trainerId.value, yearMonth)
   }
 }
 
 /**
  * 휴무일만 캘린더에 회색 표시할 날짜 배열 계산.
  * 현재 표시 중인 달의 모든 날짜 중:
- *   - 휴무일(trainer_holidays)로 등록된 날
+ *   - 휴무 오버라이드(daily_schedule_overrides, is_working=false)로 등록된 날
  * 
  * 비근무일(근무 요일이 아닌 날)은 선택 가능하며,
  * 선택 시 시간 슬롯이 비어있음 (fetchAvailableSlots에서 schedule이 null이므로).
@@ -291,8 +291,8 @@ const disabledDates = computed(() => {
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${pad(month)}-${pad(d)}`
 
-    // 휴무일인 경우만 disabled
-    if (holidays.value.includes(dateStr)) {
+    // 휴무 오버라이드(is_working=false)인 경우만 disabled
+    if (overrides.value.some(o => o.date === dateStr && o.is_working === false)) {
       disabled.push(dateStr)
     }
   }

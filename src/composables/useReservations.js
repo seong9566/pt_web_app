@@ -76,12 +76,13 @@ export function useReservations() {
         return slots.value
       }
 
-      // 휴일 확인
+      // 휴일 확인 (daily_schedule_overrides에서 is_working=false인 레코드)
       const { data: holidayData } = await supabase
-        .from('trainer_holidays')
+        .from('daily_schedule_overrides')
         .select('id')
         .eq('trainer_id', trainerId)
         .eq('date', dateStr)
+        .eq('is_working', false)
         .maybeSingle()
       if (holidayData) {
         noSlotsReason.value = 'holiday'
