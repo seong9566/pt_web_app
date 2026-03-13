@@ -39,7 +39,7 @@ export function parseAuthError(error) {
 
   // 이메일 변경 진행 중
   if (message.includes('email change already in progress')) {
-    return '이메일 변경이 진행 중입니다. 메일함을 확인해주세요.'
+    return '이메일 변경이 진행 중입니다. 잠시 후 다시 시도해주세요.'
   }
 
   // API 키 오류
