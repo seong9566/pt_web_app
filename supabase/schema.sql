@@ -950,26 +950,7 @@ create policy "Notifications insertable by authenticated" on public.notification
 create policy "Notifications updatable by owner" on public.notifications for update to authenticated using (auth.uid() = user_id);
 create policy "Notifications deletable by owner" on public.notifications for delete to authenticated using (auth.uid() = user_id);
 
--- T7: trainer_holidays table (휴무일)
-create table if not exists public.trainer_holidays (
-  id uuid primary key default gen_random_uuid(),
-  trainer_id uuid not null references public.profiles(id) on delete cascade,
-  date date not null,
-  created_at timestamptz not null default now(),
-  unique (trainer_id, date)
-);
-alter table public.trainer_holidays enable row level security;
-create policy "Holidays manageable by trainer" on public.trainer_holidays for all to authenticated using (auth.uid() = trainer_id) with check (auth.uid() = trainer_id);
-create policy "Holidays readable by connected members" on public.trainer_holidays for select to authenticated using (
-  exists (
-    select 1 from public.trainer_members tm
-    where tm.trainer_id = trainer_holidays.trainer_id
-      and tm.member_id = auth.uid()
-      and tm.status = 'active'
-  )
-);
-
--- T7-B: daily_schedule_overrides table (날짜별 스케줄 오버라이드)
+-- T7: daily_schedule_overrides table (날짜별 스케줄 오버라이드)
 create table if not exists daily_schedule_overrides (
   id uuid primary key default gen_random_uuid(),
   trainer_id uuid not null references profiles(id) on delete cascade,
@@ -1297,46 +1278,6 @@ create trigger trg_auto_reject_competing
 after update on public.reservations
 for each row
 execute function public.auto_reject_competing_reservations();
-
-create or replace function public.fn_auto_reject_on_holiday()
-returns trigger as $$
-declare
-  v_trainer_name text;
-  v_reservation record;
-begin
-  select name into v_trainer_name
-  from public.profiles
-  where id = new.trainer_id;
-
-  for v_reservation in
-    select r.id, r.member_id
-    from public.reservations r
-    where r.trainer_id = new.trainer_id
-      and r.date = new.date
-      and r.status in ('pending', 'approved')
-  loop
-    update public.reservations
-    set status = 'rejected'
-    where id = v_reservation.id;
-
-    insert into public.notifications (user_id, type, title, body)
-    values (
-      v_reservation.member_id,
-      'reservation_rejected',
-      '예약이 거절되었습니다',
-      v_trainer_name || '님이 ' || to_char(new.date, 'YYYY년 MM월 DD일') || '을 휴무일로 설정하여 예약이 자동 거절되었습니다'
-    );
-  end loop;
-
-  return new;
-end;
-$$ language plpgsql security definer set search_path = public;
-
-drop trigger if exists trg_auto_reject_on_holiday on public.trainer_holidays;
-create trigger trg_auto_reject_on_holiday
-after insert on public.trainer_holidays
-for each row
-execute function public.fn_auto_reject_on_holiday();
 
 create or replace function auto_reject_on_override()
 returns trigger as $$
