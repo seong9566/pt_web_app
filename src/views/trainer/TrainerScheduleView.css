@@ -161,10 +161,6 @@
     background-color: var(--color-blue-primary);
 }
 
-.cal-cell__inner--holiday {
-    background-color: var(--color-gray-100);
-}
-
 .cal-cell__inner--today {
     background-color: var(--color-blue-50, rgba(0, 122, 255, 0.08));
 }
@@ -237,16 +233,6 @@
     background-color: var(--color-gray-400);
 }
 
-.cal-cell__dot--holiday-override {
-    background-color: var(--color-red);
-}
-
-.cal-cell__dot--work-override {
-    background-color: var(--color-blue-primary);
-}
-
-
-
 /* Legend */
 .calendar-card__legend {
     display: flex;
@@ -301,115 +287,6 @@
     font-size: var(--fs-body2);
     color: var(--color-gray-600);
     margin: 0;
-}
-
-/* ── Holiday Toggle ── */
-.holiday-toggle {
-    padding: 0 var(--side-margin);
-    margin-bottom: 8px;
-}
-
-.holiday-toggle__status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.holiday-toggle__label {
-    font-size: var(--fs-body2);
-    font-weight: var(--fw-body1-bold);
-}
-
-.holiday-toggle__label--holiday {
-    color: var(--color-red);
-}
-
-.holiday-toggle__label--work-override {
-    color: var(--color-blue-primary);
-}
-
-.holiday-toggle__label--working {
-    color: var(--color-gray-900);
-}
-
-.holiday-toggle__label--off {
-    color: var(--color-gray-600);
-}
-
-.holiday-toggle__badge {
-    font-size: var(--fs-caption);
-    background-color: var(--color-blue-light);
-    color: var(--color-blue-primary);
-    padding: 2px 8px;
-    border-radius: var(--radius-small);
-}
-
-.holiday-toggle__actions {
-    display: flex;
-    gap: 8px;
-}
-
-.holiday-toggle__btn {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: var(--radius-medium);
-    font-size: var(--fs-body2);
-    font-weight: var(--fw-body1-bold);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
-    font-family: inherit;
-}
-
-.holiday-toggle__btn:disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
-.holiday-toggle__btn--set {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-900);
-}
-
-.holiday-toggle__btn--set:active {
-    background-color: var(--color-gray-200);
-}
-
-.holiday-toggle__btn--work {
-    background-color: var(--color-blue-primary);
-    color: var(--color-white);
-}
-
-.holiday-toggle__btn--work:active {
-    background-color: var(--color-blue-light);
-}
-
-.holiday-toggle__btn--restore {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-900);
-}
-
-.holiday-toggle__btn--restore:active {
-    background-color: var(--color-gray-200);
-}
-
-.work-override-form {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.work-override-form__row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.work-override-form__row label {
-    font-size: var(--fs-body2);
-    color: var(--color-gray-600);
 }
 
 /* ── Schedule List ── */

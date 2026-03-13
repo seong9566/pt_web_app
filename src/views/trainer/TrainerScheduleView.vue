@@ -48,7 +48,7 @@
           :class="{ 'cal-cell--empty': !cell.date }"
           @click="cell.date && selectDate(cell.date)"
         >
-          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date), 'cal-cell__inner--holiday': isHolidayCell(cell.date) }">
+          <div v-if="cell.date" class="cal-cell__inner" :class="{ 'cal-cell__inner--selected': isSelected(cell.date), 'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date) }">
             <span
               class="cal-cell__num"
               :class="{
@@ -85,59 +85,6 @@
     <div class="schedule-date-header">
       <h2 class="schedule-date-header__title">{{ selectedDateLabel }}</h2>
       <p class="schedule-date-header__count">{{ sessions.length }}개의 예약이 있습니다</p>
-    </div>
-
-    <!-- ── Holiday Toggle ── -->
-    <div class="holiday-toggle">
-      <div class="holiday-toggle__status">
-        <span class="holiday-toggle__label" :class="currentDayStatusClass">{{ currentDayStatusLabel }}</span>
-        <span v-if="currentOverride" class="holiday-toggle__badge">오버라이드</span>
-      </div>
-
-      <div class="holiday-toggle__actions">
-        <button
-          v-if="isDefaultWorkingDay && !currentOverride"
-          class="holiday-toggle__btn holiday-toggle__btn--set"
-          :disabled="holidayProcessing"
-          @click="handleSetHolidayOverride"
-        >
-          {{ holidayProcessing ? '처리 중...' : '휴무로 변경' }}
-        </button>
-
-        <button
-          v-if="!isDefaultWorkingDay && !currentOverride"
-          class="holiday-toggle__btn holiday-toggle__btn--work"
-          :disabled="holidayProcessing"
-          @click="showWorkOverrideSheet = true"
-        >
-          근무로 변경
-        </button>
-
-        <button
-          v-if="currentOverride"
-          class="holiday-toggle__btn holiday-toggle__btn--restore"
-          :disabled="holidayProcessing"
-          @click="handleRestoreDefault"
-        >
-          {{ holidayProcessing ? '처리 중...' : '기본값 복원' }}
-        </button>
-      </div>
-
-      <AppBottomSheet v-model="showWorkOverrideSheet" title="근무 시간 설정">
-        <div class="work-override-form">
-          <div class="work-override-form__row">
-            <label>시작 시간</label>
-            <AppTimePicker v-model="overrideStartTime" />
-          </div>
-          <div class="work-override-form__row">
-            <label>종료 시간</label>
-            <AppTimePicker v-model="overrideEndTime" />
-          </div>
-          <AppButton @click="handleSetWorkOverride" :disabled="holidayProcessing">
-            {{ holidayProcessing ? '저장 중...' : '저장' }}
-          </AppButton>
-        </div>
-      </AppBottomSheet>
     </div>
 
     <!-- ── Session Cards ── -->
@@ -215,37 +162,27 @@ import { ref, computed, onMounted, onActivated, watch } from 'vue'
 defineOptions({ name: 'TrainerScheduleView' })
 import { useRouter } from 'vue-router'
 import { useReservations } from '@/composables/useReservations'
-import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
-import AppBottomSheet from '@/components/AppBottomSheet.vue'
-import AppButton from '@/components/AppButton.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import AppTimePicker from '@/components/AppTimePicker.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const reservationsStore = useReservationsStore()
 const { reservations, loading, error, fetchMyReservations } = useReservations()
-const { overrides, fetchOverrides, setOverride, removeOverride, isHoliday, getOverride, getReservationCountForDate } = useScheduleOverrides()
 const { days: workHours, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
 const { showToast } = useToast()
 
 const loaded = ref(false)
 const workingDays = ref(new Set())
-const holidayProcessing = ref(false)
-const showWorkOverrideSheet = ref(false)
-const overrideStartTime = ref('09:00')
-const overrideEndTime = ref('18:00')
 
 async function loadData() {
   await fetchMyReservations('trainer')
-  await fetchOverrides(auth.user?.id, currentMonthStr.value)
   await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
   await fetchDayWorkoutPlans(selectedDateStr.value)
@@ -263,9 +200,6 @@ onActivated(async () => {
   if (!loaded.value) return
   await fetchMyReservations('trainer')
   await fetchDayWorkoutPlans(selectedDateStr.value)
-  if (reservationsStore.isStale()) {
-    await fetchOverrides(auth.user?.id, currentMonthStr.value)
-  }
   await fetchWorkHours()
   workingDays.value = await fetchWorkingDays(auth.user?.id)
 })
@@ -280,8 +214,6 @@ const now = new Date()
 const currentYear  = ref(now.getFullYear())
 const currentMonth = ref(now.getMonth() + 1)
 const selectedDate = ref(now.getDate())
-// 현재 캘린더에 표시 중인 월 (YYYY-MM) — fetchOverrides 호출 기준
-const currentMonthStr = computed(() => `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}`)
 
 const weekdays = [
   { label: '일', cls: 'calendar-card__weekday--sun' },
@@ -322,15 +254,7 @@ const dotsData = computed(() => {
 // date: day number (1-31) → full date string으로 변환하여 dotsData 조회
 function getDots(date) {
   const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
-  const reservationDots = dotsData.value[dateStr] || []
-  const override = getOverride(dateStr)
-
-  if (!override) {
-    return reservationDots
-  }
-
-  const overrideDot = override.is_working === false ? 'holiday-override' : 'work-override'
-  return [...reservationDots, overrideDot]
+  return dotsData.value[dateStr] || []
 }
 
 function isSelected(date) {
@@ -347,12 +271,7 @@ function selectDate(date) {
   selectedDate.value = date
 }
 
-// ── Holiday / 비근무일 helpers ──
-function isHolidayCell(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
-  return isHoliday(dateStr)
-}
-
+// ── 비근무일 helpers ──
 function isNonWorkingDay(date) {
   if (workingDays.value.size === 0) return false
   const dow = new Date(currentYear.value, currentMonth.value - 1, date).getDay()
@@ -364,97 +283,6 @@ const selectedDateStr = computed(() => {
 })
 
 const dayIdByDow = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-
-const isDefaultWorkingDay = computed(() => {
-  if (!selectedDate.value) return false
-  const dow = new Date(currentYear.value, currentMonth.value - 1, selectedDate.value).getDay()
-  return workingDays.value.has(dow)
-})
-
-const currentOverride = computed(() => getOverride(selectedDateStr.value))
-
-const currentDayStatusLabel = computed(() => {
-  if (currentOverride.value) {
-    if (currentOverride.value.is_working === false) return '휴무 (오버라이드)'
-    const start = currentOverride.value.start_time?.slice(0, 5) ?? ''
-    const end = currentOverride.value.end_time?.slice(0, 5) ?? ''
-    return start && end ? `근무 ${start}~${end} (오버라이드)` : '근무 (오버라이드)'
-  }
-
-  if (isDefaultWorkingDay.value) {
-    const dow = new Date(currentYear.value, currentMonth.value - 1, selectedDate.value).getDay()
-    const dayId = dayIdByDow[dow]
-    const schedule = workHours.value?.find((day) => day.id === dayId && day.enabled)
-
-    if (schedule) {
-      const start = schedule.start?.slice(0, 5) ?? ''
-      const end = schedule.end?.slice(0, 5) ?? ''
-      return `근무 (기본: ${start}~${end})`
-    }
-
-    return '근무 (기본)'
-  }
-
-  return '휴무 (기본)'
-})
-
-const currentDayStatusClass = computed(() => {
-  if (currentOverride.value?.is_working === false) return 'holiday-toggle__label--holiday'
-  if (currentOverride.value?.is_working === true) return 'holiday-toggle__label--work-override'
-  if (isDefaultWorkingDay.value) return 'holiday-toggle__label--working'
-  return 'holiday-toggle__label--off'
-})
-
-async function handleSetHolidayOverride() {
-  const count = await getReservationCountForDate(auth.user.id, selectedDateStr.value)
-
-  if (count > 0) {
-    const confirmed = confirm(`이 날짜에 ${count}건의 예약이 있습니다. 휴무 설정 시 모든 예약이 자동 거절됩니다. 계속하시겠습니까?`)
-    if (!confirmed) return
-  }
-
-  holidayProcessing.value = true
-  try {
-    const success = await setOverride(auth.user.id, selectedDateStr.value, false)
-    if (success) {
-      await fetchMyReservations('trainer')
-    }
-  } finally {
-    holidayProcessing.value = false
-  }
-}
-
-async function handleSetWorkOverride() {
-  holidayProcessing.value = true
-  try {
-    const success = await setOverride(
-      auth.user.id,
-      selectedDateStr.value,
-      true,
-      overrideStartTime.value,
-      overrideEndTime.value
-    )
-
-    if (success) {
-      showWorkOverrideSheet.value = false
-      await fetchMyReservations('trainer')
-    }
-  } finally {
-    holidayProcessing.value = false
-  }
-}
-
-async function handleRestoreDefault() {
-  holidayProcessing.value = true
-  try {
-    const success = await removeOverride(auth.user.id, selectedDateStr.value)
-    if (success) {
-      await fetchMyReservations('trainer')
-    }
-  } finally {
-    holidayProcessing.value = false
-  }
-}
 
 // Build calendar cells (including leading empty cells for day-of-week offset)
 const calendarCells = computed(() => {
@@ -547,12 +375,6 @@ function goWorkout(session) {
 
 watch(selectedDateStr, (date) => { if (loaded.value) fetchDayWorkoutPlans(date) })
 watch(error, (e) => { if (e) showToast(e, 'error') })
-// 월 변경 시 해당 월의 오버라이드 재조회
-watch(currentMonthStr, (monthStr) => {
-  if (loaded.value && auth.user?.id) {
-    fetchOverrides(auth.user.id, monthStr)
-  }
-})
 </script>
 
 <style src="./TrainerScheduleView.css" scoped></style>
