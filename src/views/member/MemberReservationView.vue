@@ -48,7 +48,9 @@
             <path d="M3 9H21" stroke="currentColor" stroke-width="1.5"/>
             <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          <p>트레이너가 아직 근무시간을 설정하지 않았습니다.</p>
+          <p v-if="noSlotsReason === 'holiday'">해당 날짜는 트레이너의 휴무일입니다.</p>
+          <p v-else-if="noSlotsReason === 'non-working-day'">해당 요일은 트레이너의 근무일이 아닙니다.</p>
+          <p v-else>트레이너가 아직 근무시간을 설정하지 않았습니다.</p>
         </div>
 
         <!-- AM Times -->
@@ -198,7 +200,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { slots, loading, error, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
+const { slots, loading, error, noSlotsReason, fetchAvailableSlots, createReservation, getConnectedTrainerId, checkTrainerConnection } = useReservations()
 const reservationsStore = useReservationsStore()
 const { fetchWorkingDays } = useWorkHours()
 const { holidays, fetchHolidays } = useHolidays()

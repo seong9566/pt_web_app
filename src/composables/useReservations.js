@@ -62,11 +62,13 @@ export function useReservations() {
   const loading = ref(false)
   const error = ref(null)
   const slotDuration = ref(60)
+  const noSlotsReason = ref(null) // 'holiday' | 'non-working-day' | 'no-schedule' | null
 
   /** 특정 트레이너의 특정 날짜 예약 가능 시간 슬롯 조회 */
   async function fetchAvailableSlots(trainerId, dateStr) {
     loading.value = true
     error.value = null
+    noSlotsReason.value = null
 
     try {
       if (!trainerId || !dateStr) {
@@ -82,6 +84,7 @@ export function useReservations() {
         .eq('date', dateStr)
         .maybeSingle()
       if (holidayData) {
+        noSlotsReason.value = 'holiday'
         slots.value = resetSlots()
         return slots.value
       }
@@ -98,6 +101,7 @@ export function useReservations() {
       if (scheduleError) throw scheduleError
 
       if (!schedule) {
+        noSlotsReason.value = 'non-working-day'
         slotDuration.value = 60
         slots.value = resetSlots()
         return slots.value
@@ -173,6 +177,11 @@ export function useReservations() {
         },
         { am: [], pm: [], evening: [] }
       )
+
+      // 슬롯이 비어있으면 no-schedule 설정
+      if (slots.value.am.length === 0 && slots.value.pm.length === 0 && slots.value.evening.length === 0) {
+        noSlotsReason.value = 'no-schedule'
+      }
 
       return slots.value
     } catch (e) {
@@ -351,6 +360,7 @@ export function useReservations() {
     loading,
     error,
     slotDuration,
+    noSlotsReason,
     fetchAvailableSlots,
     createReservation,
     fetchMyReservations,
