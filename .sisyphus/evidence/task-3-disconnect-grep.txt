@@ -1,8 +1,0 @@
-187:  <AppToast v-model="showToast" :message="toastMessage" :type="toastType" />
-205:import AppToast from '@/components/AppToast.vue'
-216:const { showToast, toastMessage, toastType, showSuccess } = useToast()
-245:onActivated(() => { if (loaded.value && (ptSessionsStore._dirty || reservationsStore.isStale())) loadData() })
-273:    reservationsStore.$reset()
-274:    ptSessionsStore.$reset()
-275:    chatBadgeStore.$reset()
-276:    showSuccess('트레이너 연결이 해제되었습니다')

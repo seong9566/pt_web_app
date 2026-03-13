@@ -1,1 +1,0 @@
-- 2026-03-01: `lsp_diagnostics` could not validate `supabase/schema.sql` because no SQL language server is configured in this workspace.

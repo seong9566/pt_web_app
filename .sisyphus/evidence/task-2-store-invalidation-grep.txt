@@ -1,3 +1,0 @@
-235:      reservationsStore.invalidate()
-236:      ptSessionsStore.invalidate()
-237:      chatBadgeStore.loadUnreadCount(true)

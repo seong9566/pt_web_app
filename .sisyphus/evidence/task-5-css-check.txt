@@ -1,5 +1,0 @@
-Found 2 match(es) in 1 file(s)
-
-/Users/stecdev/Desktop/workspace/vue_project/pt_web_app/src/views/member/MemberReservationView.css
-  330: .time-slot__status--pending {
-  336: .time-slot--pending {

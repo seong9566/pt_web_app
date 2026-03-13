@@ -1,6 +1,0 @@
-=== New UI Check ===
-exercise-card in .vue: 1
-exercise-card in .css: 2
-exercise-more in .vue: 1
-displayExercises in .vue: 3
-=== All Expected: >= 1 ===

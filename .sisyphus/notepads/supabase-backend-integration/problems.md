@@ -1,1 +1,0 @@
-- 2026-03-01: No unresolved schema blockers after implementing Task 2. Remaining validation should be done by executing `supabase/schema.sql` in Supabase SQL Editor against a real project.

@@ -1,2 +1,0 @@
-grep -rl 'AppToast' src/views/ | wc -l 결과: 0
-npm run build: exit code 0
