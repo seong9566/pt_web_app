@@ -270,10 +270,13 @@ async function handleMonthChange(yearMonth) {
 }
 
 /**
- * 비근무일 + 휴무일을 합산하여 캘린더에 회색 표시할 날짜 배열 계산.
+ * 휴무일만 캘린더에 회색 표시할 날짜 배열 계산.
  * 현재 표시 중인 달의 모든 날짜 중:
- *   - 해당 요일이 근무 요일이 아닌 날
  *   - 휴무일(trainer_holidays)로 등록된 날
+ * 
+ * 비근무일(근무 요일이 아닌 날)은 선택 가능하며,
+ * 선택 시 시간 슬롯이 비어있음 (fetchAvailableSlots에서 schedule이 null이므로).
+ * workingDays는 Task 4에서 noSlotsReason 메시지 분기에 사용됨.
  */
 const disabledDates = computed(() => {
   if (!trainerId.value) return []
@@ -285,14 +288,8 @@ const disabledDates = computed(() => {
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${pad(month)}-${pad(d)}`
-    const dayOfWeek = new Date(year, month - 1, d).getDay()
 
-    // 해당 요일이 근무 요일이 아닌 경우
-    if (!workingDays.value.has(dayOfWeek)) {
-      disabled.push(dateStr)
-      continue
-    }
-    // 휴무일인 경우
+    // 휴무일인 경우만 disabled
     if (holidays.value.includes(dateStr)) {
       disabled.push(dateStr)
     }
