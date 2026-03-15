@@ -47,7 +47,7 @@ describe('useWorkHours', () => {
 
     expect(days.value).toHaveLength(7)
     expect(days.value.every(d => d.enabled === false)).toBe(true)
-    expect(days.value[0].id).toBe('mon')
+    expect(days.value[0].id).toBe('sun')
     expect(days.value[0].start).toBe('09:00')
     expect(days.value[0].end).toBe('18:00')
     expect(selectedUnit.value).toBe(60)
