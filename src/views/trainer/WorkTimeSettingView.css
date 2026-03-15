@@ -1,5 +1,5 @@
 /* =====================================================
-   WorkTimeSettingView.css
+   WorkTimeSettingView.css — Toss-inspired design
    ===================================================== */
 
 .wt-setting {
@@ -12,11 +12,9 @@
   --wt-space-2xl: 24px;
   --wt-space-3xl: 28px;
   --wt-border-thin: 1px;
-  --wt-border-strong: 1.5px;
   --wt-touch-size: 40px;
-  --wt-chip-height: 42px;
-  --wt-time-btn-height: 62px;
-  --wt-dot-size: 8px;
+  --wt-chip-size: 40px;
+  --wt-time-btn-height: 60px;
   --wt-skeleton-title-width: 112px;
   --wt-skeleton-card-height: 94px;
   --wt-skeleton-chip-height: 84px;
@@ -25,16 +23,16 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-100) 100%);
+  background-color: var(--color-white);
 }
 
+/* ── Header ── */
 .wt-setting__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--wt-space-lg) var(--side-margin);
   background-color: var(--color-white);
-  border-bottom: var(--wt-border-thin) solid var(--color-gray-200);
   flex-shrink: 0;
 }
 
@@ -51,7 +49,7 @@
   justify-content: center;
   border-radius: 50%;
   color: var(--color-gray-900);
-  transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
+  transition: background-color 0.15s ease;
 }
 
 .wt-setting__back:active {
@@ -62,9 +60,10 @@
   flex: 1;
   margin: 0;
   text-align: center;
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
+  font-size: var(--fs-subtitle);
+  font-weight: var(--fw-title);
   color: var(--color-gray-900);
+  letter-spacing: -0.3px;
 }
 
 .wt-setting__error {
@@ -78,14 +77,16 @@
   font-weight: var(--fw-body1-reg);
 }
 
+/* ── Body ── */
 .wt-setting__body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── Section ── */
 .wt-section {
-  padding: var(--wt-space-2xl) var(--side-margin) 0;
+  padding: var(--wt-space-3xl) var(--side-margin) 0;
 }
 
 .wt-section__title {
@@ -93,16 +94,20 @@
   align-items: center;
   gap: var(--wt-space-xs);
   margin: 0 0 var(--wt-space-lg);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  letter-spacing: -0.2px;
 }
 
 .wt-section__title-icon {
-  color: var(--color-blue-primary);
+  color: var(--color-gray-400);
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
+/* ── 예약 단위 ── */
 .wt-unit-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -110,21 +115,20 @@
 }
 
 .wt-unit-btn {
-  height: var(--btn-height);
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--wt-border-strong) solid var(--color-gray-200);
-  border-radius: var(--radius-medium);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: 10px;
+  outline: none;
   background-color: var(--color-white);
-  color: var(--color-gray-900);
-  font-size: var(--fs-body1);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
-  transition:
-    transform var(--animation-duration-fast) var(--animation-easing-default),
-    border-color var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default),
-    color var(--animation-duration-fast) var(--animation-easing-default);
+  letter-spacing: -0.2px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
 }
 
 .wt-unit-btn:active {
@@ -135,14 +139,14 @@
   border-color: var(--color-blue-primary);
   background-color: var(--color-blue-light);
   color: var(--color-blue-primary);
+  font-weight: 700;
 }
 
+/* ── 기본 근무시간 ── */
 .wt-default-time {
-  padding: var(--wt-space-lg);
-  border: var(--wt-border-thin) solid var(--color-gray-200);
-  border-radius: var(--radius-large);
-  background-color: var(--color-white);
-  box-shadow: var(--shadow-card);
+  padding: var(--wt-space-xl);
+  border-radius: 14px;
+  background-color: var(--color-gray-100);
 }
 
 .wt-default-time__row,
@@ -162,81 +166,80 @@
   justify-content: center;
   gap: var(--wt-space-2xs);
   padding: 0 var(--wt-space-lg);
-  border: var(--wt-border-strong) solid var(--color-gray-200);
-  border-radius: var(--radius-medium);
-  background-color: var(--color-gray-100);
-  transition:
-    border-color var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  background-color: var(--color-white);
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
 }
 
 .wt-default-time__btn:active {
-  border-color: var(--color-blue-primary);
   background-color: var(--color-blue-light);
 }
 
 .wt-default-time__label {
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-caption);
-  color: var(--color-gray-600);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-gray-400);
+  letter-spacing: -0.2px;
 }
 
 .wt-default-time__value {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
+  font-size: 18px;
+  font-weight: 700;
   color: var(--color-gray-900);
+  letter-spacing: -0.5px;
 }
 
 .wt-default-time__dash {
-  color: var(--color-gray-600);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-400);
+  font-size: 18px;
+  font-weight: 500;
 }
 
+/* ── 반복 휴무 요일 ── */
 .wt-weekday-chips {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--wt-space-xs);
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 .wt-weekday-chip {
-  height: var(--wt-chip-height);
+  width: var(--wt-chip-size);
+  height: var(--wt-chip-size);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-small);
-  border: var(--wt-border-thin) solid var(--color-gray-200);
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
-  transition:
-    transform var(--animation-duration-fast) var(--animation-easing-default),
-    border-color var(--animation-duration-fast) var(--animation-easing-default),
-    color var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default);
+  border-radius: 50%;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
 }
 
 .wt-weekday-chip:active {
-  transform: scale(0.96);
+  transform: scale(0.92);
 }
 
 .wt-weekday-chip--active {
-  border-color: var(--color-blue-primary);
-  background-color: var(--color-blue-light);
-  color: var(--color-blue-primary);
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
 }
 
 .wt-weekday-chip--off {
-  border-color: var(--color-gray-200);
   background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
+  color: var(--color-gray-400);
 }
 
+/* ── 날짜별 스케줄 ── */
 .wt-calendar-card {
   padding: var(--wt-space-lg);
-  border: var(--wt-border-thin) solid var(--color-gray-200);
   border-radius: var(--radius-large);
-  background-color: var(--color-white);
-  box-shadow: var(--shadow-card);
+  background-color: var(--color-gray-100);
 }
 
 .wt-calendar-legend {
@@ -249,15 +252,15 @@
 .wt-calendar-legend__item {
   display: inline-flex;
   align-items: center;
-  gap: var(--wt-space-xs);
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-caption);
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 400;
   color: var(--color-gray-600);
 }
 
 .wt-calendar-legend__dot {
-  width: var(--wt-dot-size);
-  height: var(--wt-dot-size);
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
@@ -271,11 +274,13 @@
 
 .wt-calendar-hint {
   margin-top: var(--wt-space-lg);
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-caption);
-  color: var(--color-gray-600);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-gray-400);
+  letter-spacing: -0.2px;
 }
 
+/* ── Spacer & Footer ── */
 .wt-setting__spacer {
   height: calc(var(--nav-height) + var(--btn-height) + var(--wt-space-3xl));
 }
@@ -287,9 +292,8 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-max-width);
-  padding: var(--wt-space-lg) var(--side-margin);
-  padding-bottom: calc(var(--wt-space-lg) + env(safe-area-inset-bottom, 0px));
-  border-top: var(--wt-border-thin) solid var(--color-gray-200);
+  padding: var(--wt-space-md) var(--side-margin);
+  padding-bottom: calc(var(--wt-space-md) + env(safe-area-inset-bottom, 0px));
   background-color: var(--color-white);
 }
 
@@ -304,126 +308,288 @@
   background-color: var(--color-blue-primary);
   color: var(--color-white);
   font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  transition:
-    transform var(--animation-duration-fast) var(--animation-easing-default),
-    opacity var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  transition: all 0.15s ease;
 }
 
 .wt-setting__submit:disabled {
-  background-color: var(--color-gray-400);
-  opacity: 0.75;
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-400);
 }
 
 .wt-setting__submit:not(:disabled):active {
   transform: scale(0.98);
+  opacity: 0.9;
 }
 
-.wt-override-toggle {
-  padding: var(--wt-space-2xs);
-  border-radius: var(--radius-medium);
-  background-color: var(--color-gray-100);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--wt-space-xs);
-}
-
-.wt-override-toggle__btn {
-  height: var(--btn-height);
-  border-radius: var(--radius-small);
-  border: var(--wt-border-thin) solid transparent;
-  color: var(--color-gray-600);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  background-color: transparent;
-  transition:
-    border-color var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default),
-    color var(--animation-duration-fast) var(--animation-easing-default);
-}
-
-.wt-override-toggle__btn--active {
-  border-color: var(--color-blue-primary);
-  background-color: var(--color-blue-light);
-  color: var(--color-blue-primary);
-}
-
-.wt-date-sheet__time-row {
-  margin-top: 0;
-}
-
-.wt-override-warning {
-  margin-top: 0;
-  padding: var(--wt-space-md) var(--wt-space-lg);
-  border: var(--wt-border-thin) solid var(--color-warning-icon);
-  border-radius: var(--radius-medium);
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-text);
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-reg);
-}
-
-.wt-date-sheet__actions {
-  margin-top: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--wt-space-md);
-}
-
-.wt-override-toggle + .wt-date-sheet__time-row,
-.wt-override-toggle + .wt-override-warning {
-  margin-top: var(--wt-space-xl);
-}
-
-.wt-date-sheet__time-row + .wt-date-sheet__actions,
-.wt-override-warning + .wt-date-sheet__actions,
-.wt-override-toggle + .wt-date-sheet__actions {
-  margin-top: var(--wt-space-2xl);
-}
-
-.wt-date-sheet__action {
-  width: 100%;
-  height: var(--btn-height);
-  border-radius: var(--radius-medium);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  transition:
-    transform var(--animation-duration-fast) var(--animation-easing-default),
-    opacity var(--animation-duration-fast) var(--animation-easing-default);
-}
-
-.wt-date-sheet__action:active {
-  transform: scale(0.98);
-}
-
-.wt-date-sheet__action--primary {
-  border: var(--wt-border-thin) solid var(--color-blue-primary);
-  background-color: var(--color-blue-primary);
-  color: var(--color-white);
-  box-shadow: var(--shadow-card);
-}
-
-.wt-date-sheet__action--ghost {
-  border: var(--wt-border-thin) solid var(--color-gray-200);
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-
+/* ── TimePicker confirm ── */
 .wt-setting__time-confirm {
   width: 100%;
   height: var(--btn-height);
-  margin-top: var(--wt-space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-medium);
   background-color: var(--color-blue-primary);
   color: var(--color-white);
   font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  transition:
-    transform var(--animation-duration-fast) var(--animation-easing-default),
-    opacity var(--animation-duration-fast) var(--animation-easing-default);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  transition: all 0.15s ease;
 }
 
 .wt-setting__time-confirm:active {
   transform: scale(0.98);
+  opacity: 0.9;
+}
+
+
+/* =====================================================
+   Bottom Sheet — Toss-inspired
+   ===================================================== */
+
+.wt-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--wt-space-2xl);
+}
+
+.wt-sheet-head__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: -6px;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-900);
+  border-radius: 50%;
+  transition: background-color 0.15s ease;
+}
+
+.wt-sheet-head__close:active {
+  background-color: var(--color-gray-100);
+}
+
+.wt-sheet-head__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.wt-sheet-head__save {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-blue-primary);
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  margin-right: -4px;
+  letter-spacing: -0.2px;
+}
+
+.wt-sheet-head__save:active {
+  opacity: 0.6;
+}
+
+/* ── Date title ── */
+.wt-sheet-date {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  margin: 0 0 var(--wt-space-3xl) 0;
+  letter-spacing: -0.4px;
+}
+
+/* ── Toggle ── */
+.wt-sheet-toggle {
+  display: flex;
+  background-color: #ECEDF0;
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 36px;
+}
+
+.wt-sheet-toggle__btn {
+  flex: 1;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-gray-400);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wt-sheet-toggle__btn:focus {
+  outline: none;
+}
+
+.wt-sheet-toggle__btn--active {
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Time area ── */
+.wt-sheet-time-area {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: var(--wt-space-sm);
+  margin-bottom: 36px;
+}
+
+.wt-sheet-time-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wt-space-xs);
+}
+
+.wt-sheet-time-dash-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-height);
+  padding: 0 var(--wt-space-sm);
+}
+
+.wt-sheet-time-dash {
+  font-size: 16px;
+  color: var(--color-gray-400);
+  font-weight: 400;
+}
+
+.wt-sheet-time-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-400);
+  padding-left: var(--wt-space-2xs);
+  letter-spacing: -0.2px;
+}
+
+.wt-sheet-time-btn {
+  width: 100%;
+  height: 56px;
+  background-color: var(--color-gray-100);
+  border: none;
+  outline: none;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.5px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.wt-sheet-time-btn:focus {
+  outline: none;
+}
+
+.wt-sheet-time-btn:disabled {
+  opacity: 0.35;
+  color: var(--color-gray-400);
+}
+
+.wt-sheet-time-btn:not(:disabled):active {
+  background-color: var(--color-gray-200);
+}
+
+/* ── Info banner ── */
+.wt-sheet-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 14px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-large);
+  margin-bottom: 36px;
+}
+
+.wt-sheet-info-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.wt-sheet-info-text {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  line-height: 1.6;
+  flex: 1;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+/* ── Warning ── */
+.wt-sheet-warning {
+  margin-bottom: var(--wt-space-3xl);
+  padding: var(--wt-space-md) var(--wt-space-lg);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-body2);
+  line-height: 1.5;
+  letter-spacing: -0.2px;
+}
+
+/* ── Bottom actions ── */
+.wt-sheet-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--wt-space-md);
+  margin-top: var(--wt-space-2xl);
+}
+
+.wt-sheet-action-restore {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  background: transparent;
+  border: none;
+  padding: var(--wt-space-md) var(--wt-space-2xs);
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+  transition: opacity 0.15s ease;
+}
+
+.wt-sheet-action-restore:active {
+  opacity: 0.6;
+}
+
+.wt-sheet-action-confirm {
+  flex: 1;
+  height: 56px;
+  border-radius: var(--radius-medium);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-white);
+  background-color: var(--color-blue-primary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.3px;
+  transition: all 0.15s ease;
+}
+
+.wt-sheet-action-confirm:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }

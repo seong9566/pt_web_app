@@ -40,7 +40,7 @@
           <div class="role-card__text">
             <span class="role-card__name">회원 (일반 사용자용)</span>
             <span class="role-card__desc"
-              >내 운동 기록을 확인하고 통계를 추적하며 트레이너와 소통하고
+              >내 운동 일정을 확인하고 통계를 추적하며 트레이너와 소통하고
               싶습니다.</span
             >
           </div>
