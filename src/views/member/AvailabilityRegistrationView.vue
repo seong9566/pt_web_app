@@ -156,7 +156,8 @@ function generateTimeSlots(startHour = 6, endHour = 22) {
 
   for (let hour = startHour; hour < endHour; hour += 1) {
     const timeStr = `${String(hour).padStart(2, '0')}:00`
-    generatedSlots.push({ key: timeStr, label: timeStr })
+    const nextTimeStr = `${String(hour + 1).padStart(2, '0')}:00`
+    generatedSlots.push({ key: timeStr, label: `${timeStr} ~ ${nextTimeStr}` })
   }
 
   return generatedSlots
