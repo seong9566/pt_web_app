@@ -17,6 +17,19 @@ function trimSeconds(timeStr) {
   return timeStr.slice(0, 5)
 }
 
+/** 예약 상태 → 표시 텍스트 매핑 (레거시 폴백 포함) */
+const STATUS_DISPLAY = {
+  scheduled: '배정됨',
+  confirmed: '확정됨',
+  change_requested: '변경요청',
+  completed: '완료',
+  cancelled: '취소됨',
+  // 레거시 폴백 (DB에 남아있을 수 있는 구버전 데이터)
+  pending: '배정됨',
+  approved: '확정됨',
+  rejected: '변경됨',
+}
+
 export const useReservationsStore = defineStore('reservations', () => {
   const reservations = ref([])         // 예약 목록 캐시
   const lastFetchedAt = ref(null)      // 마지막 조회 타임스탬프 (Date.now())
@@ -57,6 +70,7 @@ export const useReservationsStore = defineStore('reservations', () => {
         status,
         session_type,
         rejection_reason,
+        change_reason,
         created_at,
         trainer_profile:trainer_id(name, photo_url),
         member_profile:member_id(name, photo_url)
@@ -81,6 +95,7 @@ export const useReservationsStore = defineStore('reservations', () => {
           session_type: item.session_type,
           created_at: item.created_at,
           rejection_reason: item.rejection_reason ?? null,
+          change_reason: item.change_reason ?? null,
           partner_name: partnerProfile?.name ?? '이름 없음',
           partner_photo: partnerProfile?.photo_url ?? null,
         }
@@ -104,3 +119,5 @@ export const useReservationsStore = defineStore('reservations', () => {
 
   return { reservations, lastFetchedAt, isStale, loadReservations, invalidate, $reset }
 })
+
+export { STATUS_DISPLAY }
