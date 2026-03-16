@@ -246,7 +246,7 @@
 /* 색상 강도 */
 .availability-status__heatmap-cell--heat-0 {
   background-color: var(--color-gray-100);
-  color: transparent;
+  color: var(--color-gray-200);
 }
 
 .availability-status__heatmap-cell--heat-1 {

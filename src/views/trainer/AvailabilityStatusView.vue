@@ -77,9 +77,7 @@
                 type="button"
                 @click="handleCellClick(day, time)"
               >
-                <span v-if="(heatmapData[day]?.[time]?.count ?? 0) > 0">
-                  {{ heatmapData[day]?.[time]?.count }}
-                </span>
+              {{ heatmapData[day]?.[time]?.count ?? 0 }}
               </button>
             </template>
           </div>
@@ -279,14 +277,13 @@ const heatmapData = computed(() => {
       const daySlots = Array.isArray(slots[day]) ? slots[day] : []
       for (const timeStr of daySlots) {
         if (!TIME_SLOT_PATTERN.test(timeStr)) continue
-        if (data[day][timeStr]) {
-          data[day][timeStr].count++
-          data[day][timeStr].members.push({
-            memberId: member.memberId,
-            displayName: member.displayName,
-            displayPhoto: member.displayPhoto,
-          })
-        }
+        if (!data[day][timeStr]) continue
+        data[day][timeStr].count++
+        data[day][timeStr].members.push({
+          memberId: member.memberId,
+          displayName: member.displayName,
+          displayPhoto: member.displayPhoto,
+        })
       }
     }
   }
