@@ -48,83 +48,87 @@
       </div>
 
       <template v-else>
-        <section class="availability-status__section">
-          <h2 class="availability-status__section-title availability-status__section-title--pending">
-            🔴 미등록 ({{ pendingMembers.length }}명)
-          </h2>
+        <button
+          v-if="pendingMembers.length > 0"
+          class="availability-status__pending-banner press-effect"
+          type="button"
+          @click="showPendingSheet = true"
+        >
+          <span>🔴 미등록 {{ pendingMembers.length }}명</span>
+          <span class="availability-status__pending-banner-arrow">확인하기 ›</span>
+        </button>
 
-          <p v-if="pendingMembers.length === 0" class="availability-status__section-empty">
-            모든 회원이 가능 시간을 등록했습니다.
-          </p>
+        <div class="availability-status__heatmap-wrapper">
+          <div class="availability-status__heatmap">
+            <div class="availability-status__heatmap-corner"></div>
+            <div
+              v-for="day in DAY_ORDER"
+              :key="day"
+              class="availability-status__heatmap-header"
+            >{{ DAY_LABELS[day] }}</div>
 
-          <article
-            v-for="(member, memberIndex) in pendingMembers"
-            :key="member.memberId"
-            class="availability-status__member-card availability-status__member-card--pending stagger-fade-in"
-            :style="{ '--stagger-index': memberIndex }"
-          >
-            <div class="availability-status__member-row">
-              <div class="availability-status__profile">
-                <div class="availability-status__avatar">
-                  <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
-                  <span v-else class="availability-status__avatar-initial">{{ member.displayName[0] }}</span>
-                </div>
-                <div class="availability-status__profile-meta">
-                  <p class="availability-status__name">{{ member.displayName }}</p>
-                  <span class="availability-status__badge availability-status__badge--pending">미등록</span>
-                </div>
-              </div>
-
+            <template v-for="time in TIME_SLOTS" :key="time">
+              <div class="availability-status__heatmap-time">{{ time }}</div>
               <button
-                class="availability-status__reminder-btn press-effect"
+                v-for="day in DAY_ORDER"
+                :key="day + time"
+                class="availability-status__heatmap-cell"
+                :class="`availability-status__heatmap-cell--heat-${heatLevel(heatmapData[day]?.[time]?.count ?? 0)}`"
                 type="button"
-                :disabled="Boolean(reminderLoadingId)"
-                @click="sendReminder(member.memberId)"
+                @click="handleCellClick(day, time)"
               >
-                {{ reminderLoadingId === member.memberId ? '전송 중...' : '리마인더 전송' }}
+                <span v-if="(heatmapData[day]?.[time]?.count ?? 0) > 0">
+                  {{ heatmapData[day]?.[time]?.count }}
+                </span>
               </button>
-            </div>
-          </article>
-        </section>
-
-        <section class="availability-status__section">
-          <h2 class="availability-status__section-title availability-status__section-title--submitted">
-            ✅ 등록 완료 ({{ submittedMembers.length }}명)
-          </h2>
-
-          <p v-if="submittedMembers.length === 0" class="availability-status__section-empty">
-            아직 가능 시간을 등록한 회원이 없습니다.
-          </p>
-
-          <article
-            v-for="(member, memberIndex) in submittedMembers"
-            :key="member.memberId"
-            class="availability-status__member-card availability-status__member-card--submitted stagger-fade-in"
-            :style="{ '--stagger-index': pendingMembers.length + memberIndex }"
-          >
-            <div class="availability-status__member-row">
-              <div class="availability-status__profile">
-                <div class="availability-status__avatar">
-                  <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
-                  <span v-else class="availability-status__avatar-initial">{{ member.displayName[0] }}</span>
-                </div>
-                <div class="availability-status__profile-meta">
-                  <p class="availability-status__name">{{ member.displayName }}</p>
-                  <span class="availability-status__badge availability-status__badge--submitted">등록 완료</span>
-                </div>
-              </div>
-            </div>
-
-            <p class="availability-status__summary">
-              {{ formatAvailability(member.availability?.available_slots) }}
-            </p>
-            <p v-if="getMemoText(member.availability?.memo)" class="availability-status__memo">
-              💬 "{{ getMemoText(member.availability?.memo) }}"
-            </p>
-          </article>
-        </section>
+            </template>
+          </div>
+        </div>
       </template>
     </main>
+
+    <AppBottomSheet v-model="showCellSheet" :title="selectedCellLabel">
+      <div class="availability-status__cell-sheet">
+        <p v-if="selectedCellMembers.length === 0" class="availability-status__cell-empty">
+          가능한 회원이 없습니다
+        </p>
+        <div
+          v-for="member in selectedCellMembers"
+          :key="member.memberId"
+          class="availability-status__cell-member"
+        >
+          <div class="availability-status__cell-avatar">
+            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
+            <span v-else>{{ member.displayName[0] }}</span>
+          </div>
+          <span class="availability-status__cell-name">{{ member.displayName }}</span>
+        </div>
+      </div>
+    </AppBottomSheet>
+
+    <AppBottomSheet v-model="showPendingSheet" title="미등록 회원">
+      <div class="availability-status__pending-list">
+        <div
+          v-for="member in pendingMembers"
+          :key="member.memberId"
+          class="availability-status__pending-item"
+        >
+          <div class="availability-status__cell-avatar">
+            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
+            <span v-else>{{ member.displayName[0] }}</span>
+          </div>
+          <span class="availability-status__cell-name">{{ member.displayName }}</span>
+          <button
+            class="availability-status__reminder-btn press-effect"
+            type="button"
+            :disabled="Boolean(reminderLoadingId)"
+            @click="sendReminder(member.memberId)"
+          >
+            {{ reminderLoadingId === member.memberId ? '전송 중...' : '리마인더' }}
+          </button>
+        </div>
+      </div>
+    </AppBottomSheet>
 
     <div style="height: calc(var(--nav-height) + 24px);" />
   </div>
@@ -138,6 +142,7 @@ import { useAvailability } from '@/composables/useAvailability'
 import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 defineOptions({ name: 'AvailabilityStatusView' })
 
@@ -151,11 +156,27 @@ const DAY_LABELS = {
   sat: '토',
   sun: '일',
 }
-const PERIOD_ORDER = ['morning', 'afternoon', 'evening']
-const PERIOD_LABELS = {
-  morning: '오전',
-  afternoon: '오후',
-  evening: '저녁',
+const DAY_FULL_LABELS = {
+  mon: '월요일',
+  tue: '화요일',
+  wed: '수요일',
+  thu: '목요일',
+  fri: '금요일',
+  sat: '토요일',
+  sun: '일요일',
+}
+const TIME_SLOTS = [
+  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+  '18:00', '19:00', '20:00', '21:00',
+]
+const TIME_SLOT_PATTERN = /^\d{2}:\d{2}$/
+
+function heatLevel(count) {
+  if (count === 0) return 0
+  if (count <= 2) return 1
+  if (count <= 5) return 2
+  return 3
 }
 
 function toIsoDate(date) {
@@ -187,36 +208,6 @@ function formatWeekRange(weekStart) {
   return `${monday.getMonth() + 1}/${monday.getDate()} ~ ${sunday.getMonth() + 1}/${sunday.getDate()}`
 }
 
-function formatAvailability(slots) {
-  if (!slots || typeof slots !== 'object') {
-    return '등록된 시간 없음'
-  }
-
-  const summary = DAY_ORDER
-    .map((day) => {
-      const periods = Array.isArray(slots[day]) ? slots[day] : []
-      if (periods.length === 0) return null
-
-      const labels = PERIOD_ORDER
-        .filter((period) => periods.includes(period))
-        .map((period) => PERIOD_LABELS[period])
-        .filter(Boolean)
-
-      if (labels.length === 0) return null
-
-      return `${DAY_LABELS[day]} ${labels.join('/')}`
-    })
-    .filter(Boolean)
-    .join(', ')
-
-  return summary || '등록된 시간 없음'
-}
-
-function getMemoText(memo) {
-  if (typeof memo !== 'string') return ''
-  return memo.trim()
-}
-
 const router = useRouter()
 const auth = useAuthStore()
 const { showToast, showSuccess } = useToast()
@@ -233,6 +224,9 @@ const weekOffset = ref(0)
 const availabilities = ref([])
 const reminderLoadingId = ref(null)
 const hasLoaded = ref(false)
+const showCellSheet = ref(false)
+const showPendingSheet = ref(false)
+const selectedCell = ref(null)
 
 const selectedWeekStart = computed(() => getWeekStart(weekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
@@ -245,6 +239,9 @@ const membersWithAvailability = computed(() => {
     .map((member) => {
       const memberId = member.id ?? member.member_id
       const availability = availMap.get(memberId) ?? null
+      const hasSubmitted = availability !== null
+        && availability.available_slots !== null
+        && availability.available_slots !== undefined
 
       return {
         ...member,
@@ -252,7 +249,7 @@ const membersWithAvailability = computed(() => {
         displayName: member.name ?? '이름 없음',
         displayPhoto: member.photo ?? member.photo_url ?? null,
         availability,
-        hasSubmitted: availMap.has(memberId),
+        hasSubmitted,
       }
     })
     .sort((a, b) => {
@@ -266,6 +263,55 @@ const pendingMembers = computed(() => membersWithAvailability.value.filter((memb
 const submittedMembers = computed(() => membersWithAvailability.value.filter((member) => member.hasSubmitted))
 const isLoading = computed(() => membersLoading.value || availabilityLoading.value || !hasLoaded.value)
 const isEmpty = computed(() => !isLoading.value && membersWithAvailability.value.length === 0)
+
+const heatmapData = computed(() => {
+  const data = {}
+  for (const day of DAY_ORDER) {
+    data[day] = {}
+    for (const time of TIME_SLOTS) {
+      data[day][time] = { count: 0, members: [] }
+    }
+  }
+  for (const member of submittedMembers.value) {
+    const slots = member.availability?.available_slots
+    if (!slots || typeof slots !== 'object') continue
+    for (const day of DAY_ORDER) {
+      const daySlots = Array.isArray(slots[day]) ? slots[day] : []
+      for (const timeStr of daySlots) {
+        if (!TIME_SLOT_PATTERN.test(timeStr)) continue
+        if (data[day][timeStr]) {
+          data[day][timeStr].count++
+          data[day][timeStr].members.push({
+            memberId: member.memberId,
+            displayName: member.displayName,
+            displayPhoto: member.displayPhoto,
+          })
+        }
+      }
+    }
+  }
+  return data
+})
+
+const selectedCellMembers = computed(() => {
+  if (!selectedCell.value) return []
+  const { day, time } = selectedCell.value
+  return heatmapData.value[day]?.[time]?.members ?? []
+})
+
+const selectedCellLabel = computed(() => {
+  if (!selectedCell.value) return ''
+  const { day, time } = selectedCell.value
+  const hour = parseInt(time.slice(0, 2))
+  const nextTime = `${String(hour + 1).padStart(2, '0')}:00`
+  const count = heatmapData.value[day]?.[time]?.count ?? 0
+  return `${DAY_FULL_LABELS[day]} ${time} ~ ${nextTime} (${count}명)`
+})
+
+function handleCellClick(day, time) {
+  selectedCell.value = { day, time }
+  showCellSheet.value = true
+}
 
 let loadToken = 0
 
