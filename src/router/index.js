@@ -102,9 +102,15 @@ const router = createRouter({
       component: () => import("@/views/trainer/TrainerHomeView.vue"),
     },
     {
-      path: "/trainer/schedule",
-      name: "trainer-schedule",
-      component: () => import("@/views/trainer/TrainerScheduleView.vue"),
+      path: '/trainer/schedule',
+      name: 'trainer-schedule',
+      component: () => import('@/views/trainer/TrainerScheduleView.vue'),
+    },
+    {
+      path: '/trainer/availability-status',
+      name: 'trainer-availability-status',
+      component: () => import('@/views/trainer/AvailabilityStatusView.vue'),
+      meta: { hideNav: true },
     },
     {
       path: '/trainer/reservations',
@@ -245,8 +251,12 @@ const router = createRouter({
     },
     {
       path: '/member/reservation',
-      name: 'member-reservation',
-      component: () => import('@/views/member/MemberReservationView.vue'),
+      redirect: '/member/availability',
+    },
+    {
+      path: '/member/availability',
+      name: 'member-availability',
+      component: () => import('@/views/member/AvailabilityRegistrationView.vue'),
       meta: { hideNav: true },
     },
     {
