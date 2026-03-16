@@ -102,15 +102,9 @@ const router = createRouter({
       component: () => import("@/views/trainer/TrainerHomeView.vue"),
     },
     {
-      path: '/trainer/schedule',
-      name: 'trainer-schedule',
-      component: () => import('@/views/trainer/TrainerScheduleView.vue'),
-    },
-    {
-      path: '/trainer/availability-status',
-      name: 'trainer-availability-status',
-      component: () => import('@/views/trainer/AvailabilityStatusView.vue'),
-      meta: { hideNav: true },
+      path: "/trainer/schedule",
+      name: "trainer-schedule",
+      component: () => import("@/views/trainer/TrainerScheduleView.vue"),
     },
     {
       path: '/trainer/reservations',
@@ -249,16 +243,22 @@ const router = createRouter({
       name: 'member-settings',
       component: () => import('@/views/member/MemberSettingsView.vue'),
     },
-    {
-      path: '/member/reservation',
-      redirect: '/member/availability',
-    },
-    {
-      path: '/member/availability',
-      name: 'member-availability',
-      component: () => import('@/views/member/AvailabilityRegistrationView.vue'),
-      meta: { hideNav: true },
-    },
+     {
+       path: '/member/reservation',
+       redirect: '/member/availability',
+     },
+     {
+       path: '/member/availability',
+       name: 'member-availability',
+       component: () => import('@/views/member/AvailabilityRegistrationView.vue'),
+       meta: { hideNav: true },
+     },
+     {
+       path: '/trainer/availability-status',
+       name: 'trainer-availability-status',
+       component: () => import('@/views/trainer/AvailabilityStatusView.vue'),
+       meta: { hideNav: true },
+     },
     {
       path: '/trainer/profile-edit',
       name: 'trainer-profile-edit',

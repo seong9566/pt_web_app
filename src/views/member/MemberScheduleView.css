@@ -1,27 +1,13 @@
-/* =====================================================
-   MemberCalendarView.css — 회원 캘린더
-   ===================================================== */
-
 /* ── Page shell ── */
 .member-schedule {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-gray-100);
+  position: relative;
 }
 
-.error-message {
-  padding: 12px 16px;
-  background-color: var(--color-red-light);
-  border-left: 4px solid var(--color-red);
-  border-radius: var(--radius-small);
-  font-size: var(--fs-body2);
-  color: var(--color-red);
-  margin: 12px var(--side-margin);
-}
-
-/* ── App Bar ── */
-.schedule-appbar {
+.member-schedule__appbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,495 +16,402 @@
   border-bottom: 1px solid var(--color-gray-200);
 }
 
-.schedule-appbar__title {
+.member-schedule__title {
+  margin: 0;
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
-  margin: 0;
 }
 
-/* ── Calendar Card ── */
-.calendar-card {
-  margin: 16px var(--side-margin) 0;
-  background-color: var(--color-white);
+.member-schedule__error {
+  margin: 12px var(--side-margin) 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-small);
+  border-left: 4px solid var(--color-red);
+  background-color: var(--color-red-light);
+  color: var(--color-red);
+  font-size: var(--fs-body2);
+}
+
+.member-schedule__state {
+  margin: 18px var(--side-margin) 0;
+  padding: 40px 20px;
   border-radius: var(--radius-large);
-  padding: 20px 16px 16px;
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.member-schedule__state--loading {
+  text-align: left;
+}
+
+.member-schedule__state-title {
+  margin: 0;
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.member-schedule__state-desc {
+  margin: 8px 0 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.member-schedule__view-tabs {
+  margin: 16px var(--side-margin) 0;
+  padding: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  border-radius: var(--radius-medium);
+  background-color: var(--color-gray-200);
+}
+
+.member-schedule__view-tab {
+  height: 38px;
+  border: none;
+  border-radius: calc(var(--radius-medium) - 2px);
+  background-color: transparent;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.member-schedule__view-tab--active {
+  background-color: var(--color-white);
+  color: var(--color-blue-primary);
   box-shadow: var(--shadow-card);
 }
 
-.calendar-card__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
+.member-schedule__weekly {
+  margin: 14px var(--side-margin) 0;
 }
 
-.calendar-card__arrow {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.15s;
+.member-schedule__weekly-hint {
+  margin: 10px 2px 0;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }
 
-.calendar-card__arrow:active {
-  background-color: var(--color-gray-100);
+.member-schedule__monthly {
+  margin-top: 14px;
 }
 
-.calendar-card__month {
+.member-schedule__calendar-card {
+  margin: 0 var(--side-margin);
+  padding: 18px 14px 14px;
+  border-radius: var(--radius-large);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-card);
+}
+
+.member-schedule__list-header {
+  margin: 22px var(--side-margin) 0;
+}
+
+.member-schedule__list-title {
+  margin: 0;
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
 }
 
-/* Weekday row */
-.calendar-card__weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
-}
-
-.calendar-card__weekday {
-  text-align: center;
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-caption);
-  color: var(--color-gray-600);
-  padding: 4px 0;
-}
-
-.calendar-card__weekday--sun {
-  color: var(--color-red);
-}
-.calendar-card__weekday--sat {
-  color: var(--color-blue-primary);
-}
-
-/* Date grid */
-.calendar-card__grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  row-gap: 2px;
-}
-
-.cal-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.cal-cell--empty {
-  cursor: default;
-  pointer-events: none;
-}
-
-.cal-cell__inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  transition: background-color 0.15s;
-}
-
-.cal-cell__inner--selected {
-  background-color: var(--color-blue-primary);
-}
-
-.cal-cell__inner--today {
-  background-color: var(--color-blue-50, rgba(0, 122, 255, 0.08));
-}
-
-.cal-cell__num {
-  font-size: 15px;
-  font-weight: var(--fw-body1-reg);
-  color: var(--color-gray-900);
-  line-height: 1;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cal-cell__num--selected {
-  color: var(--color-white);
-  font-weight: var(--fw-body1-bold);
-}
-
-.cal-cell__num--today {
-  color: var(--color-blue-primary);
-  font-weight: var(--fw-body1-bold);
-}
-
-.cal-cell__num--sun {
-  color: var(--color-red);
-}
-.cal-cell__num--sat {
-  color: var(--color-blue-primary);
-}
-.cal-cell__num--off {
-  color: var(--color-gray-600);
-  opacity: 0.5;
-}
-
-.cal-cell__num--past {
-  color: var(--color-gray-200);
-}
-
-.cal-cell__inner--selected .cal-cell__num--sun,
-.cal-cell__inner--selected .cal-cell__num--sat,
-.cal-cell__inner--selected .cal-cell__num--off {
-  color: var(--color-white);
-  opacity: 1;
-}
-
-.cal-cell__inner--selected .cal-cell__num--past {
-  color: var(--color-white);
-  opacity: 1;
-}
-
-/* Dots */
-.cal-cell__dots {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-  height: 5px;
-}
-
-.cal-cell__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
-.cal-cell__dot--pending {
-  background-color: var(--color-yellow);
-}
-.cal-cell__dot--approved {
-  background-color: var(--color-green);
-}
-.cal-cell__dot--done {
-  background-color: var(--color-gray-400);
-}
-
-/* Legend */
-.calendar-card__legend {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--color-gray-200);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--fs-caption);
-  color: var(--color-gray-600);
-}
-
-.legend-item__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.legend-item__dot--pending {
-  background-color: var(--color-yellow);
-}
-.legend-item__dot--approved {
-  background-color: var(--color-green);
-}
-.legend-item__dot--done {
-  background-color: var(--color-gray-400);
-}
-
-/* ── Date Header ── */
-.schedule-date-header {
-  padding: 24px var(--side-margin) 12px;
-}
-
-.schedule-date-header__title {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
-  margin: 0 0 4px;
-}
-
-.schedule-date-header__count {
+.member-schedule__list-count {
+  margin: 4px 0 0;
   font-size: var(--fs-body2);
   color: var(--color-gray-600);
-  margin: 0;
 }
 
-/* ── Schedule List ── */
-.schedule-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 var(--side-margin);
-}
-
-/* ── Session Card ── */
-.scard {
-  display: flex;
-  background-color: var(--color-white);
+.member-schedule__loading {
+  margin: 14px var(--side-margin) 0;
+  padding: 16px;
   border-radius: var(--radius-large);
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-white);
 }
 
-.scard--approved {
-  border: 1px solid rgba(52, 199, 89, 0.25);
-}
-
-.scard__border {
-  width: 4px;
-  flex-shrink: 0;
-  margin: 16px 0 16px 14px;
-  border-radius: 4px;
-}
-
-.scard--completed .scard__border {
-  background-color: var(--color-gray-400);
-}
-
-.scard--completed {
-  opacity: 0.55;
-}
-
-.scard--completed .scard__title,
-.scard--completed .scard__time,
-.scard--completed .scard__status {
+.member-schedule__empty {
+  margin: 16px var(--side-margin) 0;
+  padding: 44px 20px;
+  border-radius: var(--radius-large);
+  background-color: var(--color-white);
   color: var(--color-gray-600);
+  text-align: center;
 }
 
-.scard--approved .scard__border {
-  background-color: var(--color-green);
-}
-.scard--pending .scard__border {
-  background-color: var(--color-yellow);
-}
-.scard--cancelled .scard__border {
-  background-color: var(--color-red);
-}
-.scard--rejected .scard__border {
-  background-color: var(--color-red);
+.member-schedule__empty svg {
+  display: block;
+  margin: 0 auto;
 }
 
-.scard__body {
-  padding: 16px 14px 16px 12px;
-  flex: 1;
+.member-schedule__empty p {
+  margin: 10px 0 0;
+  font-size: var(--fs-body2);
+}
+
+.member-schedule__list {
+  margin: 14px var(--side-margin) 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.scard__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+.member-session {
+  background-color: var(--color-white);
+  border-radius: var(--radius-medium);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid transparent;
 }
 
-.scard__title {
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
-  margin: 0;
-}
-
-/* Badges */
-.scard__badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-
-.scard__badge--done {
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-.scard__badge--approved {
-  background-color: var(--color-green-light);
-  color: var(--color-green-dark);
-}
-.scard__badge--pending {
-  background-color: var(--color-warning-bg);
-  color: var(--color-warning-icon);
-}
-.scard__badge--cancelled {
-  background-color: var(--color-red-light);
-  color: var(--color-red);
-}
-.scard__badge--rejected {
-  background-color: var(--color-red-light);
-  color: var(--color-red);
-}
-
-/* Time */
-.scard__time {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-gray-400);
-}
-
-.scard__time--approved {
-  color: var(--color-green-dark);
-}
-
-/* Trainer info row */
-.scard__trainer-row {
+.member-session__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.scard__trainer-info {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
-.scard__avatar {
-  width: 32px;
-  height: 32px;
+.member-session__trainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.member-session__avatar {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: var(--color-gray-100);
-  overflow: hidden;
+  color: var(--color-gray-600);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
-  color: var(--color-gray-600);
 }
 
-.scard__avatar-img {
+.member-session__avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.scard__name {
+.member-session__name {
+  margin: 0;
   font-size: var(--fs-body2);
   color: var(--color-gray-900);
-  font-weight: 500;
+  font-weight: var(--fw-body1-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Workout summary row */
-.scard__workout-summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background-color: var(--color-blue-light);
-  border-radius: var(--radius-small);
+.member-session__status {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.member-session__status--scheduled {
+  color: var(--color-warning-icon);
+  background-color: var(--color-warning-bg);
+}
+
+.member-session__status--confirmed {
+  color: var(--color-green-dark);
+  background-color: var(--color-green-light);
+}
+
+.member-session__status--change_requested {
+  color: var(--color-orange);
+  background-color: rgba(255, 149, 0, 0.14);
+}
+
+.member-session__status--completed {
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+}
+
+.member-session__time {
+  margin: 8px 0 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.member-session__summary {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-blue-light);
   color: var(--color-blue-primary);
+  font-size: var(--fs-caption);
   line-height: var(--lh-body);
 }
 
-.scard__workout-summary img {
-  flex-shrink: 0;
-}
-
-.scard__workout-summary--empty {
+.member-session__summary--empty {
   background-color: var(--color-gray-100);
   color: var(--color-gray-600);
 }
 
-/* Cancel button (member only) — 눈에 덜 띄는 텍스트 링크 스타일 */
-.scard__cancel-btn {
-  height: 24px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--color-gray-600);
+.member-session__reason {
+  margin: 8px 0 0;
+  color: var(--color-orange);
   font-size: var(--fs-caption);
-  font-weight: var(--fw-body1-reg);
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
-}
-
-.scard__cancel-btn:active {
-  color: var(--color-red);
-}
-
-/* Rejection reason */
-.scard__reject-reason {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 10px 12px;
-  background-color: var(--color-red-light);
-  border-radius: var(--radius-small);
-  font-size: var(--fs-caption);
-  color: var(--color-red);
   line-height: var(--lh-body);
 }
 
-.scard__reject-reason svg {
-  flex-shrink: 0;
-  margin-top: 1px;
+.member-schedule__bottom-space {
+  height: calc(var(--nav-height) + 26px);
 }
 
-/* Empty state */
-.schedule-list__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 40px 0;
-  color: var(--color-gray-600);
-}
-
-.schedule-list__empty p {
-  font-size: var(--fs-body2);
-  margin: 0;
-}
-
-/* ── Floating Action Button (FAB) ── */
 .member-schedule__fab {
   position: fixed;
   right: var(--side-margin);
   bottom: calc(var(--nav-height) + 16px + env(safe-area-inset-bottom));
   height: 56px;
-  padding: 0 var(--side-margin);
+  padding: 0 18px;
+  border: none;
   border-radius: 28px;
   background-color: var(--color-blue-primary);
   color: var(--color-white);
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: none;
-  font-size: var(--fs-body1);
+  gap: 7px;
+  font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
-  font-family: inherit;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  cursor: pointer;
-  z-index: 90;
-  transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 8px 16px rgba(0, 122, 255, 0.24);
+  z-index: 80;
 }
 
-.member-schedule__fab:active {
-  transform: scale(0.92);
-  opacity: 0.9;
+.detail-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.detail-sheet__label {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.detail-sheet__value {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  font-weight: var(--fw-body1-bold);
+}
+
+.detail-sheet__row--status {
+  margin-top: 2px;
+}
+
+.detail-sheet__status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.detail-sheet__status--scheduled {
+  color: var(--color-warning-icon);
+  background-color: var(--color-warning-bg);
+}
+
+.detail-sheet__status--confirmed {
+  color: var(--color-green-dark);
+  background-color: var(--color-green-light);
+}
+
+.detail-sheet__status--change_requested {
+  color: var(--color-orange);
+  background-color: rgba(255, 149, 0, 0.14);
+}
+
+.detail-sheet__status--completed {
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+}
+
+.detail-sheet__summary {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  font-size: var(--fs-caption);
+  line-height: var(--lh-body);
+}
+
+.detail-sheet__summary--empty {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.detail-sheet__reason {
+  margin: 0;
+  color: var(--color-orange);
+  font-size: var(--fs-caption);
+}
+
+.detail-sheet__notice {
+  margin: 0;
+  padding: 12px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  line-height: var(--lh-body);
+}
+
+.detail-sheet__actions {
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.change-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.change-sheet__target {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+.change-sheet__textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  font-size: var(--fs-body2);
+  line-height: var(--lh-body);
+  resize: none;
+}
+
+.change-sheet__textarea:focus {
+  border-color: var(--color-blue-primary);
+}
+
+.change-sheet__hint {
+  margin: -2px 0 0;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
 }

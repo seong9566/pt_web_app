@@ -19,7 +19,7 @@
   --color-red: #FF3B30;
   --color-red-light: #FFE5E5;
   --color-yellow: #FFCC00;
-  --color-orange: #FF9500;
+  --color-orange: #FF9500;   /* 변경 요청 상태 */
 
   /* ── Typography ── */
   --fs-display: 24px;

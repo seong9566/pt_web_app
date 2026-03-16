@@ -13,7 +13,7 @@ begin
   end if;
 
   if not exists (select 1 from pg_type where typname = 'reservation_status') then
-    create type public.reservation_status as enum ('pending', 'approved', 'rejected', 'cancelled', 'completed');
+    create type public.reservation_status as enum ('pending', 'approved', 'rejected', 'cancelled', 'completed', 'scheduled', 'confirmed', 'change_requested');
   end if;
 end;
 $$;
@@ -89,18 +89,19 @@ create table if not exists public.reservations (
   date date not null,
   start_time time not null,
   end_time time not null,
-  status public.reservation_status not null default 'pending',
+  status public.reservation_status not null default 'scheduled',
   session_type text not null,
   rejection_reason text,
+  change_reason text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (trainer_id <> member_id),
   check (start_time < end_time)
 );
 
-create unique index if not exists reservations_unique_approved_slot
+create unique index if not exists reservations_unique_active_slot
   on public.reservations (trainer_id, date, start_time)
-  where status = 'approved';
+  where status in ('scheduled', 'confirmed');
 
 create table if not exists public.memos (
   id uuid primary key default gen_random_uuid(),
@@ -946,7 +947,9 @@ do $$ begin
     'new_message', 'workout_assigned',
     'connection_requested', 'connection_approved',
     'pt_count_changed', 'payment_recorded',
-    'account_deleted'
+    'account_deleted',
+    'availability_submitted', 'schedule_assigned', 'schedule_confirmed',
+    'change_requested', 'schedule_reassigned', 'availability_reminder'
   );
 exception when duplicate_object then null;
 end $$;
@@ -1097,9 +1100,14 @@ for delete
 to authenticated
 using (bucket_id = 'manual-media' and owner = auth.uid());
 
--- T10: create_reservation RPC — PT 횟수 검증 추가
-create or replace function public.create_reservation(
+-- T10 (제거됨): create_reservation RPC — schedule-redesign에서 assign_schedule로 대체
+-- DROP FUNCTION IF EXISTS public.create_reservation(UUID, DATE, TIME, TIME, TEXT);
+
+-- T10 (신규): assign_schedule RPC — 트레이너가 회원에게 일정 배정
+-- PT 잔여 횟수 부족 시 차단하지 않고 알림 body에 경고 포함
+create or replace function public.assign_schedule(
   p_trainer_id uuid,
+  p_member_id uuid,
   p_date date,
   p_start_time time,
   p_end_time time,
@@ -1108,93 +1116,71 @@ create or replace function public.create_reservation(
 returns uuid
 language plpgsql
 security definer
-set search_path = public
 as $$
 declare
-  v_member_id uuid;
   v_reservation_id uuid;
-  v_override_record record;
-  v_schedule_record record;
+  v_pt_count integer;
+  v_is_connected boolean;
+  v_body text;
 begin
-  v_member_id := auth.uid();
+  -- 1. 트레이너-회원 연결 확인
+  select exists (
+    select 1 from public.trainer_members
+    where trainer_id = p_trainer_id
+      and member_id = p_member_id
+      and status = 'active'
+  ) into v_is_connected;
 
-  if v_member_id is null then
-    raise exception 'Authentication required';
-  end if;
-
-  if not exists (
-    select 1
-    from public.trainer_members tm
-    where tm.trainer_id = p_trainer_id
-      and tm.member_id = v_member_id
-      and tm.status = 'active'
-  ) then
+  if not v_is_connected then
     raise exception 'No active trainer-member connection';
   end if;
 
-  if (
-    select coalesce(sum(change_amount), 0)
+  -- 2. 시간 충돌 확인 (scheduled/confirmed 상태의 기존 일정)
+  if exists (
+    select 1 from public.reservations
+    where trainer_id = p_trainer_id
+      and date = p_date
+      and status in ('scheduled', 'confirmed')
+      and start_time < p_end_time
+      and end_time > p_start_time
+  ) then
+    raise exception 'Time slot conflict: another session exists at this time';
+  end if;
+
+  -- 3. 잔여 PT 횟수 확인 (경고만, 차단하지 않음)
+  select coalesce(sum(change_amount), 0)
+    into v_pt_count
     from public.pt_sessions
-    where member_id = v_member_id and trainer_id = p_trainer_id
-  ) <= 0 then
-    raise exception 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.';
-  end if;
+   where member_id = p_member_id
+     and trainer_id = p_trainer_id;
 
-  if p_end_time <= p_start_time then
-    raise exception 'End time must be later than start time';
-  end if;
-
-  select * into v_override_record
-  from public.daily_schedule_overrides
-  where trainer_id = p_trainer_id and date = p_date;
-
-  if found then
-    if v_override_record.is_working = false then
-      raise exception '해당 날짜는 트레이너 휴무일입니다';
-    end if;
-  else
-    select * into v_schedule_record
-    from public.work_schedules
-    where trainer_id = p_trainer_id
-      and day_of_week = extract(dow from p_date)::int
-      and is_enabled = true;
-
-    if not found then
-      raise exception '해당 요일은 트레이너의 근무일이 아닙니다';
-    end if;
-  end if;
-
-  if exists (
-    select 1 from public.reservations
-    where trainer_id = p_trainer_id
-      and date = p_date
-      and status in ('approved')
-      and start_time < p_end_time
-      and end_time > p_start_time
-  ) then
-    raise exception 'Reservation time slot is already booked';
-  end if;
-
-  if exists (
-    select 1 from public.reservations
-    where trainer_id = p_trainer_id
-      and member_id = v_member_id
-      and date = p_date
-      and status in ('pending', 'approved')
-      and start_time < p_end_time
-      and end_time > p_start_time
-  ) then
-    raise exception 'Already requested this time slot';
-  end if;
-
-  insert into public.reservations (trainer_id, member_id, date, start_time, end_time, session_type, status)
-  values (p_trainer_id, v_member_id, p_date, p_start_time, p_end_time, p_session_type, 'pending')
+  -- 4. 일정 생성 (scheduled 상태)
+  insert into public.reservations (
+    trainer_id, member_id, date, start_time, end_time, status, session_type
+  ) values (
+    p_trainer_id, p_member_id, p_date, p_start_time, p_end_time, 'scheduled', p_session_type
+  )
   returning id into v_reservation_id;
 
+  -- 5. 알림 body 생성 (PT 잔여 부족 시 경고 포함)
+  v_body := to_char(p_date, 'MM월DD일') || ' ' || to_char(p_start_time, 'HH24:MI') || ' PT 일정을 확인해주세요.';
+  if v_pt_count <= 0 then
+    v_body := v_body || ' (PT 잔여 횟수 부족)';
+  end if;
+
+  -- 6. 알림 생성 (회원에게)
+  insert into public.notifications (
+    user_id, type, title, body, target_id, target_type
+  ) values (
+    p_member_id,
+    'schedule_assigned',
+    'PT 일정이 배정되었습니다',
+    v_body,
+    v_reservation_id,
+    'reservation'
+  );
+
   return v_reservation_id;
-exception
-  when unique_violation then
-    raise exception 'Reservation time slot is already booked';
 end;
 $$;
 
@@ -1255,60 +1241,14 @@ after update on public.reservations
 for each row
 execute function public.auto_deduct_pt_session();
 
--- 예약 자동 거절 trigger (승인 시 같은 시간대 pending 자동 rejected)
-create or replace function public.auto_reject_competing_reservations()
-returns trigger as $$
-begin
-  if new.status = 'approved' and old.status <> 'approved' then
-    with rejected as (
-      update public.reservations
-      set status = 'rejected',
-          rejection_reason = '다른 회원의 예약이 승인되었습니다',
-          updated_at = now()
-      where trainer_id = new.trainer_id
-        and date = new.date
-        and start_time = new.start_time
-        and id <> new.id
-        and status = 'pending'
-      returning id, member_id
-    )
-    insert into public.notifications (user_id, type, title, body, target_id, target_type)
-    select member_id, 'reservation_rejected',
-           '예약이 자동 거절되었습니다',
-           new.date || ' ' || new.start_time || ' 예약이 다른 회원의 승인으로 인해 자동 거절되었습니다.',
-           id, 'reservation'
-    from rejected;
-  end if;
-  return new;
-end;
-$$ language plpgsql security definer set search_path = public;
+-- auto_reject_competing_reservations, trg_auto_reject_competing 제거됨 (schedule-redesign)
+-- auto_reject_on_override, trg_auto_reject_on_override 제거됨 (schedule-redesign)
+-- DROP TRIGGER IF EXISTS trg_auto_reject_competing ON public.reservations;
+-- DROP TRIGGER IF EXISTS trg_auto_reject_on_override ON public.daily_schedule_overrides;
+-- DROP FUNCTION IF EXISTS public.auto_reject_competing_reservations();
+-- DROP FUNCTION IF EXISTS public.auto_reject_on_override();
 
-drop trigger if exists trg_auto_reject_competing on public.reservations;
-create trigger trg_auto_reject_competing
-after update on public.reservations
-for each row
-execute function public.auto_reject_competing_reservations();
-
-create or replace function auto_reject_on_override()
-returns trigger as $$
-begin
-  if new.is_working = false then
-    update reservations
-    set status = 'rejected', rejection_reason = '트레이너 휴무일로 인해 자동 거절되었습니다.'
-    where trainer_id = new.trainer_id
-      and date = new.date
-      and status in ('pending', 'approved');
-  end if;
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists trg_auto_reject_on_override on daily_schedule_overrides;
-create trigger trg_auto_reject_on_override
-  after insert or update on daily_schedule_overrides
-  for each row execute function auto_reject_on_override();
-
--- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 approved 예약을 completed로 변경
+-- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 confirmed 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
 
 create or replace function public.auto_complete_past_reservations()
@@ -1318,16 +1258,22 @@ security definer
 set search_path = public
 as $$
 begin
-  update reservations
-  set status = 'completed'
-  where status = 'approved'
-    and (date + end_time) < (now() at time zone 'Asia/Seoul');
+  update public.reservations
+  set status = 'completed', updated_at = now()
+  where status = 'confirmed'
+    and (date + end_time)::timestamptz < now();
+end;
+$$;
 
-  update reservations
-  set status = 'rejected',
-      rejection_reason = '예약 시간이 경과하여 자동 거절되었습니다'
-  where status = 'pending'
-    and (date + end_time) < (now() at time zone 'Asia/Seoul');
+create or replace function public.fn_auto_complete_reservations()
+returns void
+language plpgsql
+as $$
+begin
+  update public.reservations
+  set status = 'completed', updated_at = now()
+  where status = 'confirmed'
+    and (date + end_time)::timestamptz < now();
 end;
 $$;
 
@@ -1369,5 +1315,69 @@ alter table public.messages replica identity full;
 
 -- messages 테이블을 Supabase Realtime publication에 등록
 alter publication supabase_realtime add table messages;
+
+-- ═══════════════════════════════════════════
+-- Schedule Redesign: DB 마이그레이션 (2026-03-16)
+-- ═══════════════════════════════════════════
+
+-- reservation_status enum에 신규 값 추가 (스케줄 재설계)
+alter type public.reservation_status add value if not exists 'scheduled';
+alter type public.reservation_status add value if not exists 'confirmed';
+alter type public.reservation_status add value if not exists 'change_requested';
+
+-- notification_type enum에 신규 값 추가 (스케줄 알림)
+alter type public.notification_type add value if not exists 'availability_submitted';
+alter type public.notification_type add value if not exists 'schedule_assigned';
+alter type public.notification_type add value if not exists 'schedule_confirmed';
+alter type public.notification_type add value if not exists 'change_requested';
+alter type public.notification_type add value if not exists 'schedule_reassigned';
+alter type public.notification_type add value if not exists 'availability_reminder';
+
+-- reservations 테이블: change_reason 컬럼 추가
+alter table public.reservations add column if not exists change_reason text;
+
+-- 인덱스 교체: 기존 approved 단일 → 신규 scheduled/confirmed 복합 조건
+drop index if exists public.reservations_unique_approved_slot;
+create unique index if not exists reservations_unique_active_slot
+  on public.reservations (trainer_id, date, start_time)
+  where status in ('scheduled', 'confirmed');
+
+-- member_weekly_availability 테이블 생성 (회원 주간 가능 시간 제출)
+create table if not exists public.member_weekly_availability (
+  id uuid default gen_random_uuid() primary key,
+  member_id uuid not null references auth.users(id) on delete cascade,
+  trainer_id uuid not null references auth.users(id) on delete cascade,
+  week_start date not null,
+  available_slots jsonb not null default '{}',
+  memo text,
+  created_at timestamptz default now(),
+  unique (member_id, trainer_id, week_start)
+);
+
+alter table public.member_weekly_availability enable row level security;
+
+-- 회원: 자기 데이터 INSERT/SELECT/UPDATE
+create policy "member_weekly_availability_member_access"
+  on public.member_weekly_availability
+  for all
+  using (auth.uid() = member_id)
+  with check (auth.uid() = member_id);
+
+-- 트레이너: 연결된 회원 데이터 SELECT
+create policy "member_weekly_availability_trainer_read"
+  on public.member_weekly_availability
+  for select
+  using (
+    exists (
+      select 1 from public.trainer_members tm
+      where tm.trainer_id = auth.uid()
+        and tm.member_id = member_weekly_availability.member_id
+        and tm.status = 'active'
+    )
+  );
+
+-- 기존 데이터 마이그레이션: pending → scheduled, approved → confirmed
+update public.reservations set status = 'scheduled' where status = 'pending';
+update public.reservations set status = 'confirmed' where status = 'approved';
 
 commit;
