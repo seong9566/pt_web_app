@@ -50,32 +50,43 @@
         </section>
 
         <section class="availability-registration__card">
-          <div class="availability-registration__calendar-wrapper">
-            <div class="availability-registration__calendar-grid" :style="gridStyle">
-              <div class="availability-registration__grid-corner" />
-              <div
-                v-for="dayInfo in weekDaysWithDates"
-                :key="`header-${dayInfo.key}`"
-                class="availability-registration__grid-day-header"
-              >
-                <span class="availability-registration__grid-day-name">{{ dayInfo.label }}</span>
-                <span class="availability-registration__grid-day-date">{{ dayInfo.dateLabel }}</span>
-              </div>
+          <div class="availability-registration__day-tabs">
+            <button
+              v-for="day in weekDaysWithDates"
+              :key="`tab-${day.key}`"
+              class="availability-registration__day-tab"
+              :class="{ 'availability-registration__day-tab--active': selectedDay === day.key }"
+              type="button"
+              @click="selectedDay = day.key"
+            >
+              <span class="availability-registration__day-tab-label">{{ day.label }}</span>
+              <span
+                v-if="slots[day.key].length > 0"
+                class="availability-registration__day-tab-badge"
+              >{{ slots[day.key].length }}</span>
+            </button>
+          </div>
 
-              <template v-for="slot in TIME_SLOTS" :key="slot.key">
-                <div class="availability-registration__grid-time-label">{{ slot.label }}</div>
-                <button
-                  v-for="dayInfo in weekDaysWithDates"
-                  :key="`${dayInfo.key}-${slot.key}`"
-                  class="availability-registration__grid-cell"
-                  :class="{ 'availability-registration__grid-cell--active': isSlotSelected(dayInfo.key, slot.key) }"
-                  type="button"
-                  :aria-label="`${dayInfo.label} ${slot.label} 선택`"
-                  :aria-pressed="isSlotSelected(dayInfo.key, slot.key)"
-                  @click="toggleSlot(dayInfo.key, slot.key)"
-                />
-              </template>
-            </div>
+          <p class="availability-registration__selected-day-date">
+            {{ selectedDayInfo.label }}요일 {{ selectedDayInfo.dateLabel }}
+          </p>
+
+          <div class="availability-registration__time-list">
+            <button
+              v-for="slot in TIME_SLOTS"
+              :key="`slot-${slot.key}`"
+              class="availability-registration__time-item"
+              :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
+              type="button"
+              :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
+              :aria-pressed="isSlotSelected(selectedDay, slot.key)"
+              @click="toggleSlot(selectedDay, slot.key)"
+            >
+              <span class="availability-registration__time-item-label">{{ slot.label }}</span>
+              <span class="availability-registration__time-item-check">
+                {{ isSlotSelected(selectedDay, slot.key) ? '✓' : '' }}
+              </span>
+            </button>
           </div>
 
           <p class="availability-registration__selected-count">선택된 시간대 {{ selectedCount }}개</p>
@@ -214,12 +225,13 @@ const memo = ref('')
 const submitError = ref('')
 
 const selectedWeekOffset = ref(0)
+const selectedDay = ref(DAYS[0].key)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
 const weekDaysWithDates = computed(() => getWeekDatesForDays(selectedWeekStart.value))
-const gridStyle = computed(() => ({
-  gridTemplateColumns: `52px repeat(${weekDaysWithDates.value.length}, minmax(44px, 1fr))`,
-}))
+const selectedDayInfo = computed(() =>
+  weekDaysWithDates.value.find((day) => day.key === selectedDay.value) || weekDaysWithDates.value[0]
+)
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
