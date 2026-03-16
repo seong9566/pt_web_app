@@ -117,62 +117,61 @@
   color: var(--color-gray-600);
 }
 
-.availability-registration__grid {
+.availability-registration__calendar-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.availability-registration__calendar-grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, minmax(44px, 1fr));
+  gap: 3px;
+  min-width: 360px;
+}
+
+.availability-registration__grid-day-header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.availability-registration__grid-head,
-.availability-registration__grid-row {
-  display: grid;
-  grid-template-columns: 36px repeat(3, minmax(0, 1fr));
-  gap: 8px;
   align-items: center;
+  padding: 8px 0 6px;
 }
 
-.availability-registration__grid-empty {
-  display: block;
-  width: 100%;
-}
-
-.availability-registration__period-label {
+.availability-registration__grid-day-name {
   font-size: var(--fs-caption);
-  color: var(--color-gray-600);
-  text-align: center;
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
 }
 
-.availability-registration__day-label {
+.availability-registration__grid-day-date {
+  font-size: 10px;
+  color: var(--color-gray-600);
+  margin-top: 2px;
+}
+
+.availability-registration__grid-period-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
-  text-align: center;
 }
 
-.availability-registration__toggle {
-  height: 42px;
-  border-radius: var(--radius-medium);
-  border: 1px solid transparent;
+.availability-registration__grid-cell {
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-small);
   background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-  line-height: 1;
-  transition:
-    background-color var(--animation-duration-fast) var(--animation-easing-default),
-    border-color var(--animation-duration-fast) var(--animation-easing-default),
-    color var(--animation-duration-fast) var(--animation-easing-default),
-    transform var(--animation-duration-fast) var(--animation-easing-default);
+  cursor: pointer;
+  transition: background-color 0.15s;
 }
 
-.availability-registration__toggle:active {
-  transform: scale(0.96);
+.availability-registration__grid-cell:active {
+  opacity: 0.7;
 }
 
-.availability-registration__toggle--active {
+.availability-registration__grid-cell--active {
   background-color: var(--color-blue-primary);
-  border-color: var(--color-blue-primary);
-  color: var(--color-white);
 }
 
 .availability-registration__period-guide {

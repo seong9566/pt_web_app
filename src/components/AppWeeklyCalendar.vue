@@ -145,7 +145,7 @@ const timeSlots = computed(() => {
 })
 
 const weekDates = computed(() => {
-  return Array.from({ length: 7 }, (_, index) => addDays(props.currentWeekStart, index))
+  return Array.from({ length: 7 }, (_, index) => addDays(props.currentWeekStart, index - 1))
 })
 
 const weekRangeLabel = computed(() => {

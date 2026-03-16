@@ -50,45 +50,32 @@
         </section>
 
         <section class="availability-registration__card">
-          <div class="availability-registration__grid">
-            <div class="availability-registration__grid-head">
-              <span class="availability-registration__grid-empty" />
-              <span
-                v-for="period in PERIODS"
-                :key="period.key"
-                class="availability-registration__period-label"
+          <div class="availability-registration__calendar-wrapper">
+            <div class="availability-registration__calendar-grid">
+              <div class="availability-registration__grid-corner" />
+              <div
+                v-for="dayInfo in weekDaysWithDates"
+                :key="`header-${dayInfo.key}`"
+                class="availability-registration__grid-day-header"
               >
-                {{ period.label }}
-              </span>
-            </div>
+                <span class="availability-registration__grid-day-name">{{ dayInfo.label }}</span>
+                <span class="availability-registration__grid-day-date">{{ dayInfo.dateLabel }}</span>
+              </div>
 
-            <div
-              v-for="day in DAYS"
-              :key="day.key"
-              class="availability-registration__grid-row"
-            >
-              <span class="availability-registration__day-label">{{ day.label }}</span>
-              <button
-                v-for="period in PERIODS"
-                :key="`${day.key}-${period.key}`"
-                class="availability-registration__toggle"
-                :class="{
-                  'availability-registration__toggle--active': isPeriodSelected(day.key, period.key),
-                }"
-                type="button"
-                :aria-label="`${day.label} ${period.label} 선택`"
-                :aria-pressed="isPeriodSelected(day.key, period.key)"
-                @click="togglePeriod(day.key, period.key)"
-              >
-                {{ isPeriodSelected(day.key, period.key) ? '●' : '○' }}
-              </button>
+              <template v-for="period in PERIODS" :key="period.key">
+                <div class="availability-registration__grid-period-label">{{ period.label }}</div>
+                <button
+                  v-for="dayInfo in weekDaysWithDates"
+                  :key="`${dayInfo.key}-${period.key}`"
+                  class="availability-registration__grid-cell"
+                  :class="{ 'availability-registration__grid-cell--active': isPeriodSelected(dayInfo.key, period.key) }"
+                  type="button"
+                  :aria-label="`${dayInfo.label} ${period.label} 선택`"
+                  :aria-pressed="isPeriodSelected(dayInfo.key, period.key)"
+                  @click="togglePeriod(dayInfo.key, period.key)"
+                />
+              </template>
             </div>
-          </div>
-
-          <div class="availability-registration__period-guide">
-            <span v-for="period in PERIODS" :key="`guide-${period.key}`" class="availability-registration__period-item">
-              {{ period.label }} {{ PERIOD_RANGES[period.key] }}
-            </span>
           </div>
 
           <p class="availability-registration__selected-count">선택된 시간대 {{ selectedCount }}개</p>
@@ -126,13 +113,13 @@ import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 
 const DAYS = [
+  { key: 'sun', label: '일' },
   { key: 'mon', label: '월' },
   { key: 'tue', label: '화' },
   { key: 'wed', label: '수' },
   { key: 'thu', label: '목' },
   { key: 'fri', label: '금' },
   { key: 'sat', label: '토' },
-  { key: 'sun', label: '일' },
 ]
 
 const PERIODS = [
@@ -197,6 +184,20 @@ function formatWeekRange(weekStart) {
   return `${formatDateWithWeekday(monday)} ~ ${formatDateWithWeekday(sunday)}`
 }
 
+function getWeekDatesForDays(weekStart) {
+  const monday = parseIsoDate(weekStart)
+  return DAYS.map((day, index) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + index - 1)
+    return {
+      ...day,
+      date: d,
+      dateStr: toIsoDate(d),
+      dateLabel: `${d.getMonth() + 1}/${d.getDate()}`,
+    }
+  })
+}
+
 function normalizeDaySlots(daySlots) {
   if (!Array.isArray(daySlots)) return []
 
@@ -218,6 +219,7 @@ const submitError = ref('')
 const selectedWeekOffset = ref(0)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
+const weekDaysWithDates = computed(() => getWeekDatesForDays(selectedWeekStart.value))
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
