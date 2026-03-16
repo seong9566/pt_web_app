@@ -51,7 +51,7 @@
 
         <section class="availability-registration__card">
           <div class="availability-registration__calendar-wrapper">
-            <div class="availability-registration__calendar-grid">
+            <div class="availability-registration__calendar-grid" :style="gridStyle">
               <div class="availability-registration__grid-corner" />
               <div
                 v-for="dayInfo in weekDaysWithDates"
@@ -62,17 +62,17 @@
                 <span class="availability-registration__grid-day-date">{{ dayInfo.dateLabel }}</span>
               </div>
 
-              <template v-for="period in PERIODS" :key="period.key">
-                <div class="availability-registration__grid-period-label">{{ period.label }}</div>
+              <template v-for="slot in TIME_SLOTS" :key="slot.key">
+                <div class="availability-registration__grid-time-label">{{ slot.label }}</div>
                 <button
                   v-for="dayInfo in weekDaysWithDates"
-                  :key="`${dayInfo.key}-${period.key}`"
+                  :key="`${dayInfo.key}-${slot.key}`"
                   class="availability-registration__grid-cell"
-                  :class="{ 'availability-registration__grid-cell--active': isPeriodSelected(dayInfo.key, period.key) }"
+                  :class="{ 'availability-registration__grid-cell--active': isSlotSelected(dayInfo.key, slot.key) }"
                   type="button"
-                  :aria-label="`${dayInfo.label} ${period.label} 선택`"
-                  :aria-pressed="isPeriodSelected(dayInfo.key, period.key)"
-                  @click="togglePeriod(dayInfo.key, period.key)"
+                  :aria-label="`${dayInfo.label} ${slot.label} 선택`"
+                  :aria-pressed="isSlotSelected(dayInfo.key, slot.key)"
+                  @click="toggleSlot(dayInfo.key, slot.key)"
                 />
               </template>
             </div>
@@ -122,22 +122,19 @@ const DAYS = [
   { key: 'sat', label: '토' },
 ]
 
-const PERIODS = [
-  { key: 'morning', label: '오전' },
-  { key: 'afternoon', label: '오후' },
-  { key: 'evening', label: '저녁' },
-]
+function generateTimeSlots(startHour = 6, endHour = 22) {
+  const generatedSlots = []
 
-const PERIOD_RANGES = {
-  morning: '06:00~12:00',
-  afternoon: '12:00~18:00',
-  evening: '18:00~22:00',
+  for (let hour = startHour; hour < endHour; hour += 1) {
+    const timeStr = `${String(hour).padStart(2, '0')}:00`
+    generatedSlots.push({ key: timeStr, label: timeStr })
+  }
+
+  return generatedSlots
 }
 
-const PERIOD_ORDER = PERIODS.reduce((acc, period, index) => {
-  acc[period.key] = index
-  return acc
-}, {})
+const TIME_SLOTS = generateTimeSlots(6, 22)
+const TIME_SLOT_PATTERN = /^\d{2}:\d{2}$/
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -202,9 +199,9 @@ function normalizeDaySlots(daySlots) {
   if (!Array.isArray(daySlots)) return []
 
   return daySlots
-    .filter((slot) => PERIOD_ORDER[slot] !== undefined)
+    .filter((slot) => TIME_SLOT_PATTERN.test(slot))
     .filter((slot, index, allSlots) => allSlots.indexOf(slot) === index)
-    .sort((a, b) => PERIOD_ORDER[a] - PERIOD_ORDER[b])
+    .sort()
 }
 
 const router = useRouter()
@@ -220,6 +217,9 @@ const selectedWeekOffset = ref(0)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
 const weekDaysWithDates = computed(() => getWeekDatesForDays(selectedWeekStart.value))
+const gridStyle = computed(() => ({
+  gridTemplateColumns: `52px repeat(${weekDaysWithDates.value.length}, minmax(44px, 1fr))`,
+}))
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
@@ -254,23 +254,23 @@ function applyExistingSlots(availableSlots) {
   })
 }
 
-function isPeriodSelected(dayKey, periodKey) {
-  return slots[dayKey].includes(periodKey)
+function isSlotSelected(dayKey, timeKey) {
+  return slots[dayKey].includes(timeKey)
 }
 
-function togglePeriod(dayKey, periodKey) {
+function toggleSlot(dayKey, timeKey) {
   submitError.value = ''
 
   const daySlots = slots[dayKey]
-  const selectedIndex = daySlots.indexOf(periodKey)
+  const selectedIndex = daySlots.indexOf(timeKey)
 
   if (selectedIndex >= 0) {
     daySlots.splice(selectedIndex, 1)
     return
   }
 
-  daySlots.push(periodKey)
-  daySlots.sort((a, b) => PERIOD_ORDER[a] - PERIOD_ORDER[b])
+  daySlots.push(timeKey)
+  daySlots.sort()
 }
 
 function buildAvailableSlotsPayload() {

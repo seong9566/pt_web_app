@@ -419,7 +419,7 @@ const holidays = computed(() => {
 
   if (workingDays.value.size > 0) {
     for (let index = 0; index < 7; index += 1) {
-      const dateStr = addDays(currentWeekStart.value, index)
+      const dateStr = addDays(currentWeekStart.value, index - 1)
       const dayOfWeek = parseDate(dateStr).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)

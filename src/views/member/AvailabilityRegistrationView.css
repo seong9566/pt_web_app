@@ -119,14 +119,15 @@
 
 .availability-registration__calendar-wrapper {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 55vh;
   -webkit-overflow-scrolling: touch;
 }
 
 .availability-registration__calendar-grid {
   display: grid;
-  grid-template-columns: 44px repeat(7, minmax(44px, 1fr));
   gap: 3px;
-  min-width: 360px;
+  min-width: 420px;
 }
 
 .availability-registration__grid-day-header {
@@ -148,17 +149,18 @@
   margin-top: 2px;
 }
 
-.availability-registration__grid-period-label {
+.availability-registration__grid-time-label {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
-  color: var(--color-gray-900);
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  font-weight: var(--fw-body2);
+  white-space: nowrap;
 }
 
 .availability-registration__grid-cell {
-  min-height: 44px;
+  min-height: 36px;
   border: none;
   border-radius: var(--radius-small);
   background-color: var(--color-gray-100);
@@ -172,21 +174,6 @@
 
 .availability-registration__grid-cell--active {
   background-color: var(--color-blue-primary);
-}
-
-.availability-registration__period-guide {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.availability-registration__period-item {
-  padding: 8px;
-  border-radius: var(--radius-small);
-  background-color: var(--color-gray-100);
-  font-size: var(--fs-caption);
-  color: var(--color-gray-600);
-  text-align: center;
 }
 
 .availability-registration__selected-count {
@@ -235,10 +222,4 @@
   margin: 0;
   font-size: var(--fs-body2);
   color: var(--color-gray-600);
-}
-
-@media (max-width: 360px) {
-  .availability-registration__period-guide {
-    grid-template-columns: 1fr;
-  }
 }
