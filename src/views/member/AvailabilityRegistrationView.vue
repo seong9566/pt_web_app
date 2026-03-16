@@ -71,22 +71,40 @@
             {{ selectedDayInfo.label }}요일 {{ selectedDayInfo.dateLabel }}
           </p>
 
-          <div class="availability-registration__time-list">
-            <button
-              v-for="slot in TIME_SLOTS"
-              :key="`slot-${slot.key}`"
-              class="availability-registration__time-item"
-              :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
-              type="button"
-              :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
-              :aria-pressed="isSlotSelected(selectedDay, slot.key)"
-              @click="toggleSlot(selectedDay, slot.key)"
-            >
-              <span class="availability-registration__time-item-label">{{ slot.label }}</span>
-              <span class="availability-registration__time-item-check">
-                {{ isSlotSelected(selectedDay, slot.key) ? '✓' : '' }}
-              </span>
-            </button>
+          <div class="availability-registration__time-section">
+            <p class="availability-registration__time-section-title">오전</p>
+            <div class="availability-registration__time-list">
+              <button
+                v-for="slot in amSlots"
+                :key="`slot-${slot.key}`"
+                class="availability-registration__time-item"
+                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
+                type="button"
+                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
+                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
+                @click="toggleSlot(selectedDay, slot.key)"
+              >
+                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="availability-registration__time-section">
+            <p class="availability-registration__time-section-title">오후</p>
+            <div class="availability-registration__time-list">
+              <button
+                v-for="slot in pmSlots"
+                :key="`slot-${slot.key}`"
+                class="availability-registration__time-item"
+                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
+                type="button"
+                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
+                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
+                @click="toggleSlot(selectedDay, slot.key)"
+              >
+                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
+              </button>
+            </div>
           </div>
 
           <p class="availability-registration__selected-count">선택된 시간대 {{ selectedCount }}개</p>
@@ -145,6 +163,8 @@ function generateTimeSlots(startHour = 6, endHour = 22) {
 }
 
 const TIME_SLOTS = generateTimeSlots(6, 22)
+const amSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) < 12)
+const pmSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) >= 12)
 const TIME_SLOT_PATTERN = /^\d{2}:\d{2}$/
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']

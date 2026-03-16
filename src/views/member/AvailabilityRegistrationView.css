@@ -204,10 +204,17 @@
   color: var(--color-white);
 }
 
-.availability-registration__time-item-check {
-  font-size: var(--fs-body1);
+.availability-registration__time-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.availability-registration__time-section-title {
+  margin: 0;
+  font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
-  color: var(--color-white);
+  color: var(--color-gray-600);
 }
 
 .availability-registration__selected-count {
