@@ -53,7 +53,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   padding: 18px var(--side-margin) 0;
 }
 
@@ -142,71 +142,154 @@
   font-size: var(--fs-body2);
 }
 
-.availability-status__section {
+/* 미등록 배너 */
+.availability-status__pending-banner {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.availability-status__section-title {
-  margin: 0;
-  font-size: var(--fs-body1);
-  font-weight: var(--fw-body1-bold);
-}
-
-.availability-status__section-title--pending {
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-medium);
+  background-color: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
   color: var(--color-red);
-}
-
-.availability-status__section-title--submitted {
-  color: var(--color-green-dark);
-}
-
-.availability-status__section-empty {
-  margin: 0;
-  padding: 12px;
-  border-radius: var(--radius-medium);
-  background-color: rgba(255, 255, 255, 0.85);
-  color: var(--color-gray-600);
   font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-default);
 }
 
-.availability-status__member-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+.availability-status__pending-banner:active {
+  opacity: 0.75;
+}
+
+.availability-status__pending-banner-arrow {
+  font-size: var(--fs-caption);
+  opacity: 0.7;
+}
+
+/* 히트맵 래퍼 */
+.availability-status__heatmap-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-medium);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-gray-200);
   background-color: var(--color-white);
   box-shadow: var(--shadow-card);
 }
 
-.availability-status__member-card--pending {
-  border-color: rgba(255, 59, 48, 0.16);
+/* 히트맵 그리드 */
+.availability-status__heatmap {
+  display: grid;
+  grid-template-columns: 48px repeat(7, 1fr);
+  min-width: 320px;
 }
 
-.availability-status__member-card--submitted {
-  border-color: rgba(52, 199, 89, 0.2);
+/* 코너 셀 */
+.availability-status__heatmap-corner {
+  background-color: var(--color-gray-100);
+  border-right: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
-.availability-status__member-row {
+/* 요일 헤더 */
+.availability-status__heatmap-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  padding: 8px 4px;
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-right: 1px solid var(--color-gray-200);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
 }
 
-.availability-status__profile {
+.availability-status__heatmap-header:last-of-type {
+  border-right: none;
+}
+
+/* 시간 라벨 */
+.availability-status__heatmap-time {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  justify-content: center;
+  padding: 4px 2px;
+  background-color: var(--color-gray-100);
+  border-right: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 10px;
+  color: var(--color-gray-600);
+  white-space: nowrap;
 }
 
-.availability-status__avatar {
-  width: 42px;
-  height: 42px;
+/* 히트맵 셀 */
+.availability-status__heatmap-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.availability-status__heatmap-cell:active {
+  opacity: 0.7;
+}
+
+/* 색상 강도 */
+.availability-status__heatmap-cell--heat-0 {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-200);
+}
+
+.availability-status__heatmap-cell--heat-1 {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.availability-status__heatmap-cell--heat-2 {
+  background-color: rgba(0, 122, 255, 0.35);
+  color: var(--color-white);
+}
+
+.availability-status__heatmap-cell--heat-3 {
+  background-color: rgba(0, 122, 255, 0.65);
+  color: var(--color-white);
+}
+
+/* 바텀시트 내부 - 셀 회원 리스트 */
+.availability-status__cell-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.availability-status__cell-empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+.availability-status__cell-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.availability-status__cell-avatar {
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
@@ -215,99 +298,55 @@
   align-items: center;
   justify-content: center;
   color: var(--color-gray-600);
-  font-size: var(--fs-body2);
+  font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
 }
 
-.availability-status__avatar img {
+.availability-status__cell-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.availability-status__avatar-initial {
-  line-height: 1;
-}
-
-.availability-status__profile-meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.availability-status__name {
-  margin: 0;
+.availability-status__cell-name {
   color: var(--color-gray-900);
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.availability-status__badge {
-  width: fit-content;
-  display: inline-flex;
+/* 바텀시트 내부 - 미등록 회원 리스트 */
+.availability-status__pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.availability-status__pending-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-body1-bold);
+  gap: 12px;
+  padding: 8px 0;
 }
 
-.availability-status__badge--pending {
-  background-color: var(--color-red-light);
-  color: var(--color-red);
+.availability-status__pending-item .availability-status__cell-name {
+  flex: 1;
 }
 
-.availability-status__badge--submitted {
-  background-color: var(--color-green-light);
-  color: var(--color-green-dark);
-}
-
-.availability-status__summary {
-  margin: 0;
-  color: var(--color-gray-900);
-  font-size: var(--fs-body2);
-  line-height: var(--lh-body);
-}
-
-.availability-status__memo {
-  margin: 0;
-  color: var(--color-gray-600);
-  font-size: var(--fs-caption);
-  line-height: var(--lh-body);
-  word-break: keep-all;
-}
-
+/* 리마인더 버튼 */
 .availability-status__reminder-btn {
-  height: 34px;
+  height: 32px;
   padding: 0 12px;
   border-radius: var(--radius-small);
-  border: 1px solid transparent;
   background-color: var(--color-blue-primary);
   color: var(--color-white);
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
   white-space: nowrap;
-  transition:
-    opacity var(--animation-duration-fast) var(--animation-easing-default),
-    background-color var(--animation-duration-fast) var(--animation-easing-default);
+  flex-shrink: 0;
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-default);
 }
 
 .availability-status__reminder-btn:disabled {
   opacity: 0.55;
-}
-
-@media (max-width: 380px) {
-  .availability-status__member-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .availability-status__reminder-btn {
-    width: 100%;
-  }
 }

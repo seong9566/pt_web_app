@@ -283,13 +283,6 @@ function toMinutes(timeStr) {
   return (hour * 60) + minute
 }
 
-function getDayPeriod(timeStr) {
-  const hour = Number(String(timeStr || '00:00').slice(0, 2))
-  if (hour < 12) return 'morning'
-  if (hour < 18) return 'afternoon'
-  return 'evening'
-}
-
 function toDisplayDate(dateStr) {
   const date = parseDate(dateStr)
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${DAY_LABELS[date.getDay()]}`
@@ -335,7 +328,7 @@ function resolveAvailabilityState(availableSlots, dateStr, timeStr) {
   if (!availableSlots) return 'unknown'
   const dayKey = DAY_KEY_BY_INDEX[parseDate(dateStr).getDay()]
   const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
-  return daySlots.includes(getDayPeriod(timeStr)) ? 'available' : 'unavailable'
+  return daySlots.includes(timeStr) ? 'available' : 'unavailable'
 }
 
 function formatWorkoutSummary(exercises) {

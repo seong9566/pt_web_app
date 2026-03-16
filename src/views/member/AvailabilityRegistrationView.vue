@@ -50,31 +50,60 @@
         </section>
 
         <section class="availability-registration__card">
-          <div class="availability-registration__calendar-wrapper">
-            <div class="availability-registration__calendar-grid" :style="gridStyle">
-              <div class="availability-registration__grid-corner" />
-              <div
-                v-for="dayInfo in weekDaysWithDates"
-                :key="`header-${dayInfo.key}`"
-                class="availability-registration__grid-day-header"
-              >
-                <span class="availability-registration__grid-day-name">{{ dayInfo.label }}</span>
-                <span class="availability-registration__grid-day-date">{{ dayInfo.dateLabel }}</span>
-              </div>
+          <div class="availability-registration__day-tabs">
+            <button
+              v-for="day in weekDaysWithDates"
+              :key="`tab-${day.key}`"
+              class="availability-registration__day-tab"
+              :class="{ 'availability-registration__day-tab--active': selectedDay === day.key }"
+              type="button"
+              @click="selectedDay = day.key"
+            >
+              <span class="availability-registration__day-tab-label">{{ day.label }}</span>
+              <span
+                v-if="slots[day.key].length > 0"
+                class="availability-registration__day-tab-badge"
+              >{{ slots[day.key].length }}</span>
+            </button>
+          </div>
 
-              <template v-for="slot in TIME_SLOTS" :key="slot.key">
-                <div class="availability-registration__grid-time-label">{{ slot.label }}</div>
-                <button
-                  v-for="dayInfo in weekDaysWithDates"
-                  :key="`${dayInfo.key}-${slot.key}`"
-                  class="availability-registration__grid-cell"
-                  :class="{ 'availability-registration__grid-cell--active': isSlotSelected(dayInfo.key, slot.key) }"
-                  type="button"
-                  :aria-label="`${dayInfo.label} ${slot.label} 선택`"
-                  :aria-pressed="isSlotSelected(dayInfo.key, slot.key)"
-                  @click="toggleSlot(dayInfo.key, slot.key)"
-                />
-              </template>
+          <p class="availability-registration__selected-day-date">
+            {{ selectedDayInfo.label }}요일 {{ selectedDayInfo.dateLabel }}
+          </p>
+
+          <div class="availability-registration__time-section">
+            <p class="availability-registration__time-section-title">오전</p>
+            <div class="availability-registration__time-list">
+              <button
+                v-for="slot in amSlots"
+                :key="`slot-${slot.key}`"
+                class="availability-registration__time-item"
+                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
+                type="button"
+                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
+                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
+                @click="toggleSlot(selectedDay, slot.key)"
+              >
+                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="availability-registration__time-section">
+            <p class="availability-registration__time-section-title">오후</p>
+            <div class="availability-registration__time-list">
+              <button
+                v-for="slot in pmSlots"
+                :key="`slot-${slot.key}`"
+                class="availability-registration__time-item"
+                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
+                type="button"
+                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
+                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
+                @click="toggleSlot(selectedDay, slot.key)"
+              >
+                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
+              </button>
             </div>
           </div>
 
@@ -127,13 +156,16 @@ function generateTimeSlots(startHour = 6, endHour = 22) {
 
   for (let hour = startHour; hour < endHour; hour += 1) {
     const timeStr = `${String(hour).padStart(2, '0')}:00`
-    generatedSlots.push({ key: timeStr, label: timeStr })
+    const nextTimeStr = `${String(hour + 1).padStart(2, '0')}:00`
+    generatedSlots.push({ key: timeStr, label: `${timeStr} ~ ${nextTimeStr}` })
   }
 
   return generatedSlots
 }
 
 const TIME_SLOTS = generateTimeSlots(6, 22)
+const amSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) < 12)
+const pmSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) >= 12)
 const TIME_SLOT_PATTERN = /^\d{2}:\d{2}$/
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
@@ -214,12 +246,13 @@ const memo = ref('')
 const submitError = ref('')
 
 const selectedWeekOffset = ref(0)
+const selectedDay = ref(DAYS[0].key)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
 const weekDaysWithDates = computed(() => getWeekDatesForDays(selectedWeekStart.value))
-const gridStyle = computed(() => ({
-  gridTemplateColumns: `52px repeat(${weekDaysWithDates.value.length}, minmax(44px, 1fr))`,
-}))
+const selectedDayInfo = computed(() =>
+  weekDaysWithDates.value.find((day) => day.key === selectedDay.value) || weekDaysWithDates.value[0]
+)
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
