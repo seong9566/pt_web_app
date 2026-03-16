@@ -1,7 +1,7 @@
 /**
  * 예약 관리 컴포저블
  *
- * 예약 가능 시간 슬롯 계산, 예약 생성(RPC),
+ * 예약 가능 시간 슬롯 계산,
  * 예약 목록 조회, 상태 변경, 트레이너 연결 확인 기능 제공.
  */
 
@@ -63,6 +63,14 @@ export function useReservations() {
   const error = ref(null)
   const slotDuration = ref(60)
   const noSlotsReason = ref(null) // 'holiday' | 'non-working-day' | 'no-schedule' | null
+
+  async function refreshReservationsStore() {
+    const store = useReservationsStore()
+    store.invalidate()
+    if (auth.role === 'trainer' || auth.role === 'member') {
+      await store.loadReservations(auth.role, true)
+    }
+  }
 
   /** 특정 트레이너의 특정 날짜 예약 가능 시간 슬롯 조회 */
   async function fetchAvailableSlots(trainerId, dateStr) {
@@ -166,7 +174,7 @@ export function useReservations() {
         .select('start_time, end_time, status')
         .eq('trainer_id', trainerId)
         .eq('date', dateStr)
-        .in('status', ['pending', 'approved'])
+        .in('status', ['scheduled', 'confirmed'])
 
       if (bookedError) throw bookedError
 
@@ -180,21 +188,21 @@ export function useReservations() {
           return slotStartMinutes < rEnd && rStart < slotEndMinutes
         })
 
-        const hasApproved = overlapping.some((r) => r.status === 'approved')
-        const pendingCount = overlapping.filter((r) => r.status === 'pending').length
+        const hasConfirmed = overlapping.some((r) => r.status === 'confirmed')
+        const scheduledCount = overlapping.filter((r) => r.status === 'scheduled').length
 
         let status = '가능'
-        if (hasApproved) {
-          status = '마감'
-        } else if (pendingCount > 0) {
-          status = '대기중'
+        if (hasConfirmed) {
+          status = '확정됨'
+        } else if (scheduledCount > 0) {
+          status = '배정됨'
         }
 
         return {
           label: slot.label,
           val: slot.val,
           status,
-          pendingCount,
+          scheduledCount,
         }
       })
 
@@ -228,34 +236,38 @@ export function useReservations() {
     }
   }
 
-  /** 새로운 예약 생성 (RPC 호출) */
-  async function createReservation(trainerId, dateStr, startTime, sessionType) {
+  /** 트레이너가 회원에게 일정을 배정 */
+  async function assignSchedule(memberId, dateStr, startTime) {
     loading.value = true
     error.value = null
 
     try {
+      if (!auth.user?.id) {
+        throw new Error('로그인이 필요합니다.')
+      }
+
       const duration = slotDuration.value ?? 60
       const endTime = addMinutes(startTime, duration)
 
-      const { data, error: rpcError } = await supabase.rpc('create_reservation', {
-        p_trainer_id: trainerId,
+      const { data, error: rpcError } = await supabase.rpc('assign_schedule', {
+        p_trainer_id: auth.user.id,
+        p_member_id: memberId,
         p_date: dateStr,
         p_start_time: startTime,
         p_end_time: endTime,
-        p_session_type: sessionType,
       })
 
       if (rpcError) throw rpcError
+      await refreshReservationsStore()
       return data
     } catch (e) {
       const ERROR_MESSAGES = {
         'Reservation time slot is already booked': '해당 시간은 이미 예약이 확정되었습니다. 다른 시간을 선택해주세요.',
-        'Already requested this time slot': '이미 해당 시간에 예약을 요청하셨습니다.',
+        'Already requested this time slot': '해당 시간에는 이미 일정이 배정되었습니다.',
         'No active trainer-member connection': '트레이너와의 연결이 활성화되지 않았습니다.',
         'End time must be later than start time': '예약 시간이 올바르지 않습니다.',
-        'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.': 'PT 잔여 횟수가 부족합니다. 예약이 불가능합니다.',
       }
-      error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '예약 생성에 실패했습니다'
+      error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '일정 배정에 실패했습니다'
       return null
     } finally {
       loading.value = false
@@ -287,7 +299,7 @@ export function useReservations() {
     }
   }
 
-  /** 예약 상태 변경 (pending → approved → completed 등) */
+  /** 예약 상태 변경 (하위 호환용) */
   async function updateReservationStatus(reservationId, newStatus) {
     loading.value = true
     error.value = null
@@ -299,11 +311,7 @@ export function useReservations() {
         .eq('id', reservationId)
 
       if (updateError) throw updateError
-      const store = useReservationsStore()
-      store.invalidate()
-      if (auth.role === 'trainer' || auth.role === 'member') {
-        await store.loadReservations(auth.role, true)
-      }
+      await refreshReservationsStore()
       return true
     } catch (e) {
       error.value = e?.message ?? '예약 상태 변경에 실패했습니다'
@@ -313,26 +321,157 @@ export function useReservations() {
     }
   }
 
-  /** 예약 거절 (rejected 상태 + 사유 저장) */
-  async function rejectReservation(reservationId, reason) {
+  /** 회원이 스케줄 확정 */
+  async function confirmSchedule(reservationId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('trainer_id')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (reservationError) throw reservationError
+      if (!reservation?.trainer_id) {
+        throw new Error('예약 정보를 찾을 수 없습니다.')
+      }
+
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({ status: 'confirmed' })
+        .eq('id', reservationId)
+
+      if (updateError) throw updateError
+
+      const { error: notificationError } = await supabase.from('notifications').insert({
+        user_id: reservation.trainer_id,
+        type: 'schedule_confirmed',
+        target_id: reservationId,
+        target_type: 'reservation',
+      })
+
+      if (notificationError) throw notificationError
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '일정 확정에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 회원이 일정 변경 요청 */
+  async function requestChange(reservationId, reason) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('trainer_id')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (reservationError) throw reservationError
+      if (!reservation?.trainer_id) {
+        throw new Error('예약 정보를 찾을 수 없습니다.')
+      }
+
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({ status: 'change_requested', change_reason: reason || null })
+        .eq('id', reservationId)
+
+      if (updateError) throw updateError
+
+      const { error: notificationError } = await supabase.from('notifications').insert({
+        user_id: reservation.trainer_id,
+        type: 'change_requested',
+        target_id: reservationId,
+        target_type: 'reservation',
+      })
+
+      if (notificationError) throw notificationError
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '일정 변경 요청에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 트레이너가 기존 일정을 취소 후 재배정 */
+  async function reassignSchedule(reservationId, newDate, newStartTime) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('trainer_id, member_id, start_time, end_time')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (reservationError) throw reservationError
+      if (!reservation?.trainer_id || !reservation?.member_id) {
+        throw new Error('예약 정보를 찾을 수 없습니다.')
+      }
+
+      const existingDuration = toMinutes(reservation.end_time) - toMinutes(reservation.start_time)
+      const duration = existingDuration > 0 ? existingDuration : (slotDuration.value ?? 60)
+      const endTime = addMinutes(newStartTime, duration)
+
+      const { error: cancelError } = await supabase
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('id', reservationId)
+
+      if (cancelError) throw cancelError
+
+      const { error: assignError } = await supabase.rpc('assign_schedule', {
+        p_trainer_id: reservation.trainer_id,
+        p_member_id: reservation.member_id,
+        p_date: newDate,
+        p_start_time: newStartTime,
+        p_end_time: endTime,
+      })
+
+      if (assignError) throw assignError
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '일정 재배정에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 일정 취소 */
+  async function cancelSchedule(reservationId) {
     loading.value = true
     error.value = null
 
     try {
       const { error: updateError } = await supabase
         .from('reservations')
-        .update({ status: 'rejected', rejection_reason: reason || null })
+        .update({ status: 'cancelled' })
         .eq('id', reservationId)
 
       if (updateError) throw updateError
-      const store = useReservationsStore()
-      store.invalidate()
-      if (auth.role === 'trainer' || auth.role === 'member') {
-        await store.loadReservations(auth.role, true)
-      }
+
+      await refreshReservationsStore()
       return true
     } catch (e) {
-      error.value = e?.message ?? '예약 거절에 실패했습니다'
+      error.value = e?.message ?? '일정 취소에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -397,10 +536,13 @@ export function useReservations() {
     slotDuration,
     noSlotsReason,
     fetchAvailableSlots,
-    createReservation,
+    assignSchedule,
     fetchMyReservations,
     updateReservationStatus,
-    rejectReservation,
+    confirmSchedule,
+    requestChange,
+    reassignSchedule,
+    cancelSchedule,
     checkTrainerConnection,
     getConnectedTrainerId,
     checkPtCount,

@@ -330,8 +330,13 @@ function nextMonth() {
   border-radius: 50%;
 }
 
-.app-calendar__dot--pending   { background-color: var(--color-yellow); }
-.app-calendar__dot--approved  { background-color: var(--color-green); }
-.app-calendar__dot--done      { background-color: var(--color-gray-400); }
-.app-calendar__dot--cancelled { background-color: var(--color-red); }
+.app-calendar__dot--pending        { background-color: var(--color-yellow); }
+.app-calendar__dot--approved       { background-color: var(--color-green); }
+.app-calendar__dot--done           { background-color: var(--color-gray-400); }
+.app-calendar__dot--cancelled      { background-color: var(--color-red); }
+/* 신규 상태 도트 */
+.app-calendar__dot--scheduled      { background-color: var(--color-yellow); }
+.app-calendar__dot--confirmed      { background-color: var(--color-green); }
+.app-calendar__dot--change_requested { background-color: var(--color-orange); }
+.app-calendar__dot--completed      { background-color: var(--color-gray-400); }
 </style>
