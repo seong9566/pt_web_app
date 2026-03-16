@@ -7,16 +7,6 @@
  * 상태: reservations(예약 목록), lastFetchedAt(마지막 조회 시각), _dirty(무효화 플래그)
  */
 
-export const STATUS_DISPLAY = {
-  scheduled: '배정됨',
-  confirmed: '확정됨',
-  change_requested: '변경요청',
-  completed: '완료',
-  cancelled: '취소됨',
-  pending: '대기중',
-  approved: '승인됨',
-}
-
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
