@@ -6,6 +6,17 @@
  *
  * 상태: reservations(예약 목록), lastFetchedAt(마지막 조회 시각), _dirty(무효화 플래그)
  */
+
+export const STATUS_DISPLAY = {
+  scheduled: '배정됨',
+  confirmed: '확정됨',
+  change_requested: '변경요청',
+  completed: '완료',
+  cancelled: '취소됨',
+  pending: '대기중',
+  approved: '승인됨',
+}
+
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
@@ -57,6 +68,7 @@ export const useReservationsStore = defineStore('reservations', () => {
         status,
         session_type,
         rejection_reason,
+        change_reason,
         created_at,
         trainer_profile:trainer_id(name, photo_url),
         member_profile:member_id(name, photo_url)
@@ -81,6 +93,7 @@ export const useReservationsStore = defineStore('reservations', () => {
           session_type: item.session_type,
           created_at: item.created_at,
           rejection_reason: item.rejection_reason ?? null,
+          change_reason: item.change_reason ?? null,
           partner_name: partnerProfile?.name ?? '이름 없음',
           partner_photo: partnerProfile?.photo_url ?? null,
         }
