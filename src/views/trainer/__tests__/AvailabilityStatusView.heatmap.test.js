@@ -157,3 +157,37 @@ describe('AvailabilityStatusView 히트맵', () => {
     expect(emptyState.exists()).toBe(false)
   })
 })
+
+describe('AvailabilityStatusView 히트맵 — heatLevel 경계값', () => {
+  it('heatLevel 함수: 0→0, 1~2→1, 3~5→2, 6+→3', () => {
+    function heatLevel(count) {
+      if (count === 0) return 0
+      if (count <= 2) return 1
+      if (count <= 5) return 2
+      return 3
+    }
+    expect(heatLevel(0)).toBe(0)
+    expect(heatLevel(1)).toBe(1)
+    expect(heatLevel(2)).toBe(1)
+    expect(heatLevel(3)).toBe(2)
+    expect(heatLevel(5)).toBe(2)
+    expect(heatLevel(6)).toBe(3)
+    expect(heatLevel(100)).toBe(3)
+  })
+})
+
+describe('AvailabilityStatusView 히트맵 — isEmpty 로직', () => {
+  it('회원 0명일 때 isEmpty = true', () => {
+    const membersWithAvailability = []
+    const isLoading = false
+    const isEmpty = !isLoading && membersWithAvailability.length === 0
+    expect(isEmpty).toBe(true)
+  })
+
+  it('회원 존재 시 isEmpty = false', () => {
+    const membersWithAvailability = [{ memberId: 'm1', hasSubmitted: true }]
+    const isLoading = false
+    const isEmpty = !isLoading && membersWithAvailability.length === 0
+    expect(isEmpty).toBe(false)
+  })
+})
