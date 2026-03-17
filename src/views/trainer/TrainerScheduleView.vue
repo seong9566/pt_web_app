@@ -41,6 +41,7 @@
         <AppWeeklyCalendar
           :schedules="weeklySchedules"
           :workSchedule="workSchedule"
+          :slotDuration="workSchedule.slotDuration"
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"

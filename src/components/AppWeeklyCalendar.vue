@@ -60,6 +60,13 @@
               v-if="rowIndex === 0 && isHoliday(date)"
               class="weekly-calendar__holiday-label"
             >휴무</span>
+
+            <span
+              v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
+              class="weekly-calendar__available-count"
+            >
+              가능 {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+            </span>
           </div>
         </template>
       </div>
@@ -95,6 +102,7 @@ const props = defineProps({
   currentWeekStart: { type: String, required: true },
   role: { type: String, default: 'trainer' },
   availabilities: { type: Array, default: () => [] },
+  slotDuration: { type: Number, default: 60 },
 })
 
 const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change'])
@@ -131,8 +139,8 @@ function addDays(dateStr, amount) {
 
 const todayString = formatDate(new Date())
 
-const slotDuration = computed(() => {
-  const unit = Number(props.workSchedule?.slotDuration)
+const effectiveSlotDuration = computed(() => {
+  const unit = Number(props.slotDuration)
   return Number.isFinite(unit) && unit > 0 ? unit : 60
 })
 
@@ -141,7 +149,7 @@ const endMinutes = computed(() => timeToMinutes(props.workSchedule?.endTime || '
 
 const timeSlots = computed(() => {
   const slots = []
-  for (let minute = startMinutes.value; minute < endMinutes.value; minute += slotDuration.value) {
+  for (let minute = startMinutes.value; minute < endMinutes.value; minute += effectiveSlotDuration.value) {
     slots.push(minutesToTime(minute))
   }
   return slots
@@ -167,7 +175,7 @@ const normalizedSchedules = computed(() => {
         ...schedule,
         startMinutes: start,
         endMinutes: end,
-        duration: Math.max(slotDuration.value, end - start),
+        duration: Math.max(effectiveSlotDuration.value, end - start),
       }
     })
     .sort((a, b) => a.startMinutes - b.startMinutes)
@@ -241,7 +249,7 @@ function getBlockClass(status) {
 
 function getBlockStyle(schedule) {
   const color = STATUS_COLORS[schedule.status] || 'var(--color-gray-600)'
-  const ratio = schedule.duration / slotDuration.value
+  const ratio = schedule.duration / effectiveSlotDuration.value
 
   return {
     backgroundColor: color,
@@ -249,10 +257,15 @@ function getBlockStyle(schedule) {
   }
 }
 
+function getAvailableCount(date, time) {
+  if (!props.availabilities || props.availabilities.length === 0) return 0
+  return countAvailableMembers(props.availabilities, date, time, props.slotDuration)
+}
+
 function hasAvailableMember(date, time) {
   const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
   if (!dayKey) return false
-  return countAvailableMembers(props.availabilities, date, time, slotDuration.value) > 0
+  return getAvailableCount(date, time) > 0
 }
 
 function moveWeek(amount) {

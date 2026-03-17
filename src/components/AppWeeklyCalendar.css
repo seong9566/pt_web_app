@@ -169,6 +169,17 @@
   color: var(--color-gray-600);
 }
 
+.weekly-calendar__available-count {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: var(--fs-caption);
+  color: var(--color-blue-primary);
+  font-weight: var(--fw-caption);
+  line-height: 1;
+  pointer-events: none;
+}
+
 .weekly-calendar__empty-text {
   padding: 14px;
   text-align: center;
