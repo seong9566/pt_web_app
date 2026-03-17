@@ -54,7 +54,7 @@
               v-if="getScheduleAtSlot(date, time)"
               class="weekly-calendar__block"
               :class="[
-                getBlockClass(getScheduleAtSlot(date, time).status),
+                getBlockClass(getScheduleAtSlot(date, time)),
                 { 'weekly-calendar__block--dragging': dndState === 'dragging' && dragSchedule?.id === getScheduleAtSlot(date, time).id },
               ]"
               :style="getBlockStyle(getScheduleAtSlot(date, time))"
@@ -122,6 +122,7 @@ const props = defineProps({
   availabilities: { type: Array, default: () => [] },
   slotDuration: { type: Number, default: 60 },
   draggable: { type: Boolean, default: false },
+  memberColors: { type: Object, default: () => ({}) },
 })
 
 const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change', 'schedule-drop'])
@@ -265,22 +266,46 @@ function getBlockLabel(schedule) {
   return ''
 }
 
-function getBlockClass(status) {
-  const normalizedStatus = (status === 'pending' || status === 'approved' || status === 'confirmed')
+function hasMemberColor(schedule) {
+  return props.role === 'trainer' && schedule?.member_id && props.memberColors[schedule.member_id]
+}
+
+function getStatusColor(status) {
+  return STATUS_COLORS[status] || STATUS_COLORS.scheduled
+}
+
+function getBlockClass(schedule) {
+  if (!schedule) {
+    return ''
+  }
+
+  if (hasMemberColor(schedule)) {
+    return schedule.status === 'completed' ? 'weekly-calendar__block--completed-member' : ''
+  }
+
+  const normalizedStatus = (schedule.status === 'pending' || schedule.status === 'approved' || schedule.status === 'confirmed')
     ? 'scheduled'
-    : status
+    : schedule.status
 
   return `weekly-calendar__block--${normalizedStatus}`
 }
 
 function getBlockStyle(schedule) {
-  const color = STATUS_COLORS[schedule.status] || 'var(--color-gray-600)'
   const ratio = schedule.duration / effectiveSlotDuration.value
-
-  return {
-    backgroundColor: color,
+  const style = {
     height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px`,
   }
+
+  if (hasMemberColor(schedule)) {
+    style.backgroundColor = props.memberColors[schedule.member_id]
+    if (schedule.status === 'completed') {
+      style.opacity = '0.5'
+    }
+    return style
+  }
+
+  style.backgroundColor = getStatusColor(schedule.status)
+  return style
 }
 
 function getAvailableCount(date, time) {
@@ -368,6 +393,12 @@ function handlePointerMove(event) {
 }
 
 function updateGhostPosition(x, y) {
+  const ghostColor = dragSchedule.value
+    ? (hasMemberColor(dragSchedule.value)
+      ? props.memberColors[dragSchedule.value.member_id]
+      : getStatusColor(dragSchedule.value.status))
+    : 'var(--color-blue-primary)'
+
   ghostStyle.value = {
     position: 'fixed',
     left: `${x - 26}px`,
@@ -378,9 +409,7 @@ function updateGhostPosition(x, y) {
     pointerEvents: 'none',
     opacity: 0.8,
     boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-    backgroundColor: dragSchedule.value
-      ? (STATUS_COLORS[dragSchedule.value.status] || 'var(--color-gray-600)')
-      : 'var(--color-blue-primary)',
+    backgroundColor: ghostColor,
     borderRadius: 'var(--radius-medium)',
   }
 }
