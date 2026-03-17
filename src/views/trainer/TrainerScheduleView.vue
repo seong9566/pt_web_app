@@ -449,6 +449,7 @@ const weeklySchedules = computed(() => {
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
+      category: workoutMap.value[reservation.member_id]?.category || null,
     }))
 })
 
@@ -517,7 +518,7 @@ const calendarColorDots = computed(() => {
 const workoutMap = computed(() => {
   const map = {}
   dayWorkoutPlans.value.forEach((plan) => {
-    map[plan.member_id] = plan.exercises
+    map[plan.member_id] = { exercises: plan.exercises, category: plan.category }
   })
   return map
 })
@@ -535,7 +536,7 @@ const selectedDateSessions = computed(() => {
       photo: reservation.partner_photo,
       member_id: reservation.member_id,
       change_reason: reservation.change_reason,
-      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]),
+      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]?.exercises || workoutMap.value[reservation.member_id]),
     }))
 })
 
