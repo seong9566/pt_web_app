@@ -251,8 +251,8 @@ function fetchNextWorkoutPlan() {
   const nowTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
   const next = reservations.value
     .filter(r => {
-      // 레거시 데이터 호환성: approved 또는 confirmed 상태 모두 포함
-      if (r.status !== 'confirmed' && r.status !== 'approved') return false
+      // scheduled, confirmed, approved 상태 모두 포함
+      if (r.status !== 'scheduled' && r.status !== 'confirmed' && r.status !== 'approved') return false
       const rd = typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0]
       return rd > todayStr || (rd === todayStr && (r.start_time || '') > nowTime)
     })
@@ -281,8 +281,8 @@ const nextSession = computed(() => {
 
   const upcoming = reservations.value
     .filter(r => {
-      // 레거시 데이터 호환성: confirmed 또는 approved 상태 모두 포함
-      if (r.status !== 'confirmed' && r.status !== 'approved') return false
+      // scheduled, confirmed, approved 상태 모두 포함
+      if (r.status !== 'scheduled' && r.status !== 'confirmed' && r.status !== 'approved') return false
       const rDate = typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0]
       return rDate > todayStr || (rDate === todayStr && (r.start_time || '') > nowTime)
     })
@@ -326,8 +326,8 @@ const weekGoal = computed(() => {
 
   const weekReservations = reservations.value.filter(r => {
     const d = new Date(r.date)
-    // 레거시 데이터 호환성: confirmed 또는 approved 상태 모두 포함
-    return d >= weekStart && (r.status === 'confirmed' || r.status === 'approved' || r.status === 'completed')
+    // scheduled, confirmed, approved, completed 상태 모두 포함
+    return d >= weekStart && (r.status === 'scheduled' || r.status === 'confirmed' || r.status === 'approved' || r.status === 'completed')
   })
 
   const total = weekReservations.length || 1
