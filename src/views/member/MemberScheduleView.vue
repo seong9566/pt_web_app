@@ -362,7 +362,9 @@ const reservationItems = computed(() => {
       trainer_name: reservation.partner_name,
       trainer_photo: reservation.partner_photo,
       change_reason: reservation.change_reason,
-      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.date]),
+      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date]),
+      exercises: workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date] || [],
+      category: workoutPlanCache.value[reservation.date]?.category || null,
     }))
     .sort((a, b) => {
       if (a.date !== b.date) {
@@ -385,6 +387,7 @@ const weeklySchedules = computed(() => {
       status: reservation.status,
       trainer_name: reservation.trainer_name,
       member_name: '',
+      category: reservation.category,
     }))
 })
 
@@ -459,7 +462,7 @@ async function loadWorkoutForDate(dateStr) {
   }
 
   await fetchWorkoutPlan(undefined, dateStr)
-  workoutPlanCache.value[dateStr] = currentPlan.value ? [...(currentPlan.value.exercises || [])] : null
+  workoutPlanCache.value[dateStr] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
 }
 
 async function loadData() {
