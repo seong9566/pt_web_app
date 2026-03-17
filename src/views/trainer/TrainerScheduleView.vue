@@ -43,6 +43,7 @@
           :workSchedule="workSchedule"
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
+          :availabilities="weekAvailabilities"
           role="trainer"
           @slot-tap="handleSlotTap"
           @schedule-tap="handleScheduleTap"
@@ -370,6 +371,7 @@ const selectedSchedule = ref(null)
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
+const weekAvailabilities = ref([])
 
 const changeRequestCount = computed(() => {
   return reservations.value.filter((reservation) => reservation.status === 'change_requested').length
@@ -532,6 +534,9 @@ async function loadData() {
   await loadOverrides(currentMonthKey.value)
   await fetchDayWorkoutPlans(selectedDate.value)
 
+  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  weekAvailabilities.value = availRows || []
+
   loaded.value = true
 }
 
@@ -548,6 +553,9 @@ async function handleRefresh() {
 
   await loadOverrides(monthKey)
   await fetchDayWorkoutPlans(selectedDate.value)
+
+  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  weekAvailabilities.value = availRows || []
 }
 
 async function switchView(view) {
@@ -573,6 +581,8 @@ async function handleWeekChange({ weekStart }) {
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
   await loadOverrides(currentMonthKey.value)
+  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  weekAvailabilities.value = availRows || []
 }
 
 async function handleMonthChange(month) {
@@ -584,7 +594,6 @@ async function handleMonthDateSelect(date) {
   selectedDate.value = date
   currentWeekStart.value = getWeekStart(date)
   currentMonthKey.value = date.slice(0, 7)
-  currentView.value = 'weekly'
   await loadOverrides(currentMonthKey.value)
 }
 

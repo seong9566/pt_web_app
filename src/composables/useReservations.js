@@ -318,6 +318,7 @@ export function useReservations() {
     }
   }
 
+
   /** 회원이 일정 변경 요청 */
   async function requestChange(reservationId, reason) {
     loading.value = true
@@ -345,6 +346,8 @@ export function useReservations() {
       const { error: notificationError } = await supabase.from('notifications').insert({
         user_id: reservation.trainer_id,
         type: 'change_requested',
+        title: '일정 변경 요청',
+        body: '회원이 일정 변경을 요청했습니다.',
         target_id: reservationId,
         target_type: 'reservation',
       })

@@ -105,6 +105,10 @@
   background-color: var(--color-gray-100);
 }
 
+.weekly-calendar__cell--available {
+  background-color: var(--color-blue-light);
+}
+
 .weekly-calendar__block {
   position: absolute;
   inset: 2px;
