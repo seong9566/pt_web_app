@@ -61,6 +61,7 @@
             <AppCalendar
               :model-value="selectedDate"
               :dots="calendarDots"
+              :holidays="monthlyHolidays"
               @update:modelValue="handleMonthDateSelect"
               @monthChange="handleMonthChange"
             />
@@ -422,6 +423,31 @@ const holidays = computed(() => {
     for (let index = 0; index < 7; index += 1) {
       const dateStr = addDays(currentWeekStart.value, index - 1)
       const dayOfWeek = parseDate(dateStr).getDay()
+      if (!workingDays.value.has(dayOfWeek)) {
+        holidaySet.add(dateStr)
+      }
+    }
+  }
+
+  return Array.from(holidaySet)
+})
+
+const monthlyHolidays = computed(() => {
+  const holidaySet = new Set()
+
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+
+  if (workingDays.value.size > 0) {
+    const [year, month] = currentMonthKey.value.split('-').map(Number)
+    const daysInMonth = new Date(year, month, 0).getDate()
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const dateStr = `${currentMonthKey.value}-${pad(day)}`
+      const dayOfWeek = new Date(year, month - 1, day).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)
       }

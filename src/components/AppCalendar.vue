@@ -33,7 +33,7 @@
         :key="cell.key"
         class="app-calendar__cell"
         :class="{ 'app-calendar__cell--empty': !cell.date }"
-        @click="cell.date && !isPast(cell.date) && !isDisabled(cell.date) && handleSelect(cell.date)"
+        @click="cell.date && !isDisabled(cell.date) && handleSelect(cell.date)"
       >
         <div
           v-if="cell.date"
@@ -52,6 +52,7 @@
               'app-calendar__num--today': !isSelected(cell.date) && isToday(cell.date),
               'app-calendar__num--past': isPast(cell.date),
               'app-calendar__num--disabled': !isPast(cell.date) && isDisabled(cell.date),
+              'app-calendar__num--holiday': !isSelected(cell.date) && !isPast(cell.date) && isHoliday(cell.date),
               'app-calendar__num--sun': !isPast(cell.date) && !isDisabled(cell.date) && cell.isSun,
               'app-calendar__num--sat': !isPast(cell.date) && !isDisabled(cell.date) && cell.isSat,
             }"
@@ -80,6 +81,7 @@ const props = defineProps({
   dots: { type: Object, default: () => ({}) },
   colorDots: { type: Object, default: () => ({}) },
   disabledDates: { type: Array, default: () => [] },
+  holidays: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue', 'monthChange'])
@@ -152,6 +154,11 @@ function isPast(day) {
 function isDisabled(day) {
   const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
   return props.disabledDates.includes(dateStr)
+}
+
+function isHoliday(day) {
+  const dateStr = `${displayYear.value}-${pad(displayMonth.value)}-${pad(day)}`
+  return props.holidays.includes(dateStr)
 }
 
 function handleSelect(day) {
@@ -320,6 +327,22 @@ function nextMonth() {
 
 .app-calendar__num--disabled {
   color: var(--color-gray-400);
+}
+
+/* ── Holiday ── */
+.app-calendar__inner--holiday {
+  background-color: var(--color-gray-100);
+}
+
+.app-calendar__num--holiday {
+  color: var(--color-gray-400);
+}
+
+.app-calendar__holiday-label {
+  font-size: 9px;
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-400);
+  line-height: 1;
 }
 
 /* ── Dots ── */
