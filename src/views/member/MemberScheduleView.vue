@@ -179,12 +179,8 @@
           변경 사유: {{ selectedSchedule.change_reason }}
         </p>
 
-        <div v-if="canConfirm(selectedSchedule.status)" class="detail-sheet__actions">
-          <AppButton :disabled="loading" @click="handleConfirm">확인</AppButton>
+        <div v-if="canCancel(selectedSchedule.status)" class="detail-sheet__actions">
           <AppButton variant="secondary" :disabled="loading" @click="openChangeRequest">변경 요청</AppButton>
-        </div>
-
-        <div v-else-if="canCancel(selectedSchedule.status)" class="detail-sheet__actions">
           <AppButton variant="outline" :disabled="loading" @click="handleCancel">취소</AppButton>
         </div>
 
@@ -291,7 +287,7 @@ function toMinutes(timeStr) {
 
 function normalizeStatus(status) {
   if (status === 'pending') return 'scheduled'
-  if (status === 'approved') return 'confirmed'
+  if (status === 'approved') return 'scheduled'
   return status
 }
 
@@ -326,7 +322,6 @@ const {
   loading,
   error,
   fetchMyReservations,
-  confirmSchedule,
   requestChange,
   cancelSchedule,
   checkTrainerConnection,
@@ -422,12 +417,8 @@ const selectedDateSessions = computed(() => {
 
 const selectedDateLabel = computed(() => toDisplayDate(selectedDate.value))
 
-function canConfirm(status) {
-  return normalizeStatus(status) === 'scheduled'
-}
-
 function canCancel(status) {
-  return normalizeStatus(status) === 'confirmed'
+  return normalizeStatus(status) === 'scheduled'
 }
 
 function isChangeRequested(status) {
@@ -545,23 +536,6 @@ function handleScheduleTap({ scheduleId }) {
   openScheduleDetail(scheduleId)
 }
 
-async function handleConfirm() {
-  if (!selectedSchedule.value) {
-    return
-  }
-
-  const scheduleId = selectedSchedule.value.id
-  const confirmed = await confirmSchedule(scheduleId)
-  if (!confirmed) {
-    showToast(error.value || '일정 확인에 실패했습니다.', 'error')
-    return
-  }
-
-  showSuccess('일정을 확인했습니다.')
-  showDetailSheet.value = false
-  await fetchMyReservations('member')
-}
-
 function openChangeRequest() {
   showDetailSheet.value = false
   changeReason.value = ''
@@ -596,7 +570,7 @@ async function handleCancel() {
     return
   }
 
-  const accepted = await confirm('확정된 일정을 취소하시겠습니까?')
+  const accepted = await confirm('배정된 일정을 취소하시겠습니까?')
   if (!accepted) {
     return
   }
