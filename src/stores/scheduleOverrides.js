@@ -68,8 +68,6 @@ export const useScheduleOverridesStore = defineStore('scheduleOverrides', () => 
   }
 
   return {
-    _cache,
-    _dirty,
     loadOverrides,
     getOverridesForMonth,
     invalidateMonth,

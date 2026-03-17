@@ -58,13 +58,13 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
     }
 
     for (const date of datesToFetch) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('workout_plans')
         .select('member_id, category')
         .eq('trainer_id', trainerId)
         .eq('date', date)
 
-      if (data) {
+      if (!error && data) {
         data.forEach((plan) => {
           const key = `${date}-${plan.member_id}`
           _weeklyCache.value.set(key, {
@@ -101,9 +101,6 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
   }
 
   return {
-    _dayPlansCache,
-    _weeklyCache,
-    _dirty,
     loadDayWorkoutPlans,
     loadWeeklyWorkoutCategories,
     getWeeklyCategory,

@@ -107,8 +107,6 @@ export const useAvailabilityStore = defineStore('availability', () => {
   }
 
   return {
-    _cache,
-    _dirty,
     loadMemberAvailabilities,
     invalidate,
     $reset,
