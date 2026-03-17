@@ -553,6 +553,9 @@ async function handleRefresh() {
 
   await loadOverrides(monthKey)
   await fetchDayWorkoutPlans(selectedDate.value)
+
+  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  weekAvailabilities.value = availRows || []
 }
 
 async function switchView(view) {
