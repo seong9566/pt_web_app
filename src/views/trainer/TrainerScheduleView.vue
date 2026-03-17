@@ -38,6 +38,9 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
+        <div v-if="calendarLoading" class="trainer-schedule__calendar-overlay">
+          <div class="trainer-schedule__spinner" />
+        </div>
         <AppWeeklyCalendar
           :schedules="weeklySchedules"
           :workSchedule="workSchedule"
@@ -63,6 +66,9 @@
       </section>
 
       <section v-else class="trainer-schedule__monthly">
+        <div v-if="calendarLoading" class="trainer-schedule__calendar-overlay">
+          <div class="trainer-schedule__spinner" />
+        </div>
         <div class="trainer-schedule__monthly-card">
           <AppCalendar
             :model-value="selectedDate"
@@ -372,6 +378,7 @@ const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan, lo
 const todayStr = formatDate(new Date())
 
 const loaded = ref(false)
+const calendarLoading = ref(false)
 const currentView = ref('weekly')
 const selectedDate = ref(todayStr)
 const currentWeekStart = ref(getWeekStart(todayStr))
@@ -627,13 +634,18 @@ async function loadData() {
 
   await loadWorkingDaySet()
 
-  const [, , availRows] = await Promise.all([
-    loadOverrides(currentMonthKey.value),
-    fetchDayWorkoutPlans(selectedDate.value),
-    fetchMemberAvailabilities(currentWeekStart.value),
-    loadWeeklyWorkouts(),
-  ])
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(currentMonthKey.value),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 
   loaded.value = true
 }
@@ -653,13 +665,18 @@ async function handleRefresh() {
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  const [, , availRows] = await Promise.all([
-    loadOverrides(monthKey),
-    fetchDayWorkoutPlans(selectedDate.value),
-    fetchMemberAvailabilities(currentWeekStart.value),
-    loadWeeklyWorkouts(),
-  ])
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(monthKey),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 }
 
 async function switchView(view) {
@@ -685,12 +702,17 @@ async function handleWeekChange({ weekStart }) {
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
 
-  const [, availRows] = await Promise.all([
-    loadOverrides(currentMonthKey.value),
-    fetchMemberAvailabilities(currentWeekStart.value),
-    loadWeeklyWorkouts(),
-  ])
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, availRows] = await Promise.all([
+      loadOverrides(currentMonthKey.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 }
 
 async function handleMonthChange(month) {
@@ -897,13 +919,18 @@ onActivated(async () => {
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  const [, , availRows] = await Promise.all([
-    loadOverrides(monthKey),
-    fetchDayWorkoutPlans(selectedDate.value),
-    fetchMemberAvailabilities(currentWeekStart.value),
-    loadWeeklyWorkouts(),
-  ])
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(monthKey),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 })
 </script>
 
