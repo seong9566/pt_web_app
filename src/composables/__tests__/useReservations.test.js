@@ -113,7 +113,17 @@ describe('useReservations', () => {
 
   it('cancelSchedule이 예약을 cancelled 상태로 변경한다', async () => {
     const builder = createBuilder()
-    builder.eq.mockResolvedValue({ error: null })
+    // 1. select('trainer_id, member_id').eq().maybeSingle() → reservation 반환
+    builder.maybeSingle.mockResolvedValueOnce({
+      data: { trainer_id: 'trainer-1', member_id: 'member-1' },
+      error: null,
+    })
+    // 2. update().eq() → 성공
+    builder.eq
+      .mockReturnValueOnce(builder)   // select 체인의 .eq
+      .mockResolvedValueOnce({ error: null })  // update 체인의 .eq
+    // 3. insert() → 알림 성공
+    builder.insert.mockResolvedValueOnce({ error: null })
     mockEnv.supabase.from.mockReturnValue(builder)
 
     const { cancelSchedule } = useReservations()
@@ -199,5 +209,89 @@ describe('useReservations', () => {
 
     expect(result).toBeNull()
     expect(error.value).toBeTruthy()
+  })
+
+  it('cancelSchedule이 트레이너 취소 시 회원에게 reservation_cancelled 알림을 생성한다', async () => {
+    const builder = createBuilder()
+    builder.maybeSingle.mockResolvedValueOnce({
+      data: { trainer_id: 'trainer-1', member_id: 'member-1' },
+      error: null,
+    })
+    builder.eq
+      .mockReturnValueOnce(builder)
+      .mockResolvedValueOnce({ error: null })
+    builder.insert.mockResolvedValueOnce({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { cancelSchedule } = useReservations()
+    await cancelSchedule('reservation-id')
+
+    expect(builder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'member-1',
+        type: 'reservation_cancelled',
+        title: '일정 취소',
+        body: '트레이너가 PT 일정을 취소했습니다.',
+      })
+    )
+  })
+
+  it('cancelSchedule이 회원 취소 시 트레이너에게 reservation_cancelled 알림을 생성한다', async () => {
+    mockEnv.authStore.user = { id: 'member-1' }
+
+    const builder = createBuilder()
+    builder.maybeSingle.mockResolvedValueOnce({
+      data: { trainer_id: 'trainer-1', member_id: 'member-1' },
+      error: null,
+    })
+    builder.eq
+      .mockReturnValueOnce(builder)
+      .mockResolvedValueOnce({ error: null })
+    builder.insert.mockResolvedValueOnce({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { cancelSchedule } = useReservations()
+    await cancelSchedule('reservation-id')
+
+    expect(builder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'trainer-1',
+        type: 'reservation_cancelled',
+        title: '일정 취소',
+        body: '회원이 PT 일정을 취소했습니다.',
+      })
+    )
+
+    mockEnv.authStore.user = { id: 'trainer-1' }
+  })
+
+  it('reassignSchedule이 성공 후 schedule_reassigned 알림을 생성한다', async () => {
+    const builder = createBuilder()
+    // 1. select('trainer_id, member_id, start_time, end_time').eq().maybeSingle()
+    builder.maybeSingle.mockResolvedValueOnce({
+      data: { trainer_id: 'trainer-1', member_id: 'member-1', start_time: '14:00', end_time: '15:00' },
+      error: null,
+    })
+    // 2. update (cancel old).eq() → 성공
+    builder.eq
+      .mockReturnValueOnce(builder)   // select 체인
+      .mockResolvedValueOnce({ error: null })  // update 체인
+    // 3. rpc assign_schedule → 성공
+    mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
+    // 4. insert (notification) → 성공
+    builder.insert.mockResolvedValueOnce({ error: null })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { reassignSchedule } = useReservations()
+    const result = await reassignSchedule('reservation-id', '2026-03-25', '10:00')
+
+    expect(result).toBe(true)
+    expect(builder.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'member-1',
+        type: 'schedule_reassigned',
+        title: '일정 재배정',
+      })
+    )
   })
 })
