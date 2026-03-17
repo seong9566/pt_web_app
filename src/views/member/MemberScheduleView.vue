@@ -170,6 +170,10 @@
             {{ statusLabel(selectedSchedule.status) }}
           </span>
         </div>
+        <div v-if="selectedSchedule.category" class="detail-sheet__row">
+          <span class="detail-sheet__label">운동 카테고리</span>
+          <span class="detail-sheet__value">{{ selectedSchedule.category }}</span>
+        </div>
 
         <div
           v-if="selectedSchedule.exercises && selectedSchedule.exercises.length > 0"
@@ -501,6 +505,18 @@ async function loadWorkoutForDate(dateStr) {
   workoutPlanCache.value[dateStr] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
 }
 
+async function preloadWeeklyWorkouts() {
+  const weekEnd = addDays(currentWeekStart.value, 7)
+  const dates = new Set(
+    reservationItems.value
+      .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
+      .map(r => r.date)
+  )
+  for (const date of dates) {
+    await loadWorkoutForDate(date)
+  }
+}
+
 async function loadData() {
   const connected = await checkTrainerConnection()
   hasActiveConnection.value = connected
@@ -515,6 +531,7 @@ async function loadData() {
 
   await fetchMyReservations('member')
   await loadWorkoutForDate(selectedDate.value)
+  await preloadWeeklyWorkouts()
 
   const trainerId = await getConnectedTrainerId()
   connectedTrainerId.value = trainerId
@@ -553,6 +570,7 @@ async function handleWeekChange({ weekStart }) {
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
   await loadWorkoutForDate(weekStart)
+  await preloadWeeklyWorkouts()
 
   if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
     await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)

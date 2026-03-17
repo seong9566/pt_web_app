@@ -188,6 +188,10 @@
             {{ statusLabel(selectedSchedule.status) }}
           </span>
         </div>
+        <div v-if="detailCategory" class="detail-sheet__row">
+          <span class="detail-sheet__label">운동 카테고리</span>
+          <span class="detail-sheet__value">{{ detailCategory }}</span>
+        </div>
         <div v-if="detailExercises.length > 0" class="detail-sheet__workout-section">
           <span class="detail-sheet__label">배정 운동</span>
           <ul class="detail-sheet__exercise-list">
@@ -244,6 +248,7 @@ import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useMembersStore } from '@/stores/members'
 import { useReservationsStore } from '@/stores/reservations'
@@ -384,6 +389,8 @@ const selectedSlotDate = ref('')
 const selectedSlotTime = ref('')
 const selectedSchedule = ref(null)
 const detailExercises = ref([])
+const detailCategory = ref('')
+const weeklyWorkoutCache = ref({})
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
@@ -459,7 +466,7 @@ const weeklySchedules = computed(() => {
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
-      category: workoutMap.value[reservation.member_id]?.category || null,
+      category: weeklyWorkoutCache.value[`${reservation.date}-${reservation.member_id}`] || null,
     }))
 })
 
@@ -579,6 +586,33 @@ async function loadWeeklySchedules() {
   await fetchDayWorkoutPlans(selectedDate.value)
 }
 
+async function loadWeeklyWorkouts() {
+  if (!auth.user?.id) return
+
+  const dates = []
+  for (let i = -1; i < 6; i += 1) {
+    dates.push(addDays(currentWeekStart.value, i))
+  }
+
+  for (const date of dates) {
+    if (weeklyWorkoutCache.value[`_loaded_${date}`]) continue
+
+    const { data } = await supabase
+      .from('workout_plans')
+      .select('member_id, category')
+      .eq('trainer_id', auth.user.id)
+      .eq('date', date)
+
+    if (data) {
+      data.forEach((plan) => {
+        weeklyWorkoutCache.value[`${date}-${plan.member_id}`] = plan.category
+      })
+    }
+
+    weeklyWorkoutCache.value[`_loaded_${date}`] = true
+  }
+}
+
 async function loadData() {
   await Promise.all([
     fetchMyReservations('trainer'),
@@ -589,6 +623,7 @@ async function loadData() {
   await loadWorkingDaySet()
   await loadOverrides(currentMonthKey.value)
   await fetchDayWorkoutPlans(selectedDate.value)
+  await loadWeeklyWorkouts()
 
   const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
   weekAvailabilities.value = availRows || []
@@ -633,12 +668,14 @@ function handleAdd() {
 }
 
 async function handleWeekChange({ weekStart }) {
+  weeklyWorkoutCache.value = {}
   currentWeekStart.value = weekStart
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
   await loadOverrides(currentMonthKey.value)
   const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
   weekAvailabilities.value = availRows || []
+  await loadWeeklyWorkouts()
 }
 
 async function handleMonthChange(month) {
@@ -721,6 +758,7 @@ async function handleSlotTap({ date, time }) {
 async function openScheduleDetail(scheduleId) {
   selectedSchedule.value = reservations.value.find((reservation) => reservation.id === scheduleId) ?? null
   detailExercises.value = []
+  detailCategory.value = ''
 
   if (selectedSchedule.value) {
     showDetailSheet.value = true
@@ -731,6 +769,7 @@ async function openScheduleDetail(scheduleId) {
     if (memberId && date) {
       await fetchWorkoutPlan(memberId, date)
       detailExercises.value = currentPlan.value?.exercises ?? []
+      detailCategory.value = currentPlan.value?.category || ''
     }
   }
 }
@@ -832,6 +871,7 @@ onMounted(() => {
 onActivated(async () => {
   if (!loaded.value) return
 
+  weeklyWorkoutCache.value = {}
   await membersStore.loadMembers()
   await fetchMyReservations('trainer')
   await fetchWorkHours()
@@ -844,6 +884,7 @@ onActivated(async () => {
 
   await loadOverrides(monthKey)
   await fetchDayWorkoutPlans(selectedDate.value)
+  await loadWeeklyWorkouts()
 })
 </script>
 
