@@ -44,9 +44,11 @@
             :schedules="weeklySchedules"
             :workSchedule="trainerWorkSchedule"
             :currentWeekStart="currentWeekStart"
+            :draggable="true"
             role="member"
             @schedule-tap="handleScheduleTap"
             @week-change="handleWeekChange"
+            @schedule-drop="handleScheduleDrop"
           />
           <p class="member-schedule__weekly-hint">
             배정된 일정을 탭하면 확인, 변경 요청, 취소를 진행할 수 있습니다.
@@ -534,6 +536,17 @@ async function openScheduleDetail(scheduleId) {
 
 function handleScheduleTap({ scheduleId }) {
   openScheduleDetail(scheduleId)
+}
+
+async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTime }) {
+  const reason = `일정 변경 요청 (${toDate} ${toTime}으로 이동)`
+  const requested = await requestChange(scheduleId, reason)
+  if (!requested) {
+    showToast(error.value || '일정 변경 요청에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 보냈습니다.')
+  await fetchMyReservations('member')
 }
 
 function openChangeRequest() {
