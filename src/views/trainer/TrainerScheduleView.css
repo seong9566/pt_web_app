@@ -388,8 +388,8 @@
 .member-row__availability {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  justify-content: center;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: var(--fw-body1-bold);
@@ -397,22 +397,18 @@
 }
 
 .member-row__availability--available {
-  background-color: var(--color-green-light);
-  color: var(--color-green-dark);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
 }
 
 .member-row__availability--unavailable {
-  background-color: var(--color-red-light);
-  color: var(--color-red);
-}
-
-.member-row__availability--unknown {
   background-color: var(--color-gray-100);
   color: var(--color-gray-600);
 }
 
-.member-row__emoji {
-  line-height: 1;
+.member-row__availability--unknown {
+  background-color: rgba(255, 204, 0, 0.2);
+  color: #B28F00;
 }
 
 .detail-sheet {

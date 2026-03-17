@@ -27,7 +27,10 @@
           v-for="date in weekDates"
           :key="`header-${date}`"
           class="weekly-calendar__day-header"
-          :class="{ 'weekly-calendar__day-header--today': isToday(date) }"
+          :class="{
+            'weekly-calendar__day-header--today': isToday(date),
+            'weekly-calendar__day-header--holiday': isHoliday(date)
+          }"
         >
           <span class="weekly-calendar__day-name">{{ getWeekdayLabel(date) }}</span>
           <span class="weekly-calendar__day-date">{{ getDayOfMonth(date) }}</span>
@@ -68,10 +71,12 @@
               </span>
             </button>
 
-            <span
+            <div
               v-if="rowIndex === 0 && isHoliday(date)"
-              class="weekly-calendar__holiday-label"
-            >휴무</span>
+              class="weekly-calendar__holiday-overlay"
+            >
+              <span class="weekly-calendar__holiday-label">휴무</span>
+            </div>
 
             <div
               v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
@@ -254,7 +259,7 @@ function getScheduleAtSlot(dateStr, time) {
 }
 
 function getScheduleName(schedule) {
-  return props.role === 'trainer' ? schedule.member_name : (schedule.session_type || '운동')
+  return props.role === 'trainer' ? schedule.member_name : schedule.session_type
 }
 
 function getBlockLabel(schedule) {

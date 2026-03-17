@@ -68,6 +68,7 @@
             :model-value="selectedDate"
             :dots="calendarDots"
             :colorDots="calendarColorDots"
+            :holidays="monthlyHolidays"
             @update:modelValue="handleMonthDateSelect"
             @monthChange="handleMonthChange"
           />
@@ -161,7 +162,6 @@
             class="member-row__availability"
             :class="`member-row__availability--${member.availabilityState}`"
           >
-            <span class="member-row__emoji">{{ availabilityEmoji(member.availabilityState) }}</span>
             {{ availabilityText(member.availabilityState) }}
           </span>
         </button>
@@ -339,16 +339,10 @@ function canReassign(status) {
   return normalized === 'scheduled' || normalized === 'confirmed' || normalized === 'change_requested'
 }
 
-function availabilityEmoji(state) {
-  if (state === 'available') return '✅'
-  if (state === 'unavailable') return '❌'
-  return '❓'
-}
-
 function availabilityText(state) {
   if (state === 'available') return '가능 시간'
-  if (state === 'unavailable') return '등록 외 시간'
-  return '등록 없음'
+  if (state === 'unavailable') return '다른 시간 선호'
+  return '시간 미입력'
 }
 
 function formatWorkoutSummary(exercises) {
@@ -439,6 +433,31 @@ const holidays = computed(() => {
     for (let index = 0; index < 7; index += 1) {
       const dateStr = addDays(currentWeekStart.value, index - 1)
       const dayOfWeek = parseDate(dateStr).getDay()
+      if (!workingDays.value.has(dayOfWeek)) {
+        holidaySet.add(dateStr)
+      }
+    }
+  }
+
+  return Array.from(holidaySet)
+})
+
+const monthlyHolidays = computed(() => {
+  const holidaySet = new Set()
+
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+
+  if (workingDays.value.size > 0) {
+    const [year, month] = currentMonthKey.value.split('-').map(Number)
+    const daysInMonth = new Date(year, month, 0).getDate()
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const dateStr = `${currentMonthKey.value}-${pad(day)}`
+      const dayOfWeek = new Date(year, month - 1, day).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)
       }

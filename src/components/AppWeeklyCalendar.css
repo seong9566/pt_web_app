@@ -67,6 +67,10 @@
   background-color: var(--color-blue-primary);
 }
 
+.weekly-calendar__day-header--holiday {
+  color: var(--color-gray-400); /* Dimmed color for holidays */
+}
+
 .weekly-calendar__day-name {
   font-weight: var(--fw-body1-bold);
 }
@@ -98,7 +102,14 @@
 
 .weekly-calendar__cell--holiday {
   background-color: var(--color-gray-100);
-  opacity: 0.4;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.4) 10px,
+    rgba(255, 255, 255, 0.4) 20px
+  );
+  opacity: 0.6;
 }
 
 .weekly-calendar__cell--off-hours {
@@ -175,13 +186,25 @@
   line-height: 1.2;
 }
 
-.weekly-calendar__holiday-label {
+.weekly-calendar__holiday-overlay {
   position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.weekly-calendar__holiday-label {
+  padding: 4px 10px;
+  background-color: var(--color-gray-400);
+  color: var(--color-white);
+  border-radius: 999px;
   font-size: 10px;
-  color: var(--color-gray-600);
+  font-weight: var(--fw-body1-bold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .weekly-calendar__preference-badge {
