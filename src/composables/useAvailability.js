@@ -157,6 +157,7 @@ export function useAvailability() {
         .select('member_id, available_slots, memo, submitted_at')
         .in('member_id', memberIds)
         .eq('week_start', weekStart)
+        .eq('trainer_id', auth.user.id)
 
       if (availError) throw availError
 
