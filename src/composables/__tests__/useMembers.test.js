@@ -37,6 +37,7 @@ const MEMBER_ROW = {
   member_id: 'm1',
   connected_at: '2026-01-01T00:00:00Z',
   status: 'active',
+  color: '#FFD43B',
   profiles: { id: 'm1', name: '회원1', photo_url: null, role: 'member' },
 }
 
