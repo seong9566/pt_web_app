@@ -348,6 +348,8 @@ export function useReservations() {
       const { error: notificationError } = await supabase.from('notifications').insert({
         user_id: reservation.trainer_id,
         type: 'schedule_confirmed',
+        title: '일정 확정',
+        body: '회원이 배정된 일정을 확정했습니다.',
         target_id: reservationId,
         target_type: 'reservation',
       })
@@ -391,6 +393,8 @@ export function useReservations() {
       const { error: notificationError } = await supabase.from('notifications').insert({
         user_id: reservation.trainer_id,
         type: 'change_requested',
+        title: '일정 변경 요청',
+        body: '회원이 일정 변경을 요청했습니다.',
         target_id: reservationId,
         target_type: 'reservation',
       })
