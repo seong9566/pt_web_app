@@ -157,6 +157,10 @@
   color: var(--color-white);
 }
 
+.weekly-calendar__block--completed-member {
+  opacity: 0.5;
+}
+
 .weekly-calendar__block-name {
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);

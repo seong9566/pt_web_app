@@ -287,6 +287,14 @@
   flex-shrink: 0;
 }
 
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-gray-200);
+  display: block;
+}
+
 .quick-action__label {
   flex: 1;
   font-size: var(--fs-body1);
@@ -538,4 +546,25 @@
 .mem-detail__sheet-btn--confirm {
   background-color: var(--color-blue-primary);
   color: var(--color-white);
+}
+
+.color-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 16px var(--side-margin) 24px;
+}
+
+.color-picker__item {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  justify-self: center;
+}
+
+.color-picker__item--selected {
+  border: 3px solid var(--color-blue-primary);
+  box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue-primary);
 }

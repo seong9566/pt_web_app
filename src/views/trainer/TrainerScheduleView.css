@@ -121,6 +121,37 @@
   padding: 0 var(--side-margin);
 }
 
+.trainer-schedule__legend {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 8px var(--side-margin);
+  -webkit-overflow-scrolling: touch;
+}
+
+.trainer-schedule__legend-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.trainer-schedule__legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.trainer-schedule__legend-name {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
 .trainer-schedule__weekly-hint {
   margin: 10px 4px 0;
   color: var(--color-gray-600);

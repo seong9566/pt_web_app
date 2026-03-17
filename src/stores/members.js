@@ -11,6 +11,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { getAutoColor } from '@/utils/colors'
 
 export const useMembersStore = defineStore('members', () => {
   const members = ref([])          // 변환된 회원 목록
@@ -46,6 +47,7 @@ export const useMembersStore = defineStore('members', () => {
           member_id,
           connected_at,
           status,
+          color,
           profiles!trainer_members_member_id_fkey(id, name, photo_url, role)
         `)
         .eq('trainer_id', auth.user.id)
@@ -80,8 +82,23 @@ export const useMembersStore = defineStore('members', () => {
         }
       }
 
-      // 3단계: 클라이언트 사이드 변환 (dotStatus, barColor, group)
-      members.value = (data || []).map(d => {
+      // null color 회원들 DB batch update (fire-and-forget: 비차단)
+      const nullColorMembers = (data || []).filter(d => !d.color)
+      if (nullColorMembers.length > 0) {
+        Promise.all(
+          nullColorMembers.map(d => {
+            const idx = (data || []).indexOf(d)
+            return supabase
+              .from('trainer_members')
+              .update({ color: getAutoColor(idx) })
+              .eq('member_id', d.member_id)
+              .eq('trainer_id', auth.user.id)
+          })
+        ).catch(e => console.error('[MembersStore] color batch update 에러:', e))
+      }
+
+      // 3단계: 클라이언트 사이드 변환 (dotStatus, barColor, group, color)
+      members.value = (data || []).map((d, index) => {
         const profile = d.profiles
         const pt = ptStats[d.member_id] || { totalAdded: 0, remaining: 0 }
         const totalAdded = pt.totalAdded
@@ -101,6 +118,7 @@ export const useMembersStore = defineStore('members', () => {
           total: safeTotal,
           barColor: ratio >= 0.5 ? 'blue' : ratio >= 0.2 ? 'orange' : 'gray',  // 잔여 비율 임계값
           group: remaining > 0 ? 'active' : 'ended',  // active: PT 잔여 있음, ended: 없음
+          color: d.color || getAutoColor(index),
         }
       })
 
@@ -123,6 +141,28 @@ export const useMembersStore = defineStore('members', () => {
     _dirty.value = false
   }
 
+  /**
+   * 회원 색상 업데이트 — DB update + local 즉시 갱신
+   * @param {string} memberId - 회원 ID
+   * @param {string} color - hex 색상 코드
+   * @returns {string|null} 에러 메시지 또는 null
+   */
+  async function updateMemberColor(memberId, color) {
+    const auth = useAuthStore()
+    const { error } = await supabase
+      .from('trainer_members')
+      .update({ color })
+      .eq('member_id', memberId)
+      .eq('trainer_id', auth.user.id)
+    if (error) {
+      console.error('[MembersStore] 색상 업데이트 에러:', error.message)
+      return '색상 업데이트에 실패했습니다.'
+    }
+    const member = members.value.find(m => m.id === memberId)
+    if (member) member.color = color
+    return null
+  }
+
   return {
     members,
     lastFetchedAt,
@@ -130,5 +170,6 @@ export const useMembersStore = defineStore('members', () => {
     loadMembers,
     invalidate,
     $reset,
+    updateMemberColor,
   }
 })

@@ -45,6 +45,7 @@
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"
+          :memberColors="memberColorMap"
           role="trainer"
           :draggable="true"
           @slot-tap="handleSlotTap"
@@ -52,6 +53,12 @@
           @schedule-drop="handleScheduleDrop"
           @week-change="handleWeekChange"
         />
+        <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
+          <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
+            <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
+            <span class="trainer-schedule__legend-name">{{ member.name }}</span>
+          </div>
+        </div>
         <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
       </section>
 
@@ -60,6 +67,7 @@
           <AppCalendar
             :model-value="selectedDate"
             :dots="calendarDots"
+            :colorDots="calendarColorDots"
             @update:modelValue="handleMonthDateSelect"
             @monthChange="handleMonthChange"
           />
@@ -228,6 +236,7 @@ import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
+import { useMembersStore } from '@/stores/members'
 import { useReservationsStore } from '@/stores/reservations'
 import { resolveAvailabilityState } from '@/utils/availability'
 
@@ -338,6 +347,7 @@ function formatWorkoutSummary(exercises) {
 
 const router = useRouter()
 const auth = useAuthStore()
+const membersStore = useMembersStore()
 const reservationsStore = useReservationsStore()
 const { showToast, showSuccess } = useToast()
 
@@ -438,7 +448,21 @@ const weeklySchedules = computed(() => {
       status: reservation.status,
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
+      member_id: reservation.member_id,
     }))
+})
+
+const memberColorMap = computed(() => {
+  const map = {}
+  membersStore.members.forEach((member) => {
+    map[member.id] = member.color
+  })
+  return map
+})
+
+const weeklyLegendMembers = computed(() => {
+  const memberIds = new Set(weeklySchedules.value.map((schedule) => schedule.member_id).filter(Boolean))
+  return membersStore.members.filter((member) => memberIds.has(member.id))
 })
 
 const calendarDots = computed(() => {
@@ -457,6 +481,31 @@ const calendarDots = computed(() => {
 
     if (!dots[day].includes(dotStatus)) {
       dots[day].push(dotStatus)
+    }
+
+    dots[day] = dots[day].slice(0, 3)
+  })
+
+  return dots
+})
+
+const calendarColorDots = computed(() => {
+  const dots = {}
+
+  reservations.value.forEach((reservation) => {
+    if (!ACTIVE_STATUSES.has(reservation.status)) return
+    if (!reservation.date.startsWith(`${currentMonthKey.value}-`)) return
+
+    const day = Number(reservation.date.slice(8, 10))
+    const color = memberColorMap.value[reservation.member_id]
+    if (!color) return
+
+    if (!dots[day]) {
+      dots[day] = []
+    }
+
+    if (!dots[day].includes(color)) {
+      dots[day].push(color)
     }
 
     dots[day] = dots[day].slice(0, 3)
@@ -750,6 +799,8 @@ watch(error, (message) => {
 })
 
 onMounted(() => {
+  membersStore.loadMembers()
+
   if (!loaded.value) {
     loadData()
   }
@@ -758,6 +809,7 @@ onMounted(() => {
 onActivated(async () => {
   if (!loaded.value) return
 
+  await membersStore.loadMembers()
   await fetchMyReservations('trainer')
   await fetchWorkHours()
   await fetchMembers()
