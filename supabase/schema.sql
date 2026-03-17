@@ -886,6 +886,12 @@ create policy "Manual media deletable by manual owner" on public.manual_media fo
   exists (select 1 from public.manuals where id = manual_id and trainer_id = auth.uid())
 );
 
+-- T4.5: workout_category enum
+do $$ begin
+  create type public.workout_category as enum ('가슴', '어깨', '등', '팔', '하체', '코어', '전신', '유산소', '스트레칭');
+exception when duplicate_object then null;
+end $$;
+
 -- T5: workout_plans table (오늘의 운동)
 create table if not exists public.workout_plans (
   id uuid primary key default gen_random_uuid(),
@@ -893,6 +899,7 @@ create table if not exists public.workout_plans (
   member_id uuid not null references public.profiles(id) on delete cascade,
   date date not null,
   exercises jsonb not null default '[]'::jsonb,
+  category public.workout_category not null default '전신',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (trainer_id, member_id, date)
