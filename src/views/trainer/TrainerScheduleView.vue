@@ -41,12 +41,15 @@
         <AppWeeklyCalendar
           :schedules="weeklySchedules"
           :workSchedule="workSchedule"
+          :slotDuration="workSchedule.slotDuration"
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"
           role="trainer"
+          :draggable="true"
           @slot-tap="handleSlotTap"
           @schedule-tap="handleScheduleTap"
+          @schedule-drop="handleScheduleDrop"
           @week-change="handleWeekChange"
         />
         <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
@@ -226,11 +229,11 @@ import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
+import { resolveAvailabilityState } from '@/utils/availability'
 
 defineOptions({ name: 'TrainerScheduleView' })
 
 const DAY_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const AVAILABILITY_ORDER = { available: 0, unavailable: 1, unknown: 2 }
 const ACTIVE_STATUSES = new Set(['scheduled', 'confirmed', 'change_requested', 'completed', 'pending', 'approved'])
 
@@ -323,13 +326,6 @@ function availabilityText(state) {
   if (state === 'available') return '가능 시간'
   if (state === 'unavailable') return '등록 외 시간'
   return '등록 없음'
-}
-
-function resolveAvailabilityState(availableSlots, dateStr, timeStr) {
-  if (!availableSlots) return 'unknown'
-  const dayKey = DAY_KEY_BY_INDEX[parseDate(dateStr).getDay()]
-  const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
-  return daySlots.includes(timeStr) ? 'available' : 'unavailable'
 }
 
 function formatWorkoutSummary(exercises) {
@@ -630,7 +626,7 @@ async function loadMembersWithAvailability(date, time) {
 
         return {
           ...member,
-          availabilityState: resolveAvailabilityState(availableSlots, date, time),
+          availabilityState: resolveAvailabilityState(availableSlots, date, time, workSchedule.value.slotDuration),
         }
       })
       .sort((a, b) => AVAILABILITY_ORDER[a.availabilityState] - AVAILABILITY_ORDER[b.availabilityState])
@@ -669,6 +665,18 @@ function openScheduleDetail(scheduleId) {
 
 function handleScheduleTap({ scheduleId }) {
   openScheduleDetail(scheduleId)
+}
+
+async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTime }) {
+  const success = await reassignSchedule(scheduleId, toDate, toTime)
+
+  if (success) {
+    showSuccess('일정을 재배정했습니다.')
+    await loadWeeklySchedules()
+    return
+  }
+
+  showToast(error.value || '일정 재배정에 실패했습니다.', 'error')
 }
 
 async function assignToMember(memberId) {

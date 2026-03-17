@@ -1,20 +1,5 @@
 import { describe, it, expect } from 'vitest'
-
-// resolveAvailabilityState 로직을 테스트 파일 내에서 재현
-// (뷰 파일에서 export하기 어려우므로 동일 로직 복사)
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-
-function parseDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-function resolveAvailabilityState(availableSlots, dateStr, timeStr) {
-  if (!availableSlots) return 'unknown'
-  const dayKey = DAY_KEY_BY_INDEX[parseDate(dateStr).getDay()]
-  const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
-  return daySlots.includes(timeStr) ? 'available' : 'unavailable'
-}
+import { resolveAvailabilityState, countAvailableMembers } from '@/utils/availability'
 
 describe('resolveAvailabilityState', () => {
   it('null availableSlots → unknown', () => {
@@ -59,5 +44,104 @@ describe('resolveAvailabilityState', () => {
     const slots = { mon: ['09:00'], tue: [], wed: ['14:00', '15:00'], thu: [], fri: [], sat: [], sun: [] }
     expect(resolveAvailabilityState(slots, '2026-03-18', '14:00')).toBe('available')
     expect(resolveAvailabilityState(slots, '2026-03-18', '09:00')).toBe('unavailable')
+  })
+})
+
+describe('resolveAvailabilityState with slotDuration', () => {
+  it('slotDuration=30: 09:30 → 09:00 매칭 (available)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '09:30', 30)).toBe('available')
+  })
+
+  it('slotDuration=30: 09:00 → 09:00 매칭 (available)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '09:00', 30)).toBe('available')
+  })
+
+  it('slotDuration=30: 09:29 → 09:00 매칭 (available)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '09:29', 30)).toBe('available')
+  })
+
+  it('slotDuration=30: 10:00 → 09:00 미매칭 (unavailable)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '10:00', 30)).toBe('unavailable')
+  })
+
+  it('slotDuration=90: 09:30 → 09:00 버킷 매칭 (available)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '09:30', 90)).toBe('available')
+  })
+
+  it('slotDuration=90: 10:00 → 09:00 버킷 외 미매칭 (unavailable)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '10:00', 90)).toBe('unavailable')
+  })
+
+  it('slotDuration=90: 10:30 → 09:00 버킷 외 미매칭 (unavailable)', () => {
+    const slots = { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '10:30', 90)).toBe('unavailable')
+  })
+
+  it('빈 available_slots 처리 (unavailable)', () => {
+    const slots = { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+    expect(resolveAvailabilityState(slots, '2026-03-16', '09:00', 60)).toBe('unavailable')
+  })
+
+  it('null available_slots → unknown', () => {
+    expect(resolveAvailabilityState(null, '2026-03-16', '09:00', 60)).toBe('unknown')
+  })
+})
+
+describe('countAvailableMembers', () => {
+  it('0명 카운트 - 빈 배열', () => {
+    expect(countAvailableMembers([], '2026-03-16', '09:00', 60)).toBe(0)
+  })
+
+  it('0명 카운트 - 모두 unavailable', () => {
+    const availabilities = [
+      { available_slots: { mon: ['10:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['11:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+    ]
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 60)).toBe(0)
+  })
+
+  it('1명 카운트', () => {
+    const availabilities = [
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['10:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+    ]
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 60)).toBe(1)
+  })
+
+  it('여러 명 카운트', () => {
+    const availabilities = [
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['09:00', '10:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+    ]
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 60)).toBe(3)
+  })
+
+  it('slotDuration에 따른 카운트 변화 - 30분 단위', () => {
+    const availabilities = [
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['09:30'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+    ]
+    // 09:00 시간에 30분 단위: 첫 번째만 매칭
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 30)).toBe(1)
+    // 09:00 시간에 60분 단위: 첫 번째만 매칭 (09:30은 범위 밖)
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 60)).toBe(1)
+  })
+
+  it('slotDuration=90에서 여러 명 매칭', () => {
+    const availabilities = [
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+      { available_slots: { mon: ['09:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] } },
+    ]
+    // 09:00 시간에 90분 단위: 09:00~10:29 범위
+    // 모든 회원이 09:00 슬롯을 가지고 있으므로 모두 매칭
+    expect(countAvailableMembers(availabilities, '2026-03-16', '09:00', 90)).toBe(3)
   })
 })

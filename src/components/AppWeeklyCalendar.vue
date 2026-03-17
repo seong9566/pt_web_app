@@ -14,7 +14,12 @@
       </button>
     </header>
 
-    <div class="weekly-calendar__grid-wrapper">
+    <div
+      class="weekly-calendar__grid-wrapper"
+      @pointermove="handlePointerMove"
+      @pointerup="handlePointerUp"
+      @pointercancel="cancelDrag"
+    >
       <div class="weekly-calendar__grid" :style="gridStyle">
         <div class="weekly-calendar__time-header" />
 
@@ -39,15 +44,22 @@
               'weekly-calendar__cell--holiday': isHoliday(date),
               'weekly-calendar__cell--off-hours': isOffHours(time),
               'weekly-calendar__cell--available': props.role === 'trainer' && !getScheduleAtSlot(date, time) && hasAvailableMember(date, time),
+              'weekly-calendar__cell--drop-target': dropTarget?.date === date && dropTarget?.time === time,
             }"
+            :data-date="date"
+            :data-time="time"
             @click="handleSlotTap(date, time)"
           >
             <button
               v-if="getScheduleAtSlot(date, time)"
               class="weekly-calendar__block"
-              :class="getBlockClass(getScheduleAtSlot(date, time).status)"
+              :class="[
+                getBlockClass(getScheduleAtSlot(date, time).status),
+                { 'weekly-calendar__block--dragging': dndState === 'dragging' && dragSchedule?.id === getScheduleAtSlot(date, time).id },
+              ]"
               :style="getBlockStyle(getScheduleAtSlot(date, time))"
               type="button"
+              @pointerdown="handlePointerDown($event, getScheduleAtSlot(date, time))"
               @click.stop="handleScheduleTap(getScheduleAtSlot(date, time).id)"
             >
               <span class="weekly-calendar__block-name">{{ getScheduleName(getScheduleAtSlot(date, time)) }}</span>
@@ -60,21 +72,34 @@
               v-if="rowIndex === 0 && isHoliday(date)"
               class="weekly-calendar__holiday-label"
             >휴무</span>
+
+            <span
+              v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
+              class="weekly-calendar__available-count"
+            >
+              가능 {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+            </span>
           </div>
         </template>
       </div>
 
       <p v-if="!normalizedSchedules.length" class="weekly-calendar__empty-text">이번 주 일정이 없습니다</p>
+
+      <div
+        v-if="dndState === 'dragging'"
+        class="weekly-calendar__ghost"
+        :style="ghostStyle"
+      />
     </div>
   </section>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { countAvailableMembers, DAY_KEY_BY_INDEX } from '@/utils/availability'
 
 const CELL_HEIGHT = 56
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 const STATUS_COLORS = {
   scheduled: 'var(--color-yellow)',
@@ -95,9 +120,18 @@ const props = defineProps({
   currentWeekStart: { type: String, required: true },
   role: { type: String, default: 'trainer' },
   availabilities: { type: Array, default: () => [] },
+  slotDuration: { type: Number, default: 60 },
+  draggable: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change'])
+const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change', 'schedule-drop'])
+
+const dndState = ref('idle')
+const pressTimer = ref(null)
+const dragSchedule = ref(null)
+const ghostStyle = ref({})
+const dropTarget = ref(null)
+const pressStartPos = ref({ x: 0, y: 0 })
 
 function pad(num) {
   return String(num).padStart(2, '0')
@@ -131,8 +165,8 @@ function addDays(dateStr, amount) {
 
 const todayString = formatDate(new Date())
 
-const slotDuration = computed(() => {
-  const unit = Number(props.workSchedule?.slotDuration)
+const effectiveSlotDuration = computed(() => {
+  const unit = Number(props.slotDuration)
   return Number.isFinite(unit) && unit > 0 ? unit : 60
 })
 
@@ -141,7 +175,7 @@ const endMinutes = computed(() => timeToMinutes(props.workSchedule?.endTime || '
 
 const timeSlots = computed(() => {
   const slots = []
-  for (let minute = startMinutes.value; minute < endMinutes.value; minute += slotDuration.value) {
+  for (let minute = startMinutes.value; minute < endMinutes.value; minute += effectiveSlotDuration.value) {
     slots.push(minutesToTime(minute))
   }
   return slots
@@ -167,7 +201,7 @@ const normalizedSchedules = computed(() => {
         ...schedule,
         startMinutes: start,
         endMinutes: end,
-        duration: Math.max(slotDuration.value, end - start),
+        duration: Math.max(effectiveSlotDuration.value, end - start),
       }
     })
     .sort((a, b) => a.startMinutes - b.startMinutes)
@@ -241,7 +275,7 @@ function getBlockClass(status) {
 
 function getBlockStyle(schedule) {
   const color = STATUS_COLORS[schedule.status] || 'var(--color-gray-600)'
-  const ratio = schedule.duration / slotDuration.value
+  const ratio = schedule.duration / effectiveSlotDuration.value
 
   return {
     backgroundColor: color,
@@ -249,13 +283,15 @@ function getBlockStyle(schedule) {
   }
 }
 
+function getAvailableCount(date, time) {
+  if (!props.availabilities || props.availabilities.length === 0) return 0
+  return countAvailableMembers(props.availabilities, date, time, props.slotDuration)
+}
+
 function hasAvailableMember(date, time) {
-  if (!props.availabilities || props.availabilities.length === 0) return false
   const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
-  return props.availabilities.some((member) => {
-    const slots = member.available_slots?.[dayKey]
-    return Array.isArray(slots) && slots.includes(time)
-  })
+  if (!dayKey) return false
+  return getAvailableCount(date, time) > 0
 }
 
 function moveWeek(amount) {
@@ -263,6 +299,10 @@ function moveWeek(amount) {
 }
 
 function handleSlotTap(dateStr, time) {
+  if (dndState.value !== 'idle') {
+    return
+  }
+
   if (isHoliday(dateStr)) {
     return
   }
@@ -271,7 +311,143 @@ function handleSlotTap(dateStr, time) {
 }
 
 function handleScheduleTap(scheduleId) {
+  if (dndState.value !== 'idle') {
+    return
+  }
+
   emit('schedule-tap', { scheduleId })
+}
+
+function handlePointerDown(event, schedule) {
+  if (!props.draggable || !schedule) {
+    return
+  }
+
+  if (schedule.status === 'completed' || schedule.status === 'cancelled') {
+    return
+  }
+
+  clearTimeout(pressTimer.value)
+
+  event.currentTarget.setPointerCapture(event.pointerId)
+  pressStartPos.value = { x: event.clientX, y: event.clientY }
+  dndState.value = 'pressing'
+  dragSchedule.value = schedule
+
+  pressTimer.value = setTimeout(() => {
+    if (dndState.value === 'pressing') {
+      dndState.value = 'dragging'
+      updateGhostPosition(pressStartPos.value.x, pressStartPos.value.y)
+    }
+  }, 300)
+}
+
+function handlePointerMove(event) {
+  if (dndState.value === 'idle') {
+    return
+  }
+
+  event.preventDefault()
+
+  if (dndState.value === 'pressing') {
+    const dx = Math.abs(event.clientX - pressStartPos.value.x)
+    const dy = Math.abs(event.clientY - pressStartPos.value.y)
+
+    if (dx > 5 || dy > 5) {
+      cancelDrag()
+    }
+    return
+  }
+
+  if (dndState.value !== 'dragging') {
+    return
+  }
+
+  updateGhostPosition(event.clientX, event.clientY)
+  updateDropTarget(event.clientX, event.clientY)
+}
+
+function updateGhostPosition(x, y) {
+  ghostStyle.value = {
+    position: 'fixed',
+    left: `${x - 26}px`,
+    top: `${y - (CELL_HEIGHT / 2)}px`,
+    width: '52px',
+    height: `${CELL_HEIGHT}px`,
+    zIndex: 100,
+    pointerEvents: 'none',
+    opacity: 0.8,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+    backgroundColor: dragSchedule.value
+      ? (STATUS_COLORS[dragSchedule.value.status] || 'var(--color-gray-600)')
+      : 'var(--color-blue-primary)',
+    borderRadius: 'var(--radius-medium)',
+  }
+}
+
+function updateDropTarget(x, y) {
+  const el = document.elementFromPoint(x, y)
+  const cellEl = el?.closest('[data-date][data-time]')
+
+  if (!cellEl) {
+    dropTarget.value = null
+    return
+  }
+
+  const date = cellEl.dataset.date
+  const time = cellEl.dataset.time
+
+  if (!date || !time) {
+    dropTarget.value = null
+    return
+  }
+
+  if (isHoliday(date) || isOffHours(time)) {
+    dropTarget.value = null
+    return
+  }
+
+  if (getScheduleAtSlot(date, time)) {
+    dropTarget.value = null
+    return
+  }
+
+  const fromTime = dragSchedule.value?.start_time?.slice(0, 5)
+  if (dragSchedule.value && date === dragSchedule.value.date && time === fromTime) {
+    dropTarget.value = null
+    return
+  }
+
+  dropTarget.value = { date, time }
+}
+
+function handlePointerUp() {
+  clearTimeout(pressTimer.value)
+
+  if (dndState.value === 'dragging' && dropTarget.value && dragSchedule.value) {
+    emit('schedule-drop', {
+      scheduleId: dragSchedule.value.id,
+      fromDate: dragSchedule.value.date,
+      fromTime: dragSchedule.value.start_time?.slice(0, 5),
+      toDate: dropTarget.value.date,
+      toTime: dropTarget.value.time,
+    })
+  }
+
+  resetDrag()
+}
+
+function cancelDrag() {
+  clearTimeout(pressTimer.value)
+  resetDrag()
+}
+
+function resetDrag() {
+  dndState.value = 'idle'
+  dragSchedule.value = null
+  ghostStyle.value = {}
+  dropTarget.value = null
+  pressTimer.value = null
 }
 </script>
 

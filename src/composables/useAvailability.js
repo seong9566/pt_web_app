@@ -138,6 +138,8 @@ export function useAvailability() {
     error.value = null
 
     try {
+      console.debug('[useAvailability]', 'fetchMemberAvailabilities called with weekStart:', weekStart)
+
       // 1단계: 트레이너에 연결된 active 회원 목록 조회
       const { data: members, error: membersError } = await supabase
         .from('trainer_members')
@@ -155,8 +157,11 @@ export function useAvailability() {
         .select('member_id, available_slots, memo, submitted_at')
         .in('member_id', memberIds)
         .eq('week_start', weekStart)
+        .eq('trainer_id', auth.user.id)
 
       if (availError) throw availError
+
+      console.debug('[useAvailability]', 'fetchMemberAvailabilities results:', { rows: availabilities?.length ?? 0, details: availabilities?.map(a => ({ member_id: a.member_id, week_start: weekStart })) ?? [] })
 
       // 3단계: member_id 기준 가용성 맵 생성 후 회원 목록과 병합
       const availMap = {}
