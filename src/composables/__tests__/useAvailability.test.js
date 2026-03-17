@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import { useAvailability } from '@/composables/useAvailability'
 
 const mockEnv = vi.hoisted(() => ({
@@ -27,6 +28,7 @@ function createBuilder() {
 
 describe('useAvailability', () => {
   beforeEach(() => {
+    setActivePinia(createPinia())
     vi.clearAllMocks()
   })
 
@@ -139,6 +141,107 @@ describe('useAvailability', () => {
 
       expect(typeof status).toBe('boolean')
       expect(status).toBe(false)
+    })
+  })
+
+  describe('fetchMemberAvailabilities', () => {
+    it('fetchMemberAvailabilities가 trainer_members 테이블을 쿼리한다', async () => {
+      const membersBuilder = createBuilder()
+      const availBuilder = createBuilder()
+
+      membersBuilder.select.mockReturnValue(membersBuilder)
+      membersBuilder.eq.mockReturnValue(membersBuilder)
+      membersBuilder.single.mockResolvedValue({
+        data: [
+          {
+            member_id: 'member-a',
+            profiles: { name: '회원A', photo_url: null },
+          },
+        ],
+        error: null,
+      })
+
+      availBuilder.select.mockReturnValue(availBuilder)
+      availBuilder.in.mockReturnValue(availBuilder)
+      availBuilder.eq.mockReturnValue(availBuilder)
+      availBuilder.single.mockResolvedValue({
+        data: [
+          {
+            member_id: 'member-a',
+            available_slots: { mon: ['morning'] },
+            memo: null,
+            submitted_at: '2026-03-10T10:00:00Z',
+          },
+        ],
+        error: null,
+      })
+
+      mockEnv.supabase.from
+        .mockReturnValueOnce(membersBuilder)
+        .mockReturnValueOnce(availBuilder)
+
+      const { fetchMemberAvailabilities } = useAvailability()
+      await fetchMemberAvailabilities('2026-03-09')
+
+      expect(mockEnv.supabase.from).toHaveBeenCalledWith('trainer_members')
+    })
+
+    it('fetchMemberAvailabilities가 빈 배열을 반환할 수 있다', async () => {
+      const membersBuilder = createBuilder()
+      const availBuilder = createBuilder()
+
+      membersBuilder.select.mockReturnValue(membersBuilder)
+      membersBuilder.eq.mockReturnValue(membersBuilder)
+      membersBuilder.single.mockResolvedValue({
+        data: [],
+        error: null,
+      })
+
+      mockEnv.supabase.from.mockReturnValueOnce(membersBuilder)
+
+      const { fetchMemberAvailabilities } = useAvailability()
+      const result = await fetchMemberAvailabilities('2026-03-09')
+
+      expect(result).toEqual([])
+    })
+  })
+
+  describe('에러 처리', () => {
+    it('submitAvailability가 과거 주 제출을 차단하고 error를 설정한다', async () => {
+      const { submitAvailability, error } = useAvailability()
+      const pastWeek = '2020-01-06'
+      const slots = { mon: [], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
+      const result = await submitAvailability('trainer-id', pastWeek, slots, null)
+
+      expect(result).toBe(false)
+      expect(error.value).toBeTruthy()
+    })
+  })
+
+  describe('loading 상태', () => {
+    it('비동기 작업 중 loading이 true이다', async () => {
+      const builder = createBuilder()
+      let resolveQuery
+      const queryPromise = new Promise((resolve) => {
+        resolveQuery = resolve
+      })
+      builder.eq
+        .mockReturnValueOnce(builder)
+        .mockReturnValueOnce(builder)
+        .mockReturnValueOnce(builder)
+        .mockReturnValue(queryPromise)
+
+      mockEnv.supabase.from.mockReturnValueOnce(builder)
+
+      const { getSubmissionStatus, loading } = useAvailability()
+      const promise = getSubmissionStatus('trainer-id', '2026-03-09')
+
+      expect(loading.value).toBe(true)
+
+      resolveQuery({ data: null, error: null })
+      await promise
+
+      expect(loading.value).toBe(false)
     })
   })
 })
