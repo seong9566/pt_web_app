@@ -128,7 +128,7 @@ function getRelativeTime(dateStr) {
 /** 알림 타입 → 아이콘 카테고리 매핑 */
 function getIconCategory(type) {
   // 신규 일정 관련 알림 타입
-  if (['availability_submitted', 'schedule_assigned', 'schedule_confirmed', 'change_requested', 'schedule_reassigned', 'availability_reminder'].includes(type)) {
+  if (['availability_submitted', 'schedule_assigned', 'change_requested', 'schedule_reassigned', 'availability_reminder'].includes(type)) {
     return 'calendar'
   }
   // 레거시 예약 관련 알림 타입
