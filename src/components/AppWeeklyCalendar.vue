@@ -262,15 +262,7 @@ function getBlockLabel(schedule) {
     return '변경요청'
   }
 
-  if (schedule.category) {
-    return schedule.category
-  }
-
-  if (schedule.status === 'scheduled' || schedule.status === 'pending' || schedule.status === 'confirmed' || schedule.status === 'approved') {
-    return `${schedule.start_time.slice(0, 5)}-${schedule.end_time.slice(0, 5)}`
-  }
-
-  return ''
+  return schedule.category || ''
 }
 
 function hasMemberColor(schedule) {
