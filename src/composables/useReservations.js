@@ -445,6 +445,20 @@ export function useReservations() {
 
       if (assignError) throw assignError
 
+      // 재배정 알림 (non-blocking)
+      try {
+        await supabase.from('notifications').insert({
+          user_id: reservation.member_id,
+          type: 'schedule_reassigned',
+          title: '일정 재배정',
+          body: '트레이너가 PT 일정을 재배정했습니다. 새 일정을 확인해주세요.',
+          target_id: reservationId,
+          target_type: 'reservation',
+        })
+      } catch (notifErr) {
+        console.warn('재배정 알림 생성 실패:', notifErr?.message)
+      }
+
       await refreshReservationsStore()
       return true
     } catch (e) {
@@ -461,12 +475,43 @@ export function useReservations() {
     error.value = null
 
     try {
+      // 예약 정보 조회 (알림 수신자 결정용)
+      const { data: reservation, error: fetchError } = await supabase
+        .from('reservations')
+        .select('trainer_id, member_id')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (fetchError) throw fetchError
+
       const { error: updateError } = await supabase
         .from('reservations')
         .update({ status: 'cancelled' })
         .eq('id', reservationId)
 
       if (updateError) throw updateError
+
+      // 취소 알림 (non-blocking)
+      if (reservation) {
+        const isTrainer = auth.user?.id === reservation.trainer_id
+        const recipientId = isTrainer ? reservation.member_id : reservation.trainer_id
+        const notifBody = isTrainer
+          ? '트레이너가 PT 일정을 취소했습니다.'
+          : '회원이 PT 일정을 취소했습니다.'
+
+        try {
+          await supabase.from('notifications').insert({
+            user_id: recipientId,
+            type: 'reservation_cancelled',
+            title: '일정 취소',
+            body: notifBody,
+            target_id: reservationId,
+            target_type: 'reservation',
+          })
+        } catch (notifErr) {
+          console.warn('취소 알림 생성 실패:', notifErr?.message)
+        }
+      }
 
       await refreshReservationsStore()
       return true
