@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import { useNotifications } from '@/composables/useNotifications'
 
 const GENDER_LABELS = { male: '남성', female: '여성' }
@@ -82,73 +83,75 @@ export function useWorkoutPlans() {
     return `${first} 외 ${exercises.length - 1}개`
   }
 
-  /**
-    * 운동 계획 생성/수정 (UPSERT)
-    * @param {string} memberId - 회원 ID
-    * @param {string} date - 날짜 (YYYY-MM-DD)
-    * @param {Array} exercises - 운동 배열
-    */
-  async function saveWorkoutPlan(memberId, date, exercises, category) {
-    loading.value = true
-    error.value = null
-    try {
-       const { data, error: err } = await supabase
-         .from('workout_plans')
-         .upsert(
-           {
-             trainer_id: auth.user.id,
-             member_id: memberId,
-             date,
-             exercises,
-             category,
-             updated_at: new Date().toISOString(),
-           },
-           { onConflict: 'trainer_id,member_id,date' }
-         )
-        .select('id')
-        .single()
-      if (err) throw err
-      const { createNotification } = useNotifications()
-      await createNotification(
-        memberId,
-        'workout_assigned',
-        '오늘의 운동이 배정되었습니다',
-        formatExerciseSummary(exercises),
-        data.id,
-        'workout'
-      )
-      await fetchWorkoutPlan(memberId, date)
-      return true
-    } catch (e) {
-      error.value = e?.message ?? '운동 계획 저장에 실패했습니다'
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
+   /**
+     * 운동 계획 생성/수정 (UPSERT)
+     * @param {string} memberId - 회원 ID
+     * @param {string} date - 날짜 (YYYY-MM-DD)
+     * @param {Array} exercises - 운동 배열
+     */
+   async function saveWorkoutPlan(memberId, date, exercises, category) {
+     loading.value = true
+     error.value = null
+     try {
+        const { data, error: err } = await supabase
+          .from('workout_plans')
+          .upsert(
+            {
+              trainer_id: auth.user.id,
+              member_id: memberId,
+              date,
+              exercises,
+              category,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'trainer_id,member_id,date' }
+          )
+         .select('id')
+         .single()
+       if (err) throw err
+       const { createNotification } = useNotifications()
+       await createNotification(
+         memberId,
+         'workout_assigned',
+         '오늘의 운동이 배정되었습니다',
+         formatExerciseSummary(exercises),
+         data.id,
+         'workout'
+       )
+       await fetchWorkoutPlan(memberId, date)
+       useWorkoutPlansStore().invalidate()
+       return true
+     } catch (e) {
+       error.value = e?.message ?? '운동 계획 저장에 실패했습니다'
+       return false
+     } finally {
+       loading.value = false
+     }
+   }
 
-  /**
-   * 운동 계획 삭제
-   * @param {string} planId - 운동 계획 ID
-   */
-  async function deleteWorkoutPlan(planId) {
-    loading.value = true
-    error.value = null
-    try {
-      const { error: err } = await supabase
-        .from('workout_plans')
-        .delete()
-        .eq('id', planId)
-      if (err) throw err
-      workoutPlans.value = workoutPlans.value.filter((p) => p.id !== planId)
-      return true
-    } catch (e) {
-      error.value = e?.message ?? '운동 계획 삭제에 실패했습니다'
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
+   /**
+    * 운동 계획 삭제
+    * @param {string} planId - 운동 계획 ID
+    */
+   async function deleteWorkoutPlan(planId) {
+     loading.value = true
+     error.value = null
+     try {
+       const { error: err } = await supabase
+         .from('workout_plans')
+         .delete()
+         .eq('id', planId)
+       if (err) throw err
+       workoutPlans.value = workoutPlans.value.filter((p) => p.id !== planId)
+       useWorkoutPlansStore().invalidate()
+       return true
+     } catch (e) {
+       error.value = e?.message ?? '운동 계획 삭제에 실패했습니다'
+       return false
+     } finally {
+       loading.value = false
+     }
+   }
 
   /**
    * 회원 프로필 간략 정보 조회 (이름, 사진, 나이, 성별)
@@ -209,16 +212,22 @@ export function useWorkoutPlans() {
 
   async function fetchDayWorkoutPlans(date) {
     try {
-      const { data, error: err } = await supabase
-        .from('workout_plans')
-        .select('id, member_id, exercises, category')
-        .eq('trainer_id', auth.user.id)
-        .eq('date', date)
-      if (err) throw err
-      dayWorkoutPlans.value = data ?? []
+      const store = useWorkoutPlansStore()
+      const data = await store.loadDayWorkoutPlans(auth.user.id, date)
+      dayWorkoutPlans.value = data
     } catch (e) {
       dayWorkoutPlans.value = []
     }
+  }
+
+  async function loadWeeklyWorkoutCategories(dates) {
+    const store = useWorkoutPlansStore()
+    await store.loadWeeklyWorkoutCategories(auth.user.id, dates)
+  }
+
+  function getWeeklyCategory(date, memberId) {
+    const store = useWorkoutPlansStore()
+    return store.getWeeklyCategory(date, memberId)
   }
 
   return {
@@ -236,5 +245,7 @@ export function useWorkoutPlans() {
     fetchMemberProfile,
     fetchMemberReservationDates,
     fetchDayWorkoutPlans,
+    loadWeeklyWorkoutCategories,
+    getWeeklyCategory,
   }
 }

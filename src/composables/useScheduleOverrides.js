@@ -7,6 +7,7 @@
 
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
 
 export function useScheduleOverrides() {
   const overrides = ref([]) // 해당 월의 오버라이드 배열
@@ -22,19 +23,9 @@ export function useScheduleOverrides() {
     loading.value = true
     error.value = null
     try {
-      const startDate = `${month}-01`
-      const [year, mon] = month.split('-').map(Number)
-      const lastDay = new Date(year, mon, 0).getDate()
-      const endDate = `${month}-${String(lastDay).padStart(2, '0')}`
-      const { data, error: err } = await supabase
-        .from('daily_schedule_overrides')
-        .select('*')
-        .eq('trainer_id', trainerId)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date')
-      if (err) throw err
-      overrides.value = data ?? []
+      const store = useScheduleOverridesStore()
+      const data = await store.loadOverrides(trainerId, month)
+      overrides.value = data
     } catch (e) {
       error.value = e?.message ?? '스케줄 오버라이드를 불러오지 못했습니다'
     } finally {
@@ -71,6 +62,9 @@ export function useScheduleOverrides() {
         overrides.value.push(newOverride)
         overrides.value.sort((a, b) => a.date.localeCompare(b.date))
       }
+      // 스토어 캐시 무효화
+      const store = useScheduleOverridesStore()
+      store.invalidateMonth(trainerId, date.slice(0, 7))
       return true
     } catch (e) {
       error.value = e?.message ?? '스케줄 오버라이드 설정에 실패했습니다'
@@ -97,6 +91,9 @@ export function useScheduleOverrides() {
         .eq('date', date)
       if (err) throw err
       overrides.value = overrides.value.filter((o) => o.date !== date)
+      // 스토어 캐시 무효화
+      const store = useScheduleOverridesStore()
+      store.invalidateMonth(trainerId, date.slice(0, 7))
       return true
     } catch (e) {
       error.value = e?.message ?? '스케줄 오버라이드 삭제에 실패했습니다'
