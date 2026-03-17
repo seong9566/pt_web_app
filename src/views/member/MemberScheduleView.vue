@@ -1,566 +1,729 @@
-<!-- 회원 스케줄 페이지. 캘린더에 예약 현황(dot) 표시, 날짜별 예약 목록 조회 -->
 <template>
   <div class="member-schedule">
     <AppPullToRefresh @refresh="handleRefresh">
-      <!-- ── App Bar ── -->
-      <div class="schedule-appbar">
-        <h1 class="schedule-appbar__title">내 일정</h1>
-      </div>
+      <header class="member-schedule__appbar">
+        <h1 class="member-schedule__title">내 일정</h1>
+      </header>
 
-      <!-- 에러 메시지 -->
-      <div v-if="error" class="error-message">{{ error }}</div>
+      <div v-if="error" class="member-schedule__error">{{ error }}</div>
 
-      <div v-if="hasActiveConnection === false" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 8px;">
-        <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">트레이너와 연결되지 않았습니다</p>
-        <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">트레이너를 찾아 연결해보세요</p>
-      </div>
+      <section v-if="hasActiveConnection === false" class="member-schedule__state">
+        <p class="member-schedule__state-title">트레이너와 연결되지 않았습니다</p>
+        <p class="member-schedule__state-desc">트레이너를 찾아 연결한 뒤 일정을 확인해보세요</p>
+      </section>
 
-      <div v-else-if="hasActiveConnection === null" style="padding: 60px 20px;">
-        <AppSkeleton type="rect" width="100%" height="80px" :count="3" />
-      </div>
+      <section
+        v-else-if="hasActiveConnection === null"
+        class="member-schedule__state member-schedule__state--loading"
+      >
+        <AppSkeleton type="rect" width="100%" height="92px" :count="3" />
+      </section>
 
       <template v-else>
-
-      <!-- ── Monthly Calendar ── -->
-      <div class="calendar-card">
-        <div class="calendar-card__nav">
-          <button class="calendar-card__arrow press-effect" @click="prevMonth">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
-              <path
-                d="M15 18L9 12L15 6"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-          <span class="calendar-card__month"
-            >{{ currentYear }}년 {{ currentMonth }}월</span
+        <div class="member-schedule__view-tabs">
+          <button
+            class="member-schedule__view-tab"
+            :class="{ 'member-schedule__view-tab--active': currentView === 'weekly' }"
+            type="button"
+            @click="switchView('weekly')"
           >
-          <button class="calendar-card__arrow press-effect" @click="nextMonth">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-400)">
-              <path
-                d="M9 6L15 12L9 18"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+            주간
+          </button>
+          <button
+            class="member-schedule__view-tab"
+            :class="{ 'member-schedule__view-tab--active': currentView === 'monthly' }"
+            type="button"
+            @click="switchView('monthly')"
+          >
+            월간
           </button>
         </div>
 
-        <div class="calendar-card__weekdays">
-          <span
-            v-for="day in weekdays"
-            :key="day.label"
-            class="calendar-card__weekday"
-            :class="day.cls"
-            >{{ day.label }}</span
-          >
-        </div>
-
-        <div class="calendar-card__grid">
-          <div
-            v-for="cell in calendarCells"
-            :key="cell.key"
-            class="cal-cell"
-            :class="{ 'cal-cell--empty': !cell.date }"
-            @click="cell.date && selectDate(cell.date)"
-          >
-            <div
-              v-if="cell.date"
-              class="cal-cell__inner"
-              :class="{ 
-                'cal-cell__inner--selected': isSelected(cell.date),
-                'cal-cell__inner--today': !isSelected(cell.date) && isToday(cell.date),
-              }"
-            >
-              <span
-                class="cal-cell__num"
-                :class="{
-                  'cal-cell__num--selected': isSelected(cell.date),
-                  'cal-cell__num--today': !isSelected(cell.date) && isToday(cell.date),
-                  'cal-cell__num--past': isPast(cell.date) && !isSelected(cell.date),
-                  'cal-cell__num--sun': !isPast(cell.date) && cell.isSun,
-                  'cal-cell__num--sat': !isPast(cell.date) && cell.isSat,
-                  'cal-cell__num--off': !isPast(cell.date) && isNonWorkingDay(cell.date),
-                }"
-                >{{ cell.date }}</span
-              >
-              <div class="cal-cell__dots">
-                <span
-                  v-for="(dot, i) in getDots(cell.date)"
-                  :key="i"
-                  class="cal-cell__dot"
-                  :class="`cal-cell__dot--${dot}`"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="calendar-card__legend">
-          <span v-for="item in legend" :key="item.status" class="legend-item">
-            <span
-              class="legend-item__dot"
-              :class="`legend-item__dot--${item.status}`"
-            />
-            {{ item.label }}
-          </span>
-        </div>
-      </div>
-
-      <!-- ── Selected Date Header ── -->
-      <div class="schedule-date-header">
-        <h2 class="schedule-date-header__title">{{ selectedDateLabel }}</h2>
-        <p class="schedule-date-header__count">
-          {{ selectedDaySessions.length }}개의 일정이 있습니다
-        </p>
-      </div>
-
-      <!-- ── Session Cards ── -->
-      <div class="schedule-list">
-        <div
-          v-for="(session, sessionIndex) in selectedDaySessions"
-          :key="session.id"
-          class="scard stagger-fade-in"
-          :class="[
-            `scard--${session.status}`,
-            { 'press-effect': session.status === 'approved' || session.status === 'completed' },
-          ]"
-          @click="
-            (session.status === 'approved' || session.status === 'completed') &&
-            goWorkoutDetail()
-          "
-          :style="{
-            '--stagger-index': sessionIndex,
-            cursor: session.status === 'approved' || session.status === 'completed' ? 'pointer' : '',
-          }"
-        >
-          <div class="scard__border" />
-          <div class="scard__body">
-            <div class="scard__top">
-              <h3 class="scard__title">{{ session.title }}</h3>
-              <span
-                class="scard__badge"
-                :class="`scard__badge--${session.status}`"
-              >
-                {{ statusLabel(session.status) }}
-              </span>
-            </div>
-            <div
-              class="scard__time"
-              :class="{
-                'scard__time--approved': session.status === 'approved',
-              }"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-                <path
-                  d="M12 6V12L16 14"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              {{ session.time }}
-            </div>
-            <div class="scard__trainer-row">
-              <div class="scard__trainer-info">
-                <div class="scard__avatar">
-                  <img v-if="session.trainerPhoto" :src="session.trainerPhoto" :alt="session.trainer" class="scard__avatar-img" />
-                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle
-                      cx="12"
-                      cy="8"
-                      r="4"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                    />
-                    <path
-                      d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linecap="round"
-                    />
-                  </svg>
-                </div>
-                <span class="scard__name">{{ session.trainer }}</span>
-              </div>
-              <button
-                v-if="session.status === 'approved'"
-                class="scard__cancel-btn press-effect"
-                @click.stop="handleCancel(session)"
-              >
-                취소
-              </button>
-            </div>
-            <!-- 배정된 운동 요약 -->
-            <div v-if="session.workoutSummary" class="scard__workout-summary">
-              <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14" />
-              <span>{{ session.workoutSummary }}</span>
-            </div>
-            <div v-else-if="session.status === 'approved'" class="scard__workout-summary scard__workout-summary--empty">
-              <img src="@/assets/icons/trainer.svg" alt="trainer icon" width="14" height="14" />
-              <span>아직 운동이 배정되지 않았습니다</span>
-            </div>
-            <div
-              v-if="session.status === 'rejected' && session.rejection_reason"
-              class="scard__reject-reason"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-                <path
-                  d="M12 8V12M12 16H12.01"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-              <span>{{ session.rejection_reason }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-if="selectedDaySessions.length === 0"
-          class="schedule-list__empty"
-        >
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-            <rect
-              x="3"
-              y="4"
-              width="18"
-              height="18"
-              rx="3"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
-            <path
-              d="M8 2V6M16 2V6"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
-          <p>등록된 일정이 없습니다</p>
-        </div>
-      </div>
-
-      <div style="height: calc(var(--nav-height) + 32px)" />
-
-      <!-- ── Floating Action Button (FAB) ── -->
-      <button class="member-schedule__fab press-effect" @click="handleReserve">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 5V19M5 12H19"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
+        <section v-if="currentView === 'weekly'" class="member-schedule__weekly">
+          <AppWeeklyCalendar
+            :schedules="weeklySchedules"
+            :workSchedule="trainerWorkSchedule"
+            :holidays="holidays"
+            :currentWeekStart="currentWeekStart"
+            :draggable="true"
+            role="member"
+            @schedule-tap="handleScheduleTap"
+            @week-change="handleWeekChange"
+            @schedule-drop="handleScheduleDrop"
           />
-        </svg>
-        예약하기
-      </button>
+          <p class="member-schedule__weekly-hint">
+            배정된 일정을 탭하면 확인, 변경 요청, 취소를 진행할 수 있습니다.
+          </p>
+        </section>
+
+        <section v-else class="member-schedule__monthly">
+          <div class="member-schedule__calendar-card">
+            <AppCalendar
+              :model-value="selectedDate"
+              :dots="calendarDots"
+              :holidays="monthlyHolidays"
+              @update:modelValue="handleMonthDateSelect"
+              @monthChange="handleMonthChange"
+            />
+          </div>
+
+          <div class="member-schedule__list-header">
+            <h2 class="member-schedule__list-title">{{ selectedDateLabel }}</h2>
+            <p class="member-schedule__list-count">{{ selectedDateSessions.length }}개의 일정</p>
+          </div>
+
+          <div v-if="loading" class="member-schedule__loading">
+            <AppSkeleton type="line" :count="3" />
+          </div>
+
+          <div v-else-if="selectedDateSessions.length === 0" class="member-schedule__empty">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" />
+              <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
+              <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <p>선택한 날짜에 일정이 없습니다.</p>
+          </div>
+
+          <div v-else class="member-schedule__list">
+            <article
+              v-for="session in selectedDateSessions"
+              :key="session.id"
+              class="member-session"
+              @click="openScheduleDetail(session.id)"
+            >
+              <div class="member-session__header">
+                <div class="member-session__trainer">
+                  <div class="member-session__avatar">
+                    <img
+                      v-if="session.trainer_photo"
+                      :src="session.trainer_photo"
+                      :alt="session.trainer_name"
+                      class="member-session__avatar-img"
+                    >
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <h3 class="member-session__name">{{ session.trainer_name }}</h3>
+                </div>
+                <span
+                  class="member-session__status"
+                  :class="`member-session__status--${normalizeStatus(session.status)}`"
+                >
+                  {{ statusLabel(session.status) }}
+                </span>
+              </div>
+
+              <p class="member-session__time">{{ session.start_time }} - {{ session.end_time }}</p>
+
+              <p v-if="session.workoutSummary" class="member-session__summary">
+                {{ session.workoutSummary }}
+              </p>
+              <p v-else class="member-session__summary member-session__summary--empty">
+                아직 운동이 배정되지 않았습니다.
+              </p>
+
+              <p v-if="session.change_reason" class="member-session__reason">
+                변경 사유: {{ session.change_reason }}
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <div class="member-schedule__bottom-space" />
       </template>
     </AppPullToRefresh>
+
+    <button
+      v-if="hasActiveConnection !== null"
+      class="member-schedule__fab press-effect"
+      type="button"
+      @click="goToAvailability"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+      </svg>
+      가능 시간 등록
+    </button>
+
+    <AppBottomSheet v-model="showDetailSheet" title="일정 상세">
+      <div v-if="selectedSchedule" class="detail-sheet">
+        <div class="detail-sheet__row">
+          <span class="detail-sheet__label">트레이너</span>
+          <span class="detail-sheet__value">{{ selectedSchedule.trainer_name }}</span>
+        </div>
+        <div class="detail-sheet__row">
+          <span class="detail-sheet__label">일정</span>
+          <span class="detail-sheet__value">{{ toDisplayDate(selectedSchedule.date) }}</span>
+        </div>
+        <div class="detail-sheet__row">
+          <span class="detail-sheet__label">시간</span>
+          <span class="detail-sheet__value">{{ selectedSchedule.start_time }} - {{ selectedSchedule.end_time }}</span>
+        </div>
+        <div class="detail-sheet__row detail-sheet__row--status">
+          <span class="detail-sheet__label">상태</span>
+          <span
+            class="detail-sheet__status"
+            :class="`detail-sheet__status--${normalizeStatus(selectedSchedule.status)}`"
+          >
+            {{ statusLabel(selectedSchedule.status) }}
+          </span>
+        </div>
+        <div v-if="selectedSchedule.category" class="detail-sheet__row">
+          <span class="detail-sheet__label">운동 카테고리</span>
+          <span class="detail-sheet__value">{{ selectedSchedule.category }}</span>
+        </div>
+
+        <div
+          v-if="selectedSchedule.exercises && selectedSchedule.exercises.length > 0"
+          class="detail-sheet__workout-section"
+        >
+          <span class="detail-sheet__label">배정 운동</span>
+          <ul class="detail-sheet__exercise-list">
+            <li v-for="(ex, i) in selectedSchedule.exercises" :key="i" class="detail-sheet__exercise-item">
+              <span class="detail-sheet__exercise-name">{{ i + 1 }}. {{ ex.name }}</span>
+              <span class="detail-sheet__exercise-spec">{{ ex.sets }}세트 × {{ ex.reps }}회</span>
+            </li>
+          </ul>
+        </div>
+        <p v-else class="detail-sheet__summary detail-sheet__summary--empty">
+          아직 운동이 배정되지 않았습니다.
+        </p>
+
+        <p v-if="selectedSchedule.change_reason" class="detail-sheet__reason">
+          변경 사유: {{ selectedSchedule.change_reason }}
+        </p>
+
+        <div v-if="canCancel(selectedSchedule.status)" class="detail-sheet__actions">
+          <AppButton variant="secondary" :disabled="loading" @click="openChangeRequest">변경 요청</AppButton>
+          <AppButton variant="outline" :disabled="loading" @click="handleCancel">취소</AppButton>
+        </div>
+
+        <p v-else-if="isChangeRequested(selectedSchedule.status)" class="detail-sheet__notice">
+          변경 요청을 전달했습니다. 트레이너의 확인을 기다려주세요.
+        </p>
+      </div>
+    </AppBottomSheet>
+
+    <AppBottomSheet v-model="showChangeSheet" title="변경 요청">
+      <div class="change-sheet">
+        <p v-if="selectedSchedule" class="change-sheet__target">
+          {{ toDisplayDate(selectedSchedule.date) }} {{ selectedSchedule.start_time }} - {{ selectedSchedule.end_time }}
+        </p>
+        <textarea
+          v-model="changeReason"
+          class="change-sheet__textarea"
+          placeholder="변경 사유를 입력해주세요"
+          maxlength="120"
+        />
+        <p class="change-sheet__hint">입력한 사유는 트레이너에게 전달됩니다.</p>
+        <AppButton :disabled="loading" @click="handleRequestChange">요청 보내기</AppButton>
+      </div>
+    </AppBottomSheet>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onActivated, watch } from "vue";
+import { computed, onActivated, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppButton from '@/components/AppButton.vue'
+import AppCalendar from '@/components/AppCalendar.vue'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
+import AppWeeklyCalendar from '@/components/AppWeeklyCalendar.vue'
+import { useConfirm } from '@/composables/useConfirm'
+import { useReservations } from '@/composables/useReservations'
+import { useToast } from '@/composables/useToast'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
+import { useWorkHours } from '@/composables/useWorkHours'
+import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useReservationsStore } from '@/stores/reservations'
 
-defineOptions({ name: "MemberScheduleView" });
-import { useRouter } from "vue-router";
-import { useReservations } from "@/composables/useReservations";
-import { useWorkHours } from "@/composables/useWorkHours";
-import { useWorkoutPlans } from "@/composables/useWorkoutPlans";
-import { useToast } from "@/composables/useToast";
-import { useConfirm } from "@/composables/useConfirm";
-import { useReservationsStore } from "@/stores/reservations";
-import AppPullToRefresh from "@/components/AppPullToRefresh.vue";
-import AppSkeleton from "@/components/AppSkeleton.vue";
+defineOptions({ name: 'MemberScheduleView' })
 
-const router = useRouter();
-const reservationsStore = useReservationsStore();
+const DAY_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+const ACTIVE_STATUSES = new Set(['scheduled', 'confirmed', 'change_requested', 'completed', 'pending', 'approved'])
+
+const STATUS_LABELS = {
+  scheduled: '배정됨',
+  confirmed: '확정됨',
+  change_requested: '변경요청',
+  completed: '완료',
+  pending: '배정됨',
+  approved: '확정됨',
+}
+
+const STATUS_TO_DOT = {
+  scheduled: 'scheduled',
+  confirmed: 'confirmed',
+  change_requested: 'change_requested',
+  completed: 'done',
+  pending: 'pending',
+  approved: 'approved',
+}
+
+const DEFAULT_WORK_SCHEDULE = Object.freeze({
+  startTime: '09:00',
+  endTime: '22:00',
+  slotDuration: 60,
+})
+
+function pad(value) {
+  return String(value).padStart(2, '0')
+}
+
+function parseDate(dateStr) {
+  const [year, month, day] = String(dateStr).split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function formatDate(date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+function addDays(dateStr, amount) {
+  const next = parseDate(dateStr)
+  next.setDate(next.getDate() + amount)
+  return formatDate(next)
+}
+
+function getWeekStart(dateStr) {
+  const date = parseDate(dateStr)
+  const day = date.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  date.setDate(date.getDate() + diff)
+  return formatDate(date)
+}
+
+function toMinutes(timeStr) {
+  const [hour, minute] = String(timeStr || '00:00').slice(0, 5).split(':').map(Number)
+  return (hour * 60) + minute
+}
+
+function normalizeStatus(status) {
+  if (status === 'pending') return 'scheduled'
+  if (status === 'approved') return 'scheduled'
+  return status
+}
+
+function statusLabel(status) {
+  return STATUS_LABELS[status] || STATUS_LABELS[normalizeStatus(status)] || status
+}
+
+function toDisplayDate(dateStr) {
+  const date = parseDate(dateStr)
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 ${DAY_LABELS[date.getDay()]}`
+}
+
+function formatWorkoutSummary(exercises) {
+  if (!Array.isArray(exercises) || exercises.length === 0) {
+    return null
+  }
+
+  return exercises
+    .filter((exercise) => exercise.name)
+    .slice(0, 3)
+    .map((exercise) => `${exercise.name} ${exercise.sets}×${exercise.reps}`)
+    .join(', ')
+}
+
+const router = useRouter()
+const reservationsStore = useReservationsStore()
+const { showToast, showSuccess } = useToast()
+const { confirm } = useConfirm()
+
 const {
   reservations,
   loading,
   error,
   fetchMyReservations,
-  updateReservationStatus,
+  requestChange,
+  cancelSchedule,
   checkTrainerConnection,
   getConnectedTrainerId,
-} = useReservations();
-const { fetchWorkingDays } = useWorkHours();
-const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans();
-const { showToast } = useToast();
-const { confirm } = useConfirm();
+} = useReservations()
 
-// ── Calendar state ──
-const now = new Date();
-const currentYear = ref(now.getFullYear());
-const currentMonth = ref(now.getMonth() + 1);
-const selectedDate = ref(now.getDate());
+const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
+const { overrides, fetchOverrides } = useScheduleOverrides()
+const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
 
-// ── Workout plan cache (date → exercises) ──
+const todayString = formatDate(new Date())
+
+const loaded = ref(false)
+const currentView = ref('weekly')
+const selectedDate = ref(todayString)
+const currentWeekStart = ref(getWeekStart(todayString))
+const currentMonthKey = ref(todayString.slice(0, 7))
+const hasActiveConnection = ref(null)
+
+const showDetailSheet = ref(false)
+const showChangeSheet = ref(false)
+const selectedSchedule = ref(null)
+const changeReason = ref('')
+
+const trainerWorkSchedule = ref({ ...DEFAULT_WORK_SCHEDULE })
+const workingDays = ref(new Set())
+const connectedTrainerId = ref(null)
 const workoutPlanCache = ref({})
 
-const weekdays = [
-  { label: "일", cls: "calendar-card__weekday--sun" },
-  { label: "월", cls: "" },
-  { label: "화", cls: "" },
-  { label: "수", cls: "" },
-  { label: "목", cls: "" },
-  { label: "금", cls: "" },
-  { label: "토", cls: "calendar-card__weekday--sat" },
-];
+const reservationItems = computed(() => {
+  return reservations.value
+    .filter((reservation) => ACTIVE_STATUSES.has(reservation.status))
+    .map((reservation) => ({
+      id: reservation.id,
+      date: reservation.date,
+      start_time: reservation.start_time,
+      end_time: reservation.end_time,
+      status: reservation.status,
+      trainer_name: reservation.partner_name,
+      trainer_photo: reservation.partner_photo,
+      change_reason: reservation.change_reason,
+      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date]),
+      exercises: workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date] || [],
+      category: workoutPlanCache.value[reservation.date]?.category || null,
+    }))
+    .sort((a, b) => {
+      if (a.date !== b.date) {
+        return a.date.localeCompare(b.date)
+      }
+      return toMinutes(a.start_time) - toMinutes(b.start_time)
+    })
+})
 
-const legend = [
-  { status: "pending", label: "대기중" },
-  { status: "approved", label: "승인됨" },
-  { status: "done", label: "완료" },
-];
+const weeklySchedules = computed(() => {
+  const weekEnd = addDays(currentWeekStart.value, 7)
 
-const loaded = ref(false);
-const workingDays = ref(new Set());
-const hasActiveConnection = ref(null);
+  return reservationItems.value
+    .filter((reservation) => reservation.date >= currentWeekStart.value && reservation.date < weekEnd)
+    .map((reservation) => ({
+      id: reservation.id,
+      date: reservation.date,
+      start_time: reservation.start_time,
+      end_time: reservation.end_time,
+      status: reservation.status,
+      trainer_name: reservation.trainer_name,
+      member_name: '',
+      category: reservation.category,
+    }))
+})
+
+const holidays = computed(() => {
+  const holidaySet = new Set()
+
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+
+  if (workingDays.value.size > 0) {
+    for (let index = 0; index < 7; index += 1) {
+      const dateStr = addDays(currentWeekStart.value, index - 1)
+      const dayOfWeek = parseDate(dateStr).getDay()
+      if (!workingDays.value.has(dayOfWeek)) {
+        holidaySet.add(dateStr)
+      }
+    }
+  }
+
+  return Array.from(holidaySet)
+})
+
+const monthlyHolidays = computed(() => {
+  const holidaySet = new Set()
+
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+
+  if (workingDays.value.size > 0) {
+    const [year, month] = currentMonthKey.value.split('-').map(Number)
+    const daysInMonth = new Date(year, month, 0).getDate()
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const dateStr = `${currentMonthKey.value}-${pad(day)}`
+      const dayOfWeek = new Date(year, month - 1, day).getDay()
+      if (!workingDays.value.has(dayOfWeek)) {
+        holidaySet.add(dateStr)
+      }
+    }
+  }
+
+  return Array.from(holidaySet)
+})
+
+const calendarDots = computed(() => {
+  const dots = {}
+
+  reservationItems.value.forEach((reservation) => {
+    if (!reservation.date.startsWith(`${currentMonthKey.value}-`)) {
+      return
+    }
+
+    const day = Number(reservation.date.slice(8, 10))
+    const dotStatus = STATUS_TO_DOT[reservation.status] || STATUS_TO_DOT[normalizeStatus(reservation.status)] || reservation.status
+
+    if (!dots[day]) {
+      dots[day] = []
+    }
+
+    if (!dots[day].includes(dotStatus)) {
+      dots[day].push(dotStatus)
+    }
+
+    dots[day] = dots[day].slice(0, 3)
+  })
+
+  return dots
+})
+
+const selectedDateSessions = computed(() => {
+  return reservationItems.value.filter((reservation) => reservation.date === selectedDate.value)
+})
+
+const selectedDateLabel = computed(() => toDisplayDate(selectedDate.value))
+
+function canCancel(status) {
+  return normalizeStatus(status) === 'scheduled'
+}
+
+function isChangeRequested(status) {
+  return normalizeStatus(status) === 'change_requested'
+}
+
+function syncTrainerWorkSchedule() {
+  const enabledDays = workDays.value.filter((day) => day.enabled)
+
+  if (!enabledDays.length) {
+    trainerWorkSchedule.value = {
+      ...DEFAULT_WORK_SCHEDULE,
+      slotDuration: Number(selectedUnit.value) || DEFAULT_WORK_SCHEDULE.slotDuration,
+    }
+    return
+  }
+
+  const startTime = enabledDays.reduce((minTime, day) => {
+    return toMinutes(day.start) < toMinutes(minTime) ? day.start : minTime
+  }, enabledDays[0].start)
+
+  const endTime = enabledDays.reduce((maxTime, day) => {
+    return toMinutes(day.end) > toMinutes(maxTime) ? day.end : maxTime
+  }, enabledDays[0].end)
+
+  trainerWorkSchedule.value = {
+    startTime,
+    endTime,
+    slotDuration: Number(selectedUnit.value) || DEFAULT_WORK_SCHEDULE.slotDuration,
+  }
+}
+
+async function loadWorkoutForDate(dateStr) {
+  if (!dateStr || workoutPlanCache.value[dateStr] !== undefined) {
+    return
+  }
+
+  await fetchWorkoutPlan(undefined, dateStr)
+  workoutPlanCache.value[dateStr] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
+}
+
+async function preloadWeeklyWorkouts() {
+  const weekEnd = addDays(currentWeekStart.value, 7)
+  const dates = new Set(
+    reservationItems.value
+      .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
+      .map(r => r.date)
+  )
+  for (const date of dates) {
+    await loadWorkoutForDate(date)
+  }
+}
 
 async function loadData() {
-  const connected = await checkTrainerConnection();
-  hasActiveConnection.value = connected;
+  const connected = await checkTrainerConnection()
+  hasActiveConnection.value = connected
+
   if (!connected) {
-    loaded.value = true;
-    return;
+    selectedSchedule.value = null
+    showDetailSheet.value = false
+    showChangeSheet.value = false
+    loaded.value = true
+    return
   }
-  await fetchMyReservations("member");
-  const trainerId = await getConnectedTrainerId();
+
+  await fetchMyReservations('member')
+  await loadWorkoutForDate(selectedDate.value)
+  await preloadWeeklyWorkouts()
+
+  const trainerId = await getConnectedTrainerId()
+  connectedTrainerId.value = trainerId
+  trainerWorkSchedule.value = { ...DEFAULT_WORK_SCHEDULE }
+
   if (trainerId) {
-    workingDays.value = await fetchWorkingDays(trainerId);
+    await fetchWorkHours(trainerId)
+    syncTrainerWorkSchedule()
+    workingDays.value = await fetchWorkingDays(trainerId)
+    await fetchOverrides(trainerId, currentMonthKey.value)
   }
-  // 오늘 날짜의 운동 계획 미리 로드
-  await loadWorkoutForDate(currentYear.value, currentMonth.value, selectedDate.value);
-  loaded.value = true;
+
+  loaded.value = true
 }
 
 async function handleRefresh() {
-  await reservationsStore.loadReservations("member", true);
-  await loadWorkoutForDate(currentYear.value, currentMonth.value, selectedDate.value);
+  await reservationsStore.loadReservations('member', true)
+  await loadData()
 }
+
+function switchView(view) {
+  if (currentView.value === view) {
+    return
+  }
+
+  currentView.value = view
+
+  if (view === 'weekly') {
+    currentWeekStart.value = getWeekStart(selectedDate.value)
+  }
+}
+
+async function handleWeekChange({ weekStart }) {
+  const prevMonth = currentMonthKey.value
+  currentWeekStart.value = weekStart
+  selectedDate.value = weekStart
+  currentMonthKey.value = weekStart.slice(0, 7)
+  await loadWorkoutForDate(weekStart)
+  await preloadWeeklyWorkouts()
+
+  if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
+    await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+  }
+}
+
+async function handleMonthChange(month) {
+  currentMonthKey.value = month
+
+  if (connectedTrainerId.value) {
+    await fetchOverrides(connectedTrainerId.value, month)
+  }
+}
+
+async function handleMonthDateSelect(date) {
+  selectedDate.value = date
+  currentWeekStart.value = getWeekStart(date)
+  currentMonthKey.value = date.slice(0, 7)
+  await loadWorkoutForDate(date)
+}
+
+async function openScheduleDetail(scheduleId) {
+  const schedule = reservationItems.value.find((item) => item.id === scheduleId)
+  if (!schedule) {
+    return
+  }
+
+  await loadWorkoutForDate(schedule.date)
+  const updatedSchedule = reservationItems.value.find((item) => item.id === scheduleId)
+  selectedSchedule.value = updatedSchedule || schedule
+  showDetailSheet.value = true
+}
+
+function handleScheduleTap({ scheduleId }) {
+  openScheduleDetail(scheduleId)
+}
+
+async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTime }) {
+  const reason = `일정 변경 요청 (${toDate} ${toTime}으로 이동)`
+  const requested = await requestChange(scheduleId, reason)
+  if (!requested) {
+    showToast(error.value || '일정 변경 요청에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 보냈습니다.')
+  await fetchMyReservations('member')
+}
+
+function openChangeRequest() {
+  showDetailSheet.value = false
+  changeReason.value = ''
+  showChangeSheet.value = true
+}
+
+async function handleRequestChange() {
+  if (!selectedSchedule.value) {
+    return
+  }
+
+  const reason = changeReason.value.trim()
+  if (!reason) {
+    alert('변경 사유를 입력해주세요')
+    return
+  }
+
+  const requested = await requestChange(selectedSchedule.value.id, reason)
+  if (!requested) {
+    showToast(error.value || '변경 요청에 실패했습니다.', 'error')
+    return
+  }
+
+  showSuccess('변경 요청을 보냈습니다.')
+  showChangeSheet.value = false
+  changeReason.value = ''
+  await fetchMyReservations('member')
+}
+
+async function handleCancel() {
+  if (!selectedSchedule.value) {
+    return
+  }
+
+  const accepted = await confirm('배정된 일정을 취소하시겠습니까?')
+  if (!accepted) {
+    return
+  }
+
+  const cancelled = await cancelSchedule(selectedSchedule.value.id)
+  if (!cancelled) {
+    showToast(error.value || '일정 취소에 실패했습니다.', 'error')
+    return
+  }
+
+  showSuccess('일정을 취소했습니다.')
+  showDetailSheet.value = false
+  await fetchMyReservations('member')
+}
+
+function goToAvailability() {
+  router.push({ path: '/member/availability' })
+}
+
+watch(selectedDate, async (date, prevDate) => {
+  if (!hasActiveConnection.value || !date || date === prevDate) {
+    return
+  }
+
+  await loadWorkoutForDate(date)
+})
+
+watch(error, (message) => {
+  if (message) {
+    showToast(message, 'error')
+  }
+})
 
 onMounted(() => {
-  if (!loaded.value) loadData();
-});
+  if (!loaded.value) {
+    loadData()
+  }
+})
+
 onActivated(() => {
-  if (loaded.value && reservationsStore.isStale()) loadData();
-});
-
-// ── 날짜에 해당하는 운동 계획 로드 ──
-async function loadWorkoutForDate(year, month, day) {
-  // 선택 날짜의 예약이 있는 경우에만 fetch
-  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  if (workoutPlanCache.value[dateStr] !== undefined) return;
-  await fetchWorkoutPlan(undefined, dateStr); // member 자신 기준으로 조회
-  workoutPlanCache.value[dateStr] = currentPlan.value ? [...(currentPlan.value.exercises || [])] : null;
-}
-
-// ── Compute dots from real reservations ──
-// dotsData 키: "YYYY-MM-DD", 값: dot CSS 클래스 배열 (completed → done 변환)
-const STATUS_TO_DOT = {
-  pending: "pending",
-  approved: "approved",
-  completed: "done",
-};
-
-const dotsData = computed(() => {
-  const dots = {};
-  reservations.value.forEach((res) => {
-    if (res.status === "cancelled") return;
-    if (!dots[res.date]) {
-      dots[res.date] = new Set();
-    }
-    dots[res.date].add(STATUS_TO_DOT[res.status] || res.status);
-  });
-  const result = {};
-  for (const [date, statusSet] of Object.entries(dots)) {
-    result[date] = [...statusSet].slice(0, 4);
+  if (loaded.value && reservationsStore.isStale()) {
+    loadData()
   }
-  return result;
-});
-
-// date: day number (1-31) → full date string으로 변환하여 dotsData 조회
-function getDots(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-  return dotsData.value[dateStr] || [];
-}
-
-function isNonWorkingDay(date) {
-  if (workingDays.value.size === 0) return false;
-  const dow = new Date(
-    currentYear.value,
-    currentMonth.value - 1,
-    date,
-  ).getDay();
-  return !workingDays.value.has(dow);
-}
-
-function isPast(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(date).padStart(2, '0')}`
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  return dateStr < todayStr
-}
-
-function isSelected(date) {
-  return date === selectedDate.value;
-}
-
-function isToday(date) {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return dateStr === todayStr;
-}
-
-function selectDate(date) {
-  selectedDate.value = date;
-  // 선택 날짜 변경 시 운동 계획 로드
-  loadWorkoutForDate(currentYear.value, currentMonth.value, date);
-}
-
-// ── Calendar cells ──
-const calendarCells = computed(() => {
-  const firstDay = new Date(
-    currentYear.value,
-    currentMonth.value - 1,
-    1,
-  ).getDay();
-  const daysInMonth = new Date(
-    currentYear.value,
-    currentMonth.value,
-    0,
-  ).getDate();
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) {
-    cells.push({ key: `empty-${i}`, date: null });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dayOfWeek = (firstDay + d - 1) % 7;
-    cells.push({
-      key: `day-${d}`,
-      date: d,
-      isSun: dayOfWeek === 0,
-      isSat: dayOfWeek === 6,
-    });
-  }
-  return cells;
-});
-
-function prevMonth() {
-  if (currentMonth.value === 1) {
-    currentMonth.value = 12;
-    currentYear.value--;
-  } else {
-    currentMonth.value--;
-  }
-}
-
-function nextMonth() {
-  if (currentMonth.value === 12) {
-    currentMonth.value = 1;
-    currentYear.value++;
-  } else {
-    currentMonth.value++;
-  }
-}
-
-// ── Selected date label ──
-const dayNames = [
-  "일요일",
-  "월요일",
-  "화요일",
-  "수요일",
-  "목요일",
-  "금요일",
-  "토요일",
-];
-const selectedDateLabel = computed(() => {
-  const dayOfWeek = new Date(
-    currentYear.value,
-    currentMonth.value - 1,
-    selectedDate.value,
-  ).getDay();
-  return `${currentMonth.value}월 ${selectedDate.value}일 ${dayNames[dayOfWeek]}`;
-});
-
-// ── Filter reservations by selected date ──
-const selectedDaySessions = computed(() => {
-  const selectedDateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(selectedDate.value).padStart(2, "0")}`;
-  const exercises = workoutPlanCache.value[selectedDateStr];
-  const workoutSummary = exercises && exercises.length > 0
-    ? exercises.filter(e => e.name).slice(0, 3).map(e => `${e.name} ${e.sets}×${e.reps}`).join(', ')
-    : null;
-
-  return reservations.value
-    .filter((res) => res.date === selectedDateStr && res.status !== "cancelled")
-    .map((res) => ({
-      id: res.id,
-      title: res.session_type || "운동 세션",
-      time: `${res.start_time} - ${res.end_time}`,
-      trainer: res.partner_name,
-      trainerPhoto: res.partner_photo || null,
-      status: res.status,
-      rejection_reason: res.rejection_reason,
-      workoutSummary,
-    }));
-});
-
-function statusLabel(status) {
-  const map = {
-    pending: "대기중",
-    approved: "승인됨",
-    completed: "완료",
-    done: "완료",
-    // cancelled: "취소됨",
-    rejected: "거절됨",
-  };
-  return map[status] || status;
-}
-
-// ── 핸들러 ──
-function handleReserve() {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(selectedDate.value).padStart(2, "0")}`;
-  router.push({ path: "/member/reservation", query: { date: dateStr } });
-}
-
-function goWorkoutDetail() {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, "0")}-${String(selectedDate.value).padStart(2, "0")}`;
-  router.push({ name: "member-workout-detail", query: { date: dateStr } });
-}
-
-async function handleCancel(session) {
-  if (await confirm(`"${session.title}" 예약을 취소하시겠습니까?`)) {
-    const success = await updateReservationStatus(session.id, "cancelled");
-    if (success) {
-      await fetchMyReservations("member");
-    }
-  }
-}
-
-watch(error, (e) => { if (e) showToast(e, 'error') })
+})
 </script>
 
 <style src="./MemberScheduleView.css" scoped></style>

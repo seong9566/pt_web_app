@@ -10,6 +10,22 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationBadgeStore } from '@/stores/notificationBadge'
 
+/** 알림 타입 → 한국어 라벨 매핑 */
+const NOTIFICATION_TYPE_LABELS = {
+  // 신규 타입
+  availability_submitted: '가능 시간 등록',
+  schedule_assigned: 'PT 일정 배정',
+  change_requested: '일정 변경 요청',
+  schedule_reassigned: '일정 재배정',
+  availability_reminder: '가능 시간 등록 요청',
+  // 레거시 타입
+  reservation_requested: '예약 요청',
+  reservation_approved: '예약 승인',
+  reservation_rejected: '예약 거절',
+  reservation_completed: '예약 완료',
+  reservation_cancelled: '예약 취소',
+}
+
 /** 알림 관리 */
 export function useNotifications() {
   const auth = useAuthStore()
@@ -129,3 +145,5 @@ export function useNotifications() {
     createNotification,
   }
 }
+
+export { NOTIFICATION_TYPE_LABELS }

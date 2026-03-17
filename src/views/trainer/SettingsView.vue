@@ -127,7 +127,7 @@
       <!-- ── 로그아웃 + 버전 ── -->
       <div class="settings__footer">
         <button class="settings__logout" @click="handleLogout">로그아웃</button>
-        <span class="settings__version">Version 2.4.0</span>
+        <span class="settings__version">Version 1.0.0</span>
       </div>
 
       <div style="height: calc(var(--nav-height) + 16px);" />

@@ -83,6 +83,17 @@
           <span>이미 배정된 운동이 있습니다. 덮어쓰시겠습니까?</span>
         </div>
 
+        <div class="today-workout__category-chips">
+          <button
+            v-for="cat in WORKOUT_CATEGORIES"
+            :key="cat"
+            class="today-workout__category-chip"
+            :class="{ 'today-workout__category-chip--active': selectedCategory === cat }"
+            type="button"
+            @click="selectedCategory = cat"
+          >{{ cat }}</button>
+        </div>
+
         <!-- 운동 항목 리스트 -->
         <div class="today-workout__exercise-list">
           <div
@@ -231,7 +242,7 @@
       <div class="today-workout__save-wrap">
         <button
           class="today-workout__save-btn"
-          :disabled="isSaving || exercises.every(e => !e.name.trim())"
+          :disabled="isSaving || exercises.every(e => !e.name.trim()) || !selectedCategory"
           @click="handleSave"
         >
           {{ isSaving ? '저장 중...' : '저장' }}
@@ -274,7 +285,9 @@ const {
 
 const _now = new Date()
 const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
+const WORKOUT_CATEGORIES = ['가슴', '어깨', '등', '팔', '하체', '코어', '전신', '유산소', '스트레칭']
 const selectedDate = ref(route.query.date || todayStr)
+const selectedCategory = ref('')
 const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const isSaving = ref(false)
 const historyLoading = ref(false)
@@ -308,6 +321,7 @@ async function selectDate(date) {
   exercises.value = currentPlan.value?.exercises?.length
     ? currentPlan.value.exercises.map(e => ({ ...e }))
     : [{ name: '', sets: 3, reps: 10, memo: '' }]
+  selectedCategory.value = currentPlan.value?.category || ''
 }
 
 async function loadPlanAndHistory() {
@@ -319,6 +333,7 @@ async function loadPlanAndHistory() {
   exercises.value = currentPlan.value?.exercises?.length
     ? currentPlan.value.exercises.map(e => ({ ...e }))
     : [{ name: '', sets: 3, reps: 10, memo: '' }]
+  selectedCategory.value = currentPlan.value?.category || ''
   await fetchWorkoutPlans(memberId)
   historyLoading.value = false
 }
@@ -329,7 +344,7 @@ async function handleSave() {
   const validExercises = exercises.value.filter(e => e.name.trim())
   if (!memberId || validExercises.length === 0 || isSaving.value) return
   isSaving.value = true
-  const success = await saveWorkoutPlan(memberId, selectedDate.value, validExercises)
+  const success = await saveWorkoutPlan(memberId, selectedDate.value, validExercises, selectedCategory.value)
   isSaving.value = false
   if (success) {
     showSuccess('저장되었습니다')
@@ -352,6 +367,7 @@ function copyFromHistory(plan) {
     reps: e.reps ?? 10,
     memo: e.memo || '',
   }))
+  selectedCategory.value = plan.category || ''
 }
 
 function toggleHistoryExpand(planId) {

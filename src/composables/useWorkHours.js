@@ -50,8 +50,9 @@ export function useWorkHours() {
   const error = ref(null)
 
   /** DB에서 근무시간 설정 조회 및 UI 형식으로 변환 */
-  async function fetchWorkHours() {
+  async function fetchWorkHours(trainerId) {
     const auth = useAuthStore()
+    const targetId = trainerId || auth.user.id
     loading.value = true
     error.value = null
 
@@ -59,7 +60,7 @@ export function useWorkHours() {
       const { data, error: fetchError } = await supabase
         .from('work_schedules')
         .select('*')
-        .eq('trainer_id', auth.user.id)
+        .eq('trainer_id', targetId)
         .order('day_of_week')
 
       if (fetchError) {

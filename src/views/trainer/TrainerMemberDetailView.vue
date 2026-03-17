@@ -164,6 +164,15 @@
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
+        <button class="quick-action" @click="showColorSheet = true">
+          <div class="quick-action__icon">
+            <span class="color-dot" :style="{ backgroundColor: currentMemberColor }"></span>
+          </div>
+          <span class="quick-action__label">캘린더 색상</span>
+          <svg class="quick-action__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
         <button class="quick-action quick-action--danger" @click="showDisconnectSheet = true">
           <div class="quick-action__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -256,13 +265,26 @@
       <button class="mem-detail__sheet-btn mem-detail__sheet-btn--confirm" @click="confirmDeleteMemo">삭제</button>
     </div>
   </AppBottomSheet>
+
+  <AppBottomSheet v-model="showColorSheet" title="캘린더 색상 선택">
+    <div class="color-picker">
+      <button
+        v-for="color in MEMBER_COLORS"
+        :key="color"
+        class="color-picker__item"
+        :class="{ 'color-picker__item--selected': color === currentMemberColor }"
+        :style="{ backgroundColor: color }"
+        @click="handleColorSelect(color)"
+      />
+    </div>
+  </AppBottomSheet>
     </template>
   </div>
 </template>
 
 <script setup>
 defineOptions({ name: 'TrainerMemberDetailView' })
-import { onMounted, onActivated, ref, watch } from 'vue'
+import { computed, onMounted, onActivated, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
@@ -270,6 +292,8 @@ import { usePtSessions } from '@/composables/usePtSessions'
 import { isActiveConnection } from '@/composables/useConnection'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import { useMembersStore } from '@/stores/members'
+import { MEMBER_COLORS } from '@/utils/colors'
 import AppButton from '@/components/AppButton.vue'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -277,6 +301,7 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const membersStore = useMembersStore()
 const { member, memos, loading, error, fetchMemberDetail, fetchMemos, deleteMemo } = useMemos()
 const { disconnectMember } = useProfile()
 const { remainingCount, loading: ptLoading, error: ptError, fetchPtHistory } = usePtSessions()
@@ -284,9 +309,15 @@ const { showToast } = useToast()
 
 const showDisconnectSheet = ref(false)
 const showDeleteMemoSheet = ref(false)
+const showColorSheet = ref(false)
 const deleteMemoTarget = ref(null)
 const initialLoaded = ref(false)
 const hasActiveConnection = ref(null)
+
+const currentMemberColor = computed(() => {
+  const selectedMember = membersStore.members.find(m => m.id === route.params.id)
+  return selectedMember?.color || MEMBER_COLORS[0]
+})
 
 onMounted(async () => {
   const memberId = route.params.id
@@ -296,6 +327,7 @@ onMounted(async () => {
   }
   hasActiveConnection.value = await isActiveConnection(auth.user.id, memberId)
   if (!hasActiveConnection.value) return
+  await membersStore.loadMembers()
   await fetchMemberDetail(memberId)
   await fetchMemos(memberId)
   await fetchPtHistory(memberId)
@@ -325,6 +357,11 @@ function goChat() {
 
 function goPtCount() {
   router.push({ name: 'trainer-pt-count', params: { id: route.params.id } })
+}
+
+async function handleColorSelect(color) {
+  await membersStore.updateMemberColor(route.params.id, color)
+  showColorSheet.value = false
 }
 
 async function handleDisconnect() {

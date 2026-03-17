@@ -1,0 +1,352 @@
+.availability-status {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 122, 255, 0.12) 0%, rgba(0, 122, 255, 0) 40%),
+    linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-100) 82%);
+}
+
+.availability-status__header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--side-margin);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.availability-status__back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-gray-900);
+  transition:
+    background-color var(--animation-duration-fast) var(--animation-easing-default),
+    color var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.availability-status__back:active {
+  background-color: var(--color-gray-100);
+}
+
+.availability-status__title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+}
+
+.availability-status__header-spacer {
+  width: 40px;
+  height: 40px;
+}
+
+.availability-status__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px var(--side-margin) 0;
+}
+
+.availability-status__week-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-large);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--shadow-card);
+}
+
+.availability-status__week-chip {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  letter-spacing: 0.02em;
+}
+
+.availability-status__week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.availability-status__week-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  color: var(--color-gray-900);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color var(--animation-duration-fast) var(--animation-easing-default),
+    color var(--animation-duration-fast) var(--animation-easing-default),
+    opacity var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.availability-status__week-arrow:disabled {
+  opacity: 0.45;
+}
+
+.availability-status__week-range {
+  margin: 0;
+  color: var(--color-gray-900);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  text-align: center;
+}
+
+.availability-status__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 44px 16px;
+  border-radius: var(--radius-large);
+  border: 1px dashed var(--color-gray-200);
+  background-color: rgba(255, 255, 255, 0.88);
+  text-align: center;
+}
+
+.availability-status__state-title {
+  margin: 0;
+  color: var(--color-gray-900);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+}
+
+.availability-status__state-desc {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+/* 미등록 배너 */
+.availability-status__pending-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-medium);
+  background-color: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: var(--color-red);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  text-align: left;
+  cursor: pointer;
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.availability-status__pending-banner:active {
+  opacity: 0.75;
+}
+
+.availability-status__pending-banner-arrow {
+  font-size: var(--fs-caption);
+  opacity: 0.7;
+}
+
+/* 히트맵 래퍼 */
+.availability-status__heatmap-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-card);
+}
+
+/* 히트맵 그리드 */
+.availability-status__heatmap {
+  display: grid;
+  grid-template-columns: 48px repeat(7, 1fr);
+  min-width: 320px;
+}
+
+/* 코너 셀 */
+.availability-status__heatmap-corner {
+  background-color: var(--color-gray-100);
+  border-right: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+/* 요일 헤더 */
+.availability-status__heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-right: 1px solid var(--color-gray-200);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.availability-status__heatmap-header:last-of-type {
+  border-right: none;
+}
+
+/* 시간 라벨 */
+.availability-status__heatmap-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px;
+  background-color: var(--color-gray-100);
+  border-right: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 10px;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+/* 히트맵 셀 */
+.availability-status__heatmap-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.availability-status__heatmap-cell:active {
+  opacity: 0.7;
+}
+
+/* 색상 강도 */
+.availability-status__heatmap-cell--heat-0 {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-200);
+}
+
+.availability-status__heatmap-cell--heat-1 {
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.availability-status__heatmap-cell--heat-2 {
+  background-color: rgba(0, 122, 255, 0.35);
+  color: var(--color-white);
+}
+
+.availability-status__heatmap-cell--heat-3 {
+  background-color: rgba(0, 122, 255, 0.65);
+  color: var(--color-white);
+}
+
+/* 바텀시트 내부 - 셀 회원 리스트 */
+.availability-status__cell-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.availability-status__cell-empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+.availability-status__cell-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.availability-status__cell-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-600);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+}
+
+.availability-status__cell-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.availability-status__cell-name {
+  color: var(--color-gray-900);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+}
+
+/* 바텀시트 내부 - 미등록 회원 리스트 */
+.availability-status__pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.availability-status__pending-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.availability-status__pending-item .availability-status__cell-name {
+  flex: 1;
+}
+
+/* 리마인더 버튼 */
+.availability-status__reminder-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.availability-status__reminder-btn:disabled {
+  opacity: 0.55;
+}

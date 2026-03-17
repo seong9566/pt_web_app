@@ -44,8 +44,8 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <div class="trainer-home__action-body">
-          <span class="trainer-home__action-title">새로운 예약 요청</span>
-          <span class="trainer-home__action-desc">승인 대기 중 {{ pendingReservationCount }}건</span>
+          <span class="trainer-home__action-title">변경 요청 일정</span>
+          <span class="trainer-home__action-desc">변경 요청 {{ changeRequestCount }}건</span>
         </div>
         <svg class="trainer-home__action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
@@ -273,9 +273,9 @@ const todaySessionCount = computed(() => {
   return reservations.value.filter(r => r.date === today && r.status !== 'cancelled' && r.status !== 'rejected').length
 })
 
-/** 승인 대기 중인 예약 수 */
-const pendingReservationCount = computed(() => {
-  return reservations.value.filter(r => r.status === 'pending').length
+/** 변경 요청 중인 일정 수 */
+const changeRequestCount = computed(() => {
+  return reservations.value.filter(r => r.status === 'change_requested').length
 })
 
 /** 연결된 회원 수 */

@@ -83,27 +83,28 @@ export function useWorkoutPlans() {
   }
 
   /**
-   * 운동 계획 생성/수정 (UPSERT)
-   * @param {string} memberId - 회원 ID
-   * @param {string} date - 날짜 (YYYY-MM-DD)
-   * @param {Array} exercises - 운동 배열
-   */
-  async function saveWorkoutPlan(memberId, date, exercises) {
+    * 운동 계획 생성/수정 (UPSERT)
+    * @param {string} memberId - 회원 ID
+    * @param {string} date - 날짜 (YYYY-MM-DD)
+    * @param {Array} exercises - 운동 배열
+    */
+  async function saveWorkoutPlan(memberId, date, exercises, category) {
     loading.value = true
     error.value = null
     try {
-      const { data, error: err } = await supabase
-        .from('workout_plans')
-        .upsert(
-          {
-            trainer_id: auth.user.id,
-            member_id: memberId,
-            date,
-            exercises,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'trainer_id,member_id,date' }
-        )
+       const { data, error: err } = await supabase
+         .from('workout_plans')
+         .upsert(
+           {
+             trainer_id: auth.user.id,
+             member_id: memberId,
+             date,
+             exercises,
+             category,
+             updated_at: new Date().toISOString(),
+           },
+           { onConflict: 'trainer_id,member_id,date' }
+         )
         .select('id')
         .single()
       if (err) throw err
@@ -210,7 +211,7 @@ export function useWorkoutPlans() {
     try {
       const { data, error: err } = await supabase
         .from('workout_plans')
-        .select('id, member_id, exercises')
+        .select('id, member_id, exercises, category')
         .eq('trainer_id', auth.user.id)
         .eq('date', date)
       if (err) throw err
