@@ -231,65 +231,6 @@
           </div>
         </section>
 
-        <!-- 확정됨 섹션 -->
-        <section v-if="confirmedList.length" class="reservation__section">
-          <div class="reservation__section-header">
-            <h2 class="reservation__section-title">확정됨</h2>
-            <span class="reservation__badge reservation__badge--confirmed">{{ confirmedList.length }}건</span>
-          </div>
-          <div class="reservation__list">
-            <div
-              v-for="(item, idx) in confirmedList"
-              :key="item.id"
-              class="res-card stagger-fade-in"
-              :style="{ '--stagger-index': idx }"
-            >
-              <div class="res-card__top">
-                <div class="res-card__profile">
-                  <div class="res-card__avatar">
-                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
-                    <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
-                  </div>
-                  <span class="res-card__name">{{ item.partner_name }}</span>
-                </div>
-                <span class="res-card__status res-card__status--confirmed">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  확정됨
-                </span>
-              </div>
-              <div class="res-card__meta">
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  {{ item.date }}
-                </span>
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  {{ item.start_time }} ~ {{ item.end_time }}
-                </span>
-              </div>
-              <div class="res-card__divider" />
-              <div class="res-card__actions">
-                <button
-                  class="res-card__btn res-card__btn--cancel press-effect"
-                  :disabled="processingId === item.id"
-                  @click="handleCancelOpen(item)"
-                >
-                  {{ processingId === item.id ? '처리 중...' : '취소' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <!-- 완료 섹션 -->
         <section v-if="completedList.length" class="reservation__section">
           <h2 class="reservation__section-title">완료</h2>
@@ -413,7 +354,6 @@ const filterChips = [
   { id: 'all',              label: '전체',    icon: 'grid' },
   { id: 'scheduled',        label: '배정됨',  icon: 'clock' },
   { id: 'change_requested', label: '변경요청', icon: 'alert' },
-  { id: 'confirmed',        label: '확정됨',  icon: 'check' },
   { id: 'completed',        label: '완료',    icon: 'history' },
 ]
 const activeFilter = ref('all')
@@ -436,14 +376,12 @@ function filteredByStatus(status) {
 
 const changeRequestedList = computed(() => filteredByStatus('change_requested'))
 const scheduledList = computed(() => filteredByStatus('scheduled'))
-const confirmedList = computed(() => filteredByStatus('confirmed'))
 const completedList = computed(() => filteredByStatus('completed'))
 const cancelledList = computed(() => filteredByStatus('cancelled'))
 
 const isEmpty = computed(() =>
   changeRequestedList.value.length === 0 &&
   scheduledList.value.length === 0 &&
-  confirmedList.value.length === 0 &&
   completedList.value.length === 0 &&
   cancelledList.value.length === 0
 )
