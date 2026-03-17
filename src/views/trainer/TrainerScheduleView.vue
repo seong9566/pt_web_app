@@ -46,8 +46,10 @@
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"
           role="trainer"
+          :draggable="true"
           @slot-tap="handleSlotTap"
           @schedule-tap="handleScheduleTap"
+          @schedule-drop="handleScheduleDrop"
           @week-change="handleWeekChange"
         />
         <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
@@ -663,6 +665,18 @@ function openScheduleDetail(scheduleId) {
 
 function handleScheduleTap({ scheduleId }) {
   openScheduleDetail(scheduleId)
+}
+
+async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTime }) {
+  const success = await reassignSchedule(scheduleId, toDate, toTime)
+
+  if (success) {
+    showSuccess('일정을 재배정했습니다.')
+    await loadWeeklySchedules()
+    return
+  }
+
+  showToast(error.value || '일정 재배정에 실패했습니다.', 'error')
 }
 
 async function assignToMember(memberId) {
