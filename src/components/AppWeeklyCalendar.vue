@@ -38,6 +38,7 @@
             :class="{
               'weekly-calendar__cell--holiday': isHoliday(date),
               'weekly-calendar__cell--off-hours': isOffHours(time),
+              'weekly-calendar__cell--available': props.role === 'trainer' && !getScheduleAtSlot(date, time) && hasAvailableMember(date, time),
             }"
             @click="handleSlotTap(date, time)"
           >
@@ -73,6 +74,7 @@ import { computed } from 'vue'
 
 const CELL_HEIGHT = 56
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 const STATUS_COLORS = {
   scheduled: 'var(--color-yellow)',
@@ -92,6 +94,7 @@ const props = defineProps({
   holidays: { type: Array, default: () => [] },
   currentWeekStart: { type: String, required: true },
   role: { type: String, default: 'trainer' },
+  availabilities: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change'])
@@ -250,6 +253,15 @@ function getBlockStyle(schedule) {
     backgroundColor: color,
     height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px`,
   }
+}
+
+function hasAvailableMember(date, time) {
+  if (!props.availabilities || props.availabilities.length === 0) return false
+  const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
+  return props.availabilities.some((member) => {
+    const slots = member.available_slots?.[dayKey]
+    return Array.isArray(slots) && slots.includes(time)
+  })
 }
 
 function moveWeek(amount) {
