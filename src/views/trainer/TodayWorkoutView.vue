@@ -262,6 +262,7 @@ import { isActiveConnection } from '@/composables/useConnection'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
@@ -348,6 +349,7 @@ async function handleSave() {
   isSaving.value = false
   if (success) {
     showSuccess('저장되었습니다')
+    useWorkoutPlansStore().invalidate()
     setTimeout(() => router.back(), 800)
     await fetchWorkoutPlans(memberId)
   }

@@ -248,10 +248,13 @@ import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useMembersStore } from '@/stores/members'
 import { useReservationsStore } from '@/stores/reservations'
+import { useWorkHoursStore } from '@/stores/workHours'
+import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
+import { useAvailabilityStore } from '@/stores/availability'
+import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import { resolveAvailabilityState } from '@/utils/availability'
 
 defineOptions({ name: 'TrainerScheduleView' })
@@ -364,7 +367,7 @@ const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWo
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
 const { members, fetchMembers } = useMembers()
-const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
+const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan, loadWeeklyWorkoutCategories, getWeeklyCategory } = useWorkoutPlans()
 
 const todayStr = formatDate(new Date())
 
@@ -384,7 +387,6 @@ const selectedSlotTime = ref('')
 const selectedSchedule = ref(null)
 const detailExercises = ref([])
 const detailCategory = ref('')
-const weeklyWorkoutCache = ref({})
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
@@ -485,7 +487,7 @@ const weeklySchedules = computed(() => {
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
-      category: weeklyWorkoutCache.value[`${reservation.date}-${reservation.member_id}`] || null,
+      category: getWeeklyCategory(reservation.date, reservation.member_id),
     }))
 })
 
@@ -613,23 +615,7 @@ async function loadWeeklyWorkouts() {
     dates.push(addDays(currentWeekStart.value, i))
   }
 
-  for (const date of dates) {
-    if (weeklyWorkoutCache.value[`_loaded_${date}`]) continue
-
-    const { data } = await supabase
-      .from('workout_plans')
-      .select('member_id, category')
-      .eq('trainer_id', auth.user.id)
-      .eq('date', date)
-
-    if (data) {
-      data.forEach((plan) => {
-        weeklyWorkoutCache.value[`${date}-${plan.member_id}`] = plan.category
-      })
-    }
-
-    weeklyWorkoutCache.value[`_loaded_${date}`] = true
-  }
+  await loadWeeklyWorkoutCategories(dates)
 }
 
 async function loadData() {
@@ -651,6 +637,10 @@ async function loadData() {
 }
 
 async function handleRefresh() {
+  useWorkHoursStore().invalidate()
+  useScheduleOverridesStore().invalidate()
+  useAvailabilityStore().invalidate()
+  useWorkoutPlansStore().invalidate()
   await reservationsStore.loadReservations('trainer', true)
   await fetchMyReservations('trainer')
   await fetchWorkHours()
@@ -687,7 +677,6 @@ function handleAdd() {
 }
 
 async function handleWeekChange({ weekStart }) {
-  weeklyWorkoutCache.value = {}
   currentWeekStart.value = weekStart
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
@@ -890,11 +879,9 @@ onMounted(() => {
 onActivated(async () => {
   if (!loaded.value) return
 
-  weeklyWorkoutCache.value = {}
   await membersStore.loadMembers()
   await fetchMyReservations('trainer')
   await fetchWorkHours()
-  await fetchMembers()
   await loadWorkingDaySet()
 
   const monthKey = currentView.value === 'weekly'
@@ -904,6 +891,9 @@ onActivated(async () => {
   await loadOverrides(monthKey)
   await fetchDayWorkoutPlans(selectedDate.value)
   await loadWeeklyWorkouts()
+
+  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  weekAvailabilities.value = availRows || []
 })
 </script>
 

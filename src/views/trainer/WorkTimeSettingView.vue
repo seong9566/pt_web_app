@@ -215,6 +215,8 @@ import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkHoursStore } from '@/stores/workHours'
+import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -343,6 +345,7 @@ async function confirmOverride() {
 
   if (ok) {
     showSuccess('저장되었습니다')
+    useScheduleOverridesStore().invalidateMonth(auth.user.id, selectedDate.value.slice(0, 7))
   }
   showDateSheet.value = false
 }
@@ -353,6 +356,7 @@ async function restoreDefault() {
   const ok = await removeOverride(auth.user.id, selectedDate.value)
   if (ok) {
     showSuccess('기본값으로 복원되었습니다')
+    useScheduleOverridesStore().invalidateMonth(auth.user.id, selectedDate.value.slice(0, 7))
   }
   showDateSheet.value = false
 }
@@ -391,6 +395,7 @@ async function handleSave() {
   const ok = await saveWorkHours(updatedDays, selectedUnit.value)
   if (ok) {
     showSuccess('저장되었습니다')
+    useWorkHoursStore().invalidate()
     setTimeout(() => router.back(), 800)
   }
 }
