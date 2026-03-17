@@ -170,7 +170,7 @@ describe('useAvailability', () => {
             member_id: 'member-a',
             available_slots: { mon: ['morning'] },
             memo: null,
-            submitted_at: '2026-03-10T10:00:00Z',
+            created_at: '2026-03-10T10:00:00Z',
           },
         ],
         error: null,

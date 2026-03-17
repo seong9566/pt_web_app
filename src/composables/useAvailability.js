@@ -131,7 +131,7 @@ export function useAvailability() {
    * 미등록 회원은 available_slots=null로 포함됨.
    *
    * @param {string} weekStart - 주 시작일 YYYY-MM-DD
-   * @returns {Array<{member_id, name, photo_url, available_slots, memo, submitted_at}>}
+   * @returns {Array<{member_id, name, photo_url, available_slots, memo, created_at}>}
    */
   async function fetchMemberAvailabilities(weekStart) {
     loading.value = true
@@ -154,7 +154,7 @@ export function useAvailability() {
       const memberIds = members.map((m) => m.member_id)
       const { data: availabilities, error: availError } = await supabase
         .from('member_weekly_availability')
-        .select('member_id, available_slots, memo, submitted_at')
+        .select('member_id, available_slots, memo, created_at')
         .in('member_id', memberIds)
         .eq('week_start', weekStart)
         .eq('trainer_id', auth.user.id)
@@ -175,7 +175,7 @@ export function useAvailability() {
         photo_url: member.profiles?.photo_url ?? null,
         available_slots: availMap[member.member_id]?.available_slots ?? null,
         memo: availMap[member.member_id]?.memo ?? null,
-        submitted_at: availMap[member.member_id]?.submitted_at ?? null,
+        created_at: availMap[member.member_id]?.created_at ?? null,
       }))
     } catch (e) {
       error.value = e?.message ?? '회원 가능 시간을 불러오는 중 오류가 발생했습니다.'

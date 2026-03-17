@@ -22,17 +22,17 @@ vi.mock('@/composables/useAvailability', () => ({
       {
         member_id: 'm1', name: '김회원', photo_url: null,
         available_slots: { mon: ['09:00', '10:00'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
-        submitted_at: '2026-03-10'
+        created_at: '2026-03-10'
       },
       {
         member_id: 'm2', name: '이회원', photo_url: null,
         available_slots: { mon: ['09:00'], tue: ['14:00'], wed: [], thu: [], fri: [], sat: [], sun: [] },
-        submitted_at: '2026-03-10'
+        created_at: '2026-03-10'
       },
       {
         member_id: 'm3', name: '박회원', photo_url: null,
         available_slots: null,
-        submitted_at: null
+        created_at: null
       },
     ]),
     loading: ref(false),

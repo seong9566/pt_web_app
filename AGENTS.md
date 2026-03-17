@@ -8,6 +8,23 @@ Reference guide for AI coding agents working in this repository.
 
 ---
 
+## Git Branching Policy
+
+> **⚠️ CRITICAL — 모든 에이전트 필독**
+
+- **기본 작업 브랜치**: `dev`
+- **모든 개발은 `dev` 브랜치에서 직접 진행한다.** feature branch, worktree 생성 금지.
+- 커밋, 푸시, PR 등 모든 git 작업의 기준 브랜치는 `dev`이다.
+- `main` 브랜치는 릴리스 전용이며 직접 커밋하지 않는다.
+- Sisyphus `/start-work` 실행 시에도 worktree를 생성하지 말고, `dev` 브랜치에서 직접 작업할 것.
+
+```
+❌ 금지: git worktree add ..., git checkout -b feature/xxx
+✅ 올바름: git checkout dev → 작업 → commit → push origin dev
+```
+
+---
+
 ## Project Overview
 
 A Vue 3 mobile-first PWA for managing personal training (PT) sessions between trainers and members.

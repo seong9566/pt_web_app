@@ -43,6 +43,7 @@
           <AppWeeklyCalendar
             :schedules="weeklySchedules"
             :workSchedule="trainerWorkSchedule"
+            :holidays="holidays"
             :currentWeekStart="currentWeekStart"
             :draggable="true"
             role="member"
@@ -170,9 +171,18 @@
           </span>
         </div>
 
-        <p v-if="selectedSchedule.workoutSummary" class="detail-sheet__summary">
-          {{ selectedSchedule.workoutSummary }}
-        </p>
+        <div
+          v-if="selectedSchedule.exercises && selectedSchedule.exercises.length > 0"
+          class="detail-sheet__workout-section"
+        >
+          <span class="detail-sheet__label">배정 운동</span>
+          <ul class="detail-sheet__exercise-list">
+            <li v-for="(ex, i) in selectedSchedule.exercises" :key="i" class="detail-sheet__exercise-item">
+              <span class="detail-sheet__exercise-name">{{ i + 1 }}. {{ ex.name }}</span>
+              <span class="detail-sheet__exercise-spec">{{ ex.sets }}세트 × {{ ex.reps }}회</span>
+            </li>
+          </ul>
+        </div>
         <p v-else class="detail-sheet__summary detail-sheet__summary--empty">
           아직 운동이 배정되지 않았습니다.
         </p>
@@ -222,6 +232,7 @@ import AppWeeklyCalendar from '@/components/AppWeeklyCalendar.vue'
 import { useConfirm } from '@/composables/useConfirm'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useReservationsStore } from '@/stores/reservations'
@@ -330,7 +341,8 @@ const {
   getConnectedTrainerId,
 } = useReservations()
 
-const { days: workDays, selectedUnit, fetchWorkHours } = useWorkHours()
+const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
+const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
 
 const todayString = formatDate(new Date())
@@ -348,6 +360,8 @@ const selectedSchedule = ref(null)
 const changeReason = ref('')
 
 const trainerWorkSchedule = ref({ ...DEFAULT_WORK_SCHEDULE })
+const workingDays = ref(new Set())
+const connectedTrainerId = ref(null)
 const workoutPlanCache = ref({})
 
 const reservationItems = computed(() => {
@@ -389,6 +403,28 @@ const weeklySchedules = computed(() => {
       member_name: '',
       category: reservation.category,
     }))
+})
+
+const holidays = computed(() => {
+  const holidaySet = new Set()
+
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+
+  if (workingDays.value.size > 0) {
+    for (let index = 0; index < 7; index += 1) {
+      const dateStr = addDays(currentWeekStart.value, index - 1)
+      const dayOfWeek = parseDate(dateStr).getDay()
+      if (!workingDays.value.has(dayOfWeek)) {
+        holidaySet.add(dateStr)
+      }
+    }
+  }
+
+  return Array.from(holidaySet)
 })
 
 const calendarDots = computed(() => {
@@ -481,11 +517,14 @@ async function loadData() {
   await loadWorkoutForDate(selectedDate.value)
 
   const trainerId = await getConnectedTrainerId()
+  connectedTrainerId.value = trainerId
   trainerWorkSchedule.value = { ...DEFAULT_WORK_SCHEDULE }
 
   if (trainerId) {
-    await fetchWorkHours()
+    await fetchWorkHours(trainerId)
     syncTrainerWorkSchedule()
+    workingDays.value = await fetchWorkingDays(trainerId)
+    await fetchOverrides(trainerId, currentMonthKey.value)
   }
 
   loaded.value = true
@@ -509,14 +548,23 @@ function switchView(view) {
 }
 
 async function handleWeekChange({ weekStart }) {
+  const prevMonth = currentMonthKey.value
   currentWeekStart.value = weekStart
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
   await loadWorkoutForDate(weekStart)
+
+  if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
+    await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+  }
 }
 
-function handleMonthChange(month) {
+async function handleMonthChange(month) {
   currentMonthKey.value = month
+
+  if (connectedTrainerId.value) {
+    await fetchOverrides(connectedTrainerId.value, month)
+  }
 }
 
 async function handleMonthDateSelect(date) {
@@ -533,7 +581,8 @@ async function openScheduleDetail(scheduleId) {
   }
 
   await loadWorkoutForDate(schedule.date)
-  selectedSchedule.value = reservationItems.value.find((item) => item.id === scheduleId) || schedule
+  const updatedSchedule = reservationItems.value.find((item) => item.id === scheduleId)
+  selectedSchedule.value = updatedSchedule || schedule
   showDetailSheet.value = true
 }
 

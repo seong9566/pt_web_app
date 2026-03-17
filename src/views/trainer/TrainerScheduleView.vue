@@ -188,6 +188,15 @@
             {{ statusLabel(selectedSchedule.status) }}
           </span>
         </div>
+        <div v-if="detailExercises.length > 0" class="detail-sheet__workout-section">
+          <span class="detail-sheet__label">배정 운동</span>
+          <ul class="detail-sheet__exercise-list">
+            <li v-for="(ex, i) in detailExercises" :key="i" class="detail-sheet__exercise-item">
+              <span class="detail-sheet__exercise-name">{{ i + 1 }}. {{ ex.name }}</span>
+              <span class="detail-sheet__exercise-spec">{{ ex.sets }}세트 × {{ ex.reps }}회</span>
+            </li>
+          </ul>
+        </div>
         <p v-if="selectedSchedule.change_reason" class="detail-sheet__reason">
           변경 사유: {{ selectedSchedule.change_reason }}
         </p>
@@ -356,7 +365,7 @@ const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWo
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
 const { members, fetchMembers } = useMembers()
-const { dayWorkoutPlans, fetchDayWorkoutPlans } = useWorkoutPlans()
+const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
 
 const todayStr = formatDate(new Date())
 
@@ -374,6 +383,7 @@ const memberSheetLoading = ref(false)
 const selectedSlotDate = ref('')
 const selectedSlotTime = ref('')
 const selectedSchedule = ref(null)
+const detailExercises = ref([])
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
@@ -708,9 +718,21 @@ async function handleSlotTap({ date, time }) {
   showMemberSheet.value = true
 }
 
-function openScheduleDetail(scheduleId) {
+async function openScheduleDetail(scheduleId) {
   selectedSchedule.value = reservations.value.find((reservation) => reservation.id === scheduleId) ?? null
-  showDetailSheet.value = !!selectedSchedule.value
+  detailExercises.value = []
+
+  if (selectedSchedule.value) {
+    showDetailSheet.value = true
+
+    const memberId = selectedSchedule.value.member_id
+    const date = selectedSchedule.value.date
+
+    if (memberId && date) {
+      await fetchWorkoutPlan(memberId, date)
+      detailExercises.value = currentPlan.value?.exercises ?? []
+    }
+  }
 }
 
 function handleScheduleTap({ scheduleId }) {

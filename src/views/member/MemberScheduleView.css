@@ -87,7 +87,7 @@
 }
 
 .member-schedule__weekly {
-  margin: 14px var(--side-margin) 0;
+  margin: 14px 0 0;
 }
 
 .member-schedule__weekly-hint {
@@ -356,6 +356,42 @@
 .detail-sheet__summary--empty {
   background-color: var(--color-gray-100);
   color: var(--color-gray-600);
+}
+
+.detail-sheet__workout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-sheet__exercise-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-sheet__exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--radius-small);
+  background-color: var(--color-gray-100);
+}
+
+.detail-sheet__exercise-name {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.detail-sheet__exercise-spec {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  flex-shrink: 0;
 }
 
 .detail-sheet__reason {

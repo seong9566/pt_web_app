@@ -73,12 +73,15 @@
               class="weekly-calendar__holiday-label"
             >휴무</span>
 
-            <span
+            <div
               v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
-              class="weekly-calendar__available-count"
+              class="weekly-calendar__preference-badge"
             >
-              가능 {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
-            </span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+            </div>
           </div>
         </template>
       </div>
@@ -251,7 +254,7 @@ function getScheduleAtSlot(dateStr, time) {
 }
 
 function getScheduleName(schedule) {
-  return props.role === 'trainer' ? schedule.member_name : schedule.trainer_name
+  return props.role === 'trainer' ? schedule.member_name : (schedule.session_type || '운동')
 }
 
 function getBlockLabel(schedule) {
@@ -414,7 +417,7 @@ function updateGhostPosition(x, y) {
     opacity: 0.8,
     boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
     backgroundColor: ghostColor,
-    borderRadius: 'var(--radius-medium)',
+    borderRadius: '0',
   }
 }
 
