@@ -626,11 +626,13 @@ async function loadData() {
   ])
 
   await loadWorkingDaySet()
-  await loadOverrides(currentMonthKey.value)
-  await fetchDayWorkoutPlans(selectedDate.value)
-  await loadWeeklyWorkouts()
 
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  const [, , availRows] = await Promise.all([
+    loadOverrides(currentMonthKey.value),
+    fetchDayWorkoutPlans(selectedDate.value),
+    fetchMemberAvailabilities(currentWeekStart.value),
+    loadWeeklyWorkouts(),
+  ])
   weekAvailabilities.value = availRows || []
 
   loaded.value = true
@@ -651,11 +653,12 @@ async function handleRefresh() {
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  await loadOverrides(monthKey)
-  await fetchDayWorkoutPlans(selectedDate.value)
-  await loadWeeklyWorkouts()
-
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  const [, , availRows] = await Promise.all([
+    loadOverrides(monthKey),
+    fetchDayWorkoutPlans(selectedDate.value),
+    fetchMemberAvailabilities(currentWeekStart.value),
+    loadWeeklyWorkouts(),
+  ])
   weekAvailabilities.value = availRows || []
 }
 
@@ -681,10 +684,13 @@ async function handleWeekChange({ weekStart }) {
   currentWeekStart.value = weekStart
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
-  await loadOverrides(currentMonthKey.value)
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+
+  const [, availRows] = await Promise.all([
+    loadOverrides(currentMonthKey.value),
+    fetchMemberAvailabilities(currentWeekStart.value),
+    loadWeeklyWorkouts(),
+  ])
   weekAvailabilities.value = availRows || []
-  await loadWeeklyWorkouts()
 }
 
 async function handleMonthChange(month) {
@@ -880,20 +886,23 @@ onMounted(() => {
 onActivated(async () => {
   if (!loaded.value) return
 
-  await membersStore.loadMembers()
-  await fetchMyReservations('trainer')
-  await fetchWorkHours()
+  await Promise.all([
+    membersStore.loadMembers(),
+    fetchMyReservations('trainer'),
+    fetchWorkHours(),
+  ])
   await loadWorkingDaySet()
 
   const monthKey = currentView.value === 'weekly'
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  await loadOverrides(monthKey)
-  await fetchDayWorkoutPlans(selectedDate.value)
-  await loadWeeklyWorkouts()
-
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
+  const [, , availRows] = await Promise.all([
+    loadOverrides(monthKey),
+    fetchDayWorkoutPlans(selectedDate.value),
+    fetchMemberAvailabilities(currentWeekStart.value),
+    loadWeeklyWorkouts(),
+  ])
   weekAvailabilities.value = availRows || []
 })
 </script>
