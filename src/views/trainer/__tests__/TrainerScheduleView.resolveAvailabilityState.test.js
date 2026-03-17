@@ -1,20 +1,5 @@
 import { describe, it, expect } from 'vitest'
-
-// resolveAvailabilityState 로직을 테스트 파일 내에서 재현
-// (뷰 파일에서 export하기 어려우므로 동일 로직 복사)
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-
-function parseDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
-
-function resolveAvailabilityState(availableSlots, dateStr, timeStr) {
-  if (!availableSlots) return 'unknown'
-  const dayKey = DAY_KEY_BY_INDEX[parseDate(dateStr).getDay()]
-  const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
-  return daySlots.includes(timeStr) ? 'available' : 'unavailable'
-}
+import { resolveAvailabilityState } from '@/utils/availability'
 
 describe('resolveAvailabilityState', () => {
   it('null availableSlots → unknown', () => {

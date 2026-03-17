@@ -226,11 +226,11 @@ import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
+import { countAvailableMembers, resolveAvailabilityState } from '@/utils/availability'
 
 defineOptions({ name: 'TrainerScheduleView' })
 
 const DAY_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 const AVAILABILITY_ORDER = { available: 0, unavailable: 1, unknown: 2 }
 const ACTIVE_STATUSES = new Set(['scheduled', 'confirmed', 'change_requested', 'completed', 'pending', 'approved'])
 
@@ -323,13 +323,6 @@ function availabilityText(state) {
   if (state === 'available') return '가능 시간'
   if (state === 'unavailable') return '등록 외 시간'
   return '등록 없음'
-}
-
-function resolveAvailabilityState(availableSlots, dateStr, timeStr) {
-  if (!availableSlots) return 'unknown'
-  const dayKey = DAY_KEY_BY_INDEX[parseDate(dateStr).getDay()]
-  const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
-  return daySlots.includes(timeStr) ? 'available' : 'unavailable'
 }
 
 function formatWorkoutSummary(exercises) {

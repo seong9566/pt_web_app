@@ -71,10 +71,10 @@
 
 <script setup>
 import { computed } from 'vue'
+import { countAvailableMembers, DAY_KEY_BY_INDEX } from '@/utils/availability'
 
 const CELL_HEIGHT = 56
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-const DAY_KEY_BY_INDEX = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
 const STATUS_COLORS = {
   scheduled: 'var(--color-yellow)',
@@ -250,12 +250,9 @@ function getBlockStyle(schedule) {
 }
 
 function hasAvailableMember(date, time) {
-  if (!props.availabilities || props.availabilities.length === 0) return false
   const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
-  return props.availabilities.some((member) => {
-    const slots = member.available_slots?.[dayKey]
-    return Array.isArray(slots) && slots.includes(time)
-  })
+  if (!dayKey) return false
+  return countAvailableMembers(props.availabilities, date, time, slotDuration.value) > 0
 }
 
 function moveWeek(amount) {
