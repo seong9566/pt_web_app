@@ -61,7 +61,8 @@
               v-for="(dot, i) in getCellDots(cell.date)"
               :key="i"
               class="app-calendar__dot"
-              :class="`app-calendar__dot--${dot}`"
+              :class="dot.startsWith('#') ? '' : `app-calendar__dot--${dot}`"
+              :style="dot.startsWith('#') ? { backgroundColor: dot } : {}"
             />
           </div>
         </div>
@@ -77,6 +78,7 @@ import { ref, computed } from 'vue'
 const props = defineProps({
   modelValue: { type: String, default: '' },
   dots: { type: Object, default: () => ({}) },
+  colorDots: { type: Object, default: () => ({}) },
   disabledDates: { type: Array, default: () => [] },
 })
 
@@ -123,7 +125,10 @@ const calendarCells = computed(() => {
 })
 
 function getCellDots(date) {
-  return props.dots[date] || []
+  if (props.colorDots[date] && props.colorDots[date].length) {
+    return props.colorDots[date].slice(0, 3)
+  }
+  return (props.dots[date] || []).slice(0, 3)
 }
 
 function isSelected(day) {
