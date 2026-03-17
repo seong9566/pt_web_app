@@ -1387,4 +1387,10 @@ update public.reservations set status = 'confirmed' where status = 'approved';
 -- UPDATE public.reservations SET status = 'scheduled' WHERE status = 'confirmed';
 -- UPDATE public.reservations SET status = 'scheduled' WHERE status = 'approved';
 
+-- ============================================================
+-- Migration: member-color-calendar (2026-03-17)
+-- 회원별 캘린더 색상 기능: trainer_members에 color 컬럼 추가
+-- ============================================================
+ALTER TABLE public.trainer_members ADD COLUMN IF NOT EXISTS color text;
+
 commit;
