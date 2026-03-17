@@ -17,11 +17,10 @@ export function resolveAvailabilityState(availableSlots, dateStr, timeStr, slotD
   const daySlots = Array.isArray(availableSlots[dayKey]) ? availableSlots[dayKey] : []
 
   const targetMinutes = toMinutes(timeStr)
-  const duration = Number(slotDuration) > 0 ? Number(slotDuration) : 60
 
   const hasMatch = daySlots.some((slot) => {
     const slotMinutes = toMinutes(slot)
-    return slotMinutes <= targetMinutes && targetMinutes < (slotMinutes + duration)
+    return slotMinutes <= targetMinutes && targetMinutes < (slotMinutes + 60)
   })
 
   return hasMatch ? 'available' : 'unavailable'

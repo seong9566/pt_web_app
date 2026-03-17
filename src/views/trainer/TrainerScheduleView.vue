@@ -229,7 +229,7 @@ import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
-import { countAvailableMembers, resolveAvailabilityState } from '@/utils/availability'
+import { resolveAvailabilityState } from '@/utils/availability'
 
 defineOptions({ name: 'TrainerScheduleView' })
 
@@ -626,7 +626,7 @@ async function loadMembersWithAvailability(date, time) {
 
         return {
           ...member,
-          availabilityState: resolveAvailabilityState(availableSlots, date, time),
+          availabilityState: resolveAvailabilityState(availableSlots, date, time, workSchedule.value.slotDuration),
         }
       })
       .sort((a, b) => AVAILABILITY_ORDER[a.availabilityState] - AVAILABILITY_ORDER[b.availabilityState])
