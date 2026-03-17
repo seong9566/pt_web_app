@@ -73,25 +73,6 @@ describe('useReservations', () => {
     expect(result).toBe('new-reservation-id')
   })
 
-  it('confirmSchedule이 예약 상태를 confirmed로 변경한다', async () => {
-    const builder = createBuilder()
-    builder.maybeSingle.mockResolvedValueOnce({ data: { trainer_id: 'trainer-id' }, error: null })
-    // eq 호출 순서:
-    //   1번째: select 체인의 .eq('id', ...) → builder 반환 (maybeSingle로 이어짐)
-    //   2번째: update 체인의 .eq('id', ...) → { error: null } resolve
-    builder.eq
-      .mockReturnValueOnce(builder)
-      .mockResolvedValueOnce({ error: null })
-    builder.insert.mockResolvedValueOnce({ error: null })
-    mockEnv.supabase.from.mockReturnValue(builder)
-
-    const { confirmSchedule } = useReservations()
-    const result = await confirmSchedule('reservation-id')
-
-    expect(result).toBe(true)
-    expect(builder.update).toHaveBeenCalledWith({ status: 'confirmed' })
-  })
-
   it('requestChange가 change_requested 상태와 사유를 저장한다', async () => {
     const builder = createBuilder()
     builder.maybeSingle.mockResolvedValueOnce({ data: { trainer_id: 'trainer-id' }, error: null })
@@ -162,10 +143,10 @@ describe('useReservations', () => {
     const { fetchAvailableSlots } = useReservations()
     await fetchAvailableSlots('trainer-1', '2026-03-20')
 
-    expect(bookedQuery.in).toHaveBeenCalledWith('status', ['scheduled', 'confirmed'])
+    expect(bookedQuery.in).toHaveBeenCalledWith('status', ['scheduled'])
   })
 
-  it("확정된 슬롯은 '확정됨' 라벨을 표시한다", async () => {
+  it("배정된 슬롯은 '배정됨' 라벨을 표시한다", async () => {
     const overrideQuery = createBuilder()
     const scheduleQuery = createBuilder()
     const bookedQuery = createBuilder()
@@ -194,7 +175,7 @@ describe('useReservations', () => {
     const { fetchAvailableSlots, slots } = useReservations()
     await fetchAvailableSlots('trainer-1', '2026-03-20')
 
-    expect(slots.value.am[0]).toMatchObject({ val: '09:00', status: '확정됨' })
+    expect(slots.value.am[0]).toMatchObject({ val: '09:00', status: '배정됨' })
     expect(slots.value.am[1]).toMatchObject({ val: '10:00', status: '가능' })
   })
 

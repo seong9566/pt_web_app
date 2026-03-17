@@ -15,7 +15,6 @@ const NOTIFICATION_TYPE_LABELS = {
   // 신규 타입
   availability_submitted: '가능 시간 등록',
   schedule_assigned: 'PT 일정 배정',
-  schedule_confirmed: '일정 확인 완료',
   change_requested: '일정 변경 요청',
   schedule_reassigned: '일정 재배정',
   availability_reminder: '가능 시간 등록 요청',

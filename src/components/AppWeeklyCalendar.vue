@@ -217,27 +217,21 @@ function getScheduleName(schedule) {
 }
 
 function getBlockLabel(schedule) {
-  if (schedule.status === 'scheduled' || schedule.status === 'pending') {
-    return '확인 대기'
+  if (schedule.status === 'scheduled' || schedule.status === 'pending' || schedule.status === 'confirmed' || schedule.status === 'approved') {
+    return `${schedule.start_time.slice(0, 5)}-${schedule.end_time.slice(0, 5)}`
   }
 
   if (schedule.status === 'change_requested') {
     return '변경요청'
   }
 
-  if (schedule.status === 'confirmed' || schedule.status === 'approved') {
-    return `${schedule.start_time.slice(0, 5)}-${schedule.end_time.slice(0, 5)}`
-  }
-
   return ''
 }
 
 function getBlockClass(status) {
-  const normalizedStatus = status === 'pending'
+  const normalizedStatus = (status === 'pending' || status === 'approved' || status === 'confirmed')
     ? 'scheduled'
-    : status === 'approved'
-      ? 'confirmed'
-      : status
+    : status
 
   return `weekly-calendar__block--${normalizedStatus}`
 }

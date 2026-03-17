@@ -4,7 +4,7 @@
       <div class="schedule-appbar">
         <h1 class="schedule-appbar__title">일정 관리</h1>
         <button class="schedule-appbar__badge" @click="handleAdd">
-          확인 대기 {{ pendingCount }}건
+          변경 요청 {{ changeRequestCount }}건
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -290,7 +290,7 @@ function toDisplayDate(dateStr) {
 
 function normalizeStatus(status) {
   if (status === 'pending') return 'scheduled'
-  if (status === 'approved') return 'confirmed'
+  if (status === 'approved') return 'scheduled'
   return status
 }
 
@@ -299,7 +299,7 @@ function statusLabel(status) {
 }
 
 function canAssignWorkout(status) {
-  return normalizeStatus(status) === 'confirmed'
+  return normalizeStatus(status) === 'scheduled'
 }
 
 function canCancel(status) {
@@ -371,8 +371,8 @@ const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
 
-const pendingCount = computed(() => {
-  return reservations.value.filter((reservation) => reservation.status === 'scheduled' || reservation.status === 'pending').length
+const changeRequestCount = computed(() => {
+  return reservations.value.filter((reservation) => reservation.status === 'change_requested').length
 })
 
 const workSchedule = computed(() => {
