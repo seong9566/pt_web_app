@@ -101,7 +101,7 @@ create table if not exists public.reservations (
 
 create unique index if not exists reservations_unique_active_slot
   on public.reservations (trainer_id, date, start_time)
-  where status in ('scheduled', 'confirmed');
+  where status in ('scheduled');
 
 create table if not exists public.memos (
   id uuid primary key default gen_random_uuid(),
@@ -1135,12 +1135,12 @@ begin
     raise exception 'No active trainer-member connection';
   end if;
 
-  -- 2. 시간 충돌 확인 (scheduled/confirmed 상태의 기존 일정)
+  -- 2. 시간 충돌 확인 (scheduled 상태의 기존 일정)
   if exists (
     select 1 from public.reservations
     where trainer_id = p_trainer_id
       and date = p_date
-      and status in ('scheduled', 'confirmed')
+      and status in ('scheduled')
       and start_time < p_end_time
       and end_time > p_start_time
   ) then
@@ -1248,7 +1248,7 @@ execute function public.auto_deduct_pt_session();
 -- DROP FUNCTION IF EXISTS public.auto_reject_competing_reservations();
 -- DROP FUNCTION IF EXISTS public.auto_reject_on_override();
 
--- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 confirmed 예약을 completed로 변경
+-- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 scheduled 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
 
 create or replace function public.auto_complete_past_reservations()
@@ -1260,7 +1260,7 @@ as $$
 begin
   update public.reservations
   set status = 'completed', updated_at = now()
-  where status = 'confirmed'
+  where status = 'scheduled'
     and (date + end_time)::timestamptz < now();
 end;
 $$;
@@ -1272,7 +1272,7 @@ as $$
 begin
   update public.reservations
   set status = 'completed', updated_at = now()
-  where status = 'confirmed'
+  where status = 'scheduled'
     and (date + end_time)::timestamptz < now();
 end;
 $$;
@@ -1340,7 +1340,7 @@ alter table public.reservations add column if not exists change_reason text;
 drop index if exists public.reservations_unique_approved_slot;
 create unique index if not exists reservations_unique_active_slot
   on public.reservations (trainer_id, date, start_time)
-  where status in ('scheduled', 'confirmed');
+  where status in ('scheduled');
 
 -- member_weekly_availability 테이블 생성 (회원 주간 가능 시간 제출)
 create table if not exists public.member_weekly_availability (
@@ -1379,5 +1379,12 @@ create policy "member_weekly_availability_trainer_read"
 -- 기존 데이터 마이그레이션: pending → scheduled, approved → confirmed
 update public.reservations set status = 'scheduled' where status = 'pending';
 update public.reservations set status = 'confirmed' where status = 'approved';
+
+-- ============================================================
+-- Migration: remove-confirm-status
+-- Run in Supabase SQL Editor BEFORE deploying frontend changes
+-- ============================================================
+-- UPDATE public.reservations SET status = 'scheduled' WHERE status = 'confirmed';
+-- UPDATE public.reservations SET status = 'scheduled' WHERE status = 'approved';
 
 commit;

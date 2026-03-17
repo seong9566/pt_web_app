@@ -21,7 +21,7 @@ function trimSeconds(timeStr) {
 /** 예약 상태 → 표시 텍스트 매핑 (레거시 폴백 포함) */
 const STATUS_DISPLAY = {
   scheduled: '배정됨',
-  confirmed: '확정됨',
+  confirmed: '배정됨',
   change_requested: '변경요청',
   completed: '완료',
   cancelled: '취소됨',

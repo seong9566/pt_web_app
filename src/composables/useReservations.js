@@ -174,7 +174,7 @@ export function useReservations() {
         .select('start_time, end_time, status')
         .eq('trainer_id', trainerId)
         .eq('date', dateStr)
-        .in('status', ['scheduled', 'confirmed'])
+        .in('status', ['scheduled'])
 
       if (bookedError) throw bookedError
 
@@ -188,13 +188,10 @@ export function useReservations() {
           return slotStartMinutes < rEnd && rStart < slotEndMinutes
         })
 
-        const hasConfirmed = overlapping.some((r) => r.status === 'confirmed')
-        const scheduledCount = overlapping.filter((r) => r.status === 'scheduled').length
+        const scheduledCount = overlapping.length
 
         let status = '가능'
-        if (hasConfirmed) {
-          status = '확정됨'
-        } else if (scheduledCount > 0) {
+        if (scheduledCount > 0) {
           status = '배정됨'
         }
 
@@ -315,49 +312,6 @@ export function useReservations() {
       return true
     } catch (e) {
       error.value = e?.message ?? '예약 상태 변경에 실패했습니다'
-      return false
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /** 회원이 스케줄 확정 */
-  async function confirmSchedule(reservationId) {
-    loading.value = true
-    error.value = null
-
-    try {
-      const { data: reservation, error: reservationError } = await supabase
-        .from('reservations')
-        .select('trainer_id')
-        .eq('id', reservationId)
-        .maybeSingle()
-
-      if (reservationError) throw reservationError
-      if (!reservation?.trainer_id) {
-        throw new Error('예약 정보를 찾을 수 없습니다.')
-      }
-
-      const { error: updateError } = await supabase
-        .from('reservations')
-        .update({ status: 'confirmed' })
-        .eq('id', reservationId)
-
-      if (updateError) throw updateError
-
-      const { error: notificationError } = await supabase.from('notifications').insert({
-        user_id: reservation.trainer_id,
-        type: 'schedule_confirmed',
-        target_id: reservationId,
-        target_type: 'reservation',
-      })
-
-      if (notificationError) throw notificationError
-
-      await refreshReservationsStore()
-      return true
-    } catch (e) {
-      error.value = e?.message ?? '일정 확정에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -539,7 +493,6 @@ export function useReservations() {
     assignSchedule,
     fetchMyReservations,
     updateReservationStatus,
-    confirmSchedule,
     requestChange,
     reassignSchedule,
     cancelSchedule,
