@@ -109,6 +109,12 @@
   background-color: var(--color-blue-light);
 }
 
+.weekly-calendar__cell--drop-target {
+  background: var(--color-blue-light);
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: -2px;
+}
+
 .weekly-calendar__block {
   position: absolute;
   inset: 2px;
@@ -124,6 +130,10 @@
   padding: 6px;
   box-shadow: var(--shadow-card);
   overflow: hidden;
+}
+
+.weekly-calendar__block--dragging {
+  opacity: 0.3;
 }
 
 .weekly-calendar__block--scheduled,
@@ -185,4 +195,13 @@
   text-align: center;
   font-size: var(--fs-caption);
   color: var(--color-gray-600);
+}
+
+.weekly-calendar__ghost {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-medium);
+  z-index: 100;
 }
