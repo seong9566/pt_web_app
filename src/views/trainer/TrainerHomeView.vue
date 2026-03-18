@@ -338,6 +338,7 @@ onActivated(async () => {
   await Promise.all([
     fetchMyReservations('trainer'),
     fetchMembers(),
+    fetchDayWorkoutPlans(selectedDate.value),
   ])
 
   if (reservationsStore.isStale() || membersStore.isStale()) {
