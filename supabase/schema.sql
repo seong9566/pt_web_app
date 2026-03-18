@@ -893,18 +893,23 @@ exception when duplicate_object then null;
 end $$;
 
 -- T5: workout_plans table (오늘의 운동)
+-- reservation_id FK 추가: 예약(시간대)별 독립 운동 배정 지원
+-- unique constraint: (trainer_id, member_id, date) → unique(reservation_id) partial index
 create table if not exists public.workout_plans (
   id uuid primary key default gen_random_uuid(),
   trainer_id uuid not null references public.profiles(id) on delete cascade,
   member_id uuid not null references public.profiles(id) on delete cascade,
+  reservation_id uuid references public.reservations(id) on delete cascade,
   date date not null,
   exercises jsonb not null default '[]'::jsonb,
   category public.workout_category not null default '전신',
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (trainer_id, member_id, date)
+  updated_at timestamptz not null default now()
 );
 create index if not exists idx_workout_plans_member_date on public.workout_plans (member_id, date desc);
+-- reservation_id 기반 unique partial index (NULL 허용 — 레거시 데이터 대응)
+create unique index if not exists idx_workout_plans_reservation on public.workout_plans (reservation_id) where reservation_id is not null;
+create index if not exists idx_workout_plans_reservation_id on public.workout_plans (reservation_id);
 alter table public.workout_plans enable row level security;
 create policy "Workout plans readable by trainer and member" on public.workout_plans for select to authenticated
 using (
