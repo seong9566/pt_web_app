@@ -14,17 +14,15 @@ import { useAuthStore } from '@/stores/auth'
 import { useAvailabilityStore } from '@/stores/availability'
 
 /**
- * 이번 주 월요일 날짜를 YYYY-MM-DD 형식으로 반환
- * 월요일을 주 시작일로 간주 (일요일=0이면 -6, 나머지는 1-day)
+ * 이번 주 일요일 날짜를 YYYY-MM-DD 형식으로 반환
+ * 일요일을 주 시작일로 간주
  */
-function getCurrentWeekMonday() {
+function getCurrentWeekStart() {
   const today = new Date()
-  const day = today.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(today)
-  monday.setDate(today.getDate() + diff)
-  monday.setHours(0, 0, 0, 0)
-  return monday.toISOString().split('T')[0] // YYYY-MM-DD
+  const sunday = new Date(today)
+  sunday.setDate(today.getDate() - today.getDay())
+  sunday.setHours(0, 0, 0, 0)
+  return sunday.toISOString().split('T')[0] // YYYY-MM-DD
 }
 
 export function useAvailability() {
@@ -50,8 +48,8 @@ export function useAvailability() {
 
     try {
       // 과거 주 제출 차단 (이번 주 월요일 이전이면 거부)
-      const currentMonday = getCurrentWeekMonday()
-      if (weekStart < currentMonday) {
+      const currentStart = getCurrentWeekStart()
+      if (weekStart < currentStart) {
         error.value = '지난 주의 가능 시간은 등록할 수 없습니다.'
         return false
       }

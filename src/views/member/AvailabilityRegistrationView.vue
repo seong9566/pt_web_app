@@ -191,12 +191,10 @@ function parseIsoDate(dateStr) {
 
 function getWeekStart(offsetWeeks = 0) {
   const today = new Date()
-  const day = today.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(today)
-  monday.setDate(today.getDate() + diff + offsetWeeks * 7)
-  monday.setHours(0, 0, 0, 0)
-  return toIsoDate(monday)
+  const sunday = new Date(today)
+  sunday.setDate(today.getDate() - today.getDay() + offsetWeeks * 7)
+  sunday.setHours(0, 0, 0, 0)
+  return toIsoDate(sunday)
 }
 
 function formatDateWithWeekday(date) {
@@ -207,17 +205,17 @@ function formatDateWithWeekday(date) {
 }
 
 function formatWeekRange(weekStart) {
-  const monday = parseIsoDate(weekStart)
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  return `${formatDateWithWeekday(monday)} ~ ${formatDateWithWeekday(sunday)}`
+  const start = parseIsoDate(weekStart)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  return `${formatDateWithWeekday(start)} ~ ${formatDateWithWeekday(end)}`
 }
 
 function getWeekDatesForDays(weekStart) {
-  const monday = parseIsoDate(weekStart)
+  const start = parseIsoDate(weekStart)
   return DAYS.map((day, index) => {
-    const d = new Date(monday)
-    d.setDate(monday.getDate() + index - 1)
+    const d = new Date(start)
+    d.setDate(start.getDate() + index)
     return {
       ...day,
       date: d,

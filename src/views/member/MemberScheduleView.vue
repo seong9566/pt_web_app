@@ -334,9 +334,7 @@ function addDays(dateStr, amount) {
 
 function getWeekStart(dateStr) {
   const date = parseDate(dateStr)
-  const day = date.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  date.setDate(date.getDate() + diff)
+  date.setDate(date.getDate() - date.getDay())
   return formatDate(date)
 }
 
@@ -484,7 +482,7 @@ const holidays = computed(() => {
 
   if (workingDays.value.size > 0) {
     for (let index = 0; index < 7; index += 1) {
-      const dateStr = addDays(currentWeekStart.value, index - 1)
+      const dateStr = addDays(currentWeekStart.value, index)
       const dayOfWeek = parseDate(dateStr).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)
