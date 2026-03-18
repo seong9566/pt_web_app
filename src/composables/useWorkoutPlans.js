@@ -229,9 +229,9 @@ export function useWorkoutPlans() {
     await store.loadWeeklyWorkoutCategories(auth.user.id, dates)
   }
 
-  function getWeeklyCategory(date, memberId) {
+  function getWeeklyCategory(reservationId) {
     const store = useWorkoutPlansStore()
-    return store.getWeeklyCategory(date, memberId)
+    return store.getWeeklyCategory(reservationId)
   }
 
   return {
