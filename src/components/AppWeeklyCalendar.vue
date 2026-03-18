@@ -70,7 +70,7 @@
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
               <span
-                v-if="getScheduleAtSlot(date, time).status === 'change_requested' && getScheduleAtSlot(date, time).requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
+                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getScheduleAtSlot(date, time)?.requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
                 class="weekly-calendar__block-sublabel"
               >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
             </button>
