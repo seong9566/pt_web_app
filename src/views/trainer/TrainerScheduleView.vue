@@ -38,25 +38,7 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
-        <div v-if="calendarLoading" class="calendar-skeleton calendar-skeleton--weekly">
-          <div class="calendar-skeleton__header">
-            <AppSkeleton type="rect" width="100%" height="36px" border-radius="var(--radius-small)" />
-          </div>
-          <div class="calendar-skeleton__day-bar">
-            <AppSkeleton
-              v-for="i in 7"
-              :key="i"
-              type="rect"
-              width="100%"
-              height="28px"
-              border-radius="var(--radius-small)"
-            />
-          </div>
-          <div class="calendar-skeleton__grid">
-            <AppSkeleton type="rect" width="100%" height="240px" border-radius="var(--radius-medium)" />
-          </div>
-        </div>
-        <template v-else>
+        <template>
           <AppWeeklyCalendar
             :schedules="weeklySchedules"
             :workSchedule="workSchedule"
@@ -67,6 +49,7 @@
             :memberColors="memberColorMap"
             role="trainer"
             :draggable="true"
+            :loading="calendarLoading"
             @slot-tap="handleSlotTap"
             @schedule-tap="handleScheduleTap"
             @schedule-drop="handleScheduleDrop"

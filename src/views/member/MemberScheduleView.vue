@@ -46,6 +46,7 @@
             :holidays="holidays"
             :currentWeekStart="currentWeekStart"
             :draggable="true"
+            :loading="weeklyLoading || !loaded"
             role="member"
             @schedule-tap="handleScheduleTap"
             @week-change="handleWeekChange"
@@ -353,6 +354,7 @@ const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
 const todayString = formatDate(new Date())
 
 const loaded = ref(false)
+const weeklyLoading = ref(false)
 const currentView = ref('weekly')
 const selectedDate = ref(todayString)
 const currentWeekStart = ref(getWeekStart(todayString))
@@ -591,15 +593,20 @@ function switchView(view) {
 }
 
 async function handleWeekChange({ weekStart }) {
-  const prevMonth = currentMonthKey.value
-  currentWeekStart.value = weekStart
-  selectedDate.value = weekStart
-  currentMonthKey.value = weekStart.slice(0, 7)
-  await loadWorkoutForDate(weekStart)
-  await preloadWeeklyWorkouts()
+  weeklyLoading.value = true
+  try {
+    const prevMonth = currentMonthKey.value
+    currentWeekStart.value = weekStart
+    selectedDate.value = weekStart
+    currentMonthKey.value = weekStart.slice(0, 7)
+    await loadWorkoutForDate(weekStart)
+    await preloadWeeklyWorkouts()
 
-  if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
-    await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+    if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
+      await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+    }
+  } finally {
+    weeklyLoading.value = false
   }
 }
 
