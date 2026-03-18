@@ -186,6 +186,16 @@
   line-height: 1.2;
 }
 
+.weekly-calendar__block-sublabel {
+  display: block;
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .weekly-calendar__holiday-overlay {
   position: absolute;
   top: 12px;

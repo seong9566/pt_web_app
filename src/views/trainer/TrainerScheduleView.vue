@@ -146,7 +146,14 @@
                   {{ statusLabel(session.status) }}
                 </span>
               </div>
-              <p class="schedule-item__time">{{ session.start_time }} - {{ session.end_time }}</p>
+              <p class="schedule-item__time">
+                <template v-if="session.status === 'change_requested' && session.requested_start_time">
+                  {{ session.start_time?.slice(0,5) }}→{{ session.requested_start_time?.slice(0,5) }}
+                </template>
+                <template v-else>
+                  {{ session.start_time?.slice(0,5) }} - {{ session.end_time?.slice(0,5) }}
+                </template>
+              </p>
               <p v-if="session.workoutSummary" class="schedule-item__workout">{{ session.workoutSummary }}</p>
               <button
                 v-if="canAssignWorkout(session.status)"
@@ -234,9 +241,33 @@
             </li>
           </ul>
         </div>
-        <p v-if="selectedSchedule.change_reason" class="detail-sheet__reason">
-          변경 사유: {{ selectedSchedule.change_reason }}
-        </p>
+        <template v-if="selectedSchedule?.status === 'change_requested'">
+          <div class="detail-sheet__change-card">
+            <div class="detail-sheet__change-row">
+              <span class="detail-sheet__change-label">현재</span>
+              <span class="detail-sheet__change-value">
+                {{ toDisplayDate(selectedSchedule.date) }}
+                {{ selectedSchedule.start_time?.slice(0,5) }}-{{ selectedSchedule.end_time?.slice(0,5) }}
+              </span>
+            </div>
+            <div v-if="selectedSchedule.requested_date" class="detail-sheet__change-row detail-sheet__change-row--requested">
+              <span class="detail-sheet__change-label">요청</span>
+              <span class="detail-sheet__change-value">
+                {{ toDisplayDate(selectedSchedule.requested_date) }}
+                {{ selectedSchedule.requested_start_time?.slice(0,5) }}-{{ selectedSchedule.requested_end_time?.slice(0,5) }}
+              </span>
+            </div>
+            <div v-if="selectedSchedule.change_reason" class="detail-sheet__change-row">
+              <span class="detail-sheet__change-label">사유</span>
+              <span class="detail-sheet__change-value">{{ selectedSchedule.change_reason }}</span>
+            </div>
+          </div>
+          <div class="detail-sheet__change-actions">
+            <AppButton v-if="selectedSchedule.requested_date" :disabled="loading" @click="handleApproveChange">승인</AppButton>
+            <AppButton variant="outline" :disabled="loading" @click="showRejectSheet = true">거절</AppButton>
+            <AppButton variant="secondary" :disabled="loading" @click="startReassignMode">다른 시간</AppButton>
+          </div>
+        </template>
 
         <div class="detail-sheet__actions">
           <button
@@ -263,6 +294,14 @@
         </div>
       </div>
     </AppBottomSheet>
+
+    <AppBottomSheet v-model="showRejectSheet" title="변경 요청 거절">
+      <div class="reject-sheet">
+        <p class="reject-sheet__hint">거절 사유를 입력하면 회원에게 전달됩니다.</p>
+        <textarea v-model="rejectReason" class="reject-sheet__textarea" placeholder="거절 사유를 입력해주세요 (선택)" maxlength="120" />
+        <AppButton :disabled="loading" @click="handleRejectChange">거절 확인</AppButton>
+      </div>
+    </AppBottomSheet>
   </div>
 </template>
 
@@ -270,6 +309,7 @@
 import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppButton from '@/components/AppButton.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -395,7 +435,7 @@ const membersStore = useMembersStore()
 const reservationsStore = useReservationsStore()
 const { showToast, showSuccess } = useToast()
 
-const { reservations, loading, error, fetchMyReservations, assignSchedule, cancelSchedule, reassignSchedule } = useReservations()
+const { reservations, loading, error, fetchMyReservations, assignSchedule, cancelSchedule, reassignSchedule, approveChangeRequest, rejectChangeRequest } = useReservations()
 const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
@@ -414,7 +454,9 @@ const workingDays = ref(new Set())
 
 const showMemberSheet = ref(false)
 const showDetailSheet = ref(false)
+const showRejectSheet = ref(false)
 const memberSheetLoading = ref(false)
+const rejectReason = ref('')
 
 const selectedSlotDate = ref('')
 const selectedSlotTime = ref('')
@@ -608,6 +650,9 @@ const selectedDateSessions = computed(() => {
       photo: reservation.partner_photo,
       member_id: reservation.member_id,
       change_reason: reservation.change_reason,
+      requested_date: reservation.requested_date,
+      requested_start_time: reservation.requested_start_time,
+      requested_end_time: reservation.requested_end_time,
       workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]?.exercises || workoutMap.value[reservation.member_id]),
     }))
 })
@@ -899,6 +944,32 @@ async function startReassignMode() {
 
 function clearReassignMode() {
   reassignTarget.value = null
+}
+
+async function handleApproveChange() {
+  if (!selectedSchedule.value) return
+  const approved = await approveChangeRequest(selectedSchedule.value.id)
+  if (!approved) {
+    showToast(error.value || '변경 요청 승인에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 승인했습니다.')
+  showDetailSheet.value = false
+  await loadWeeklySchedules()
+}
+
+async function handleRejectChange() {
+  if (!selectedSchedule.value) return
+  const rejected = await rejectChangeRequest(selectedSchedule.value.id, rejectReason.value.trim() || null)
+  if (!rejected) {
+    showToast(error.value || '변경 요청 거절에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 거절했습니다.')
+  showRejectSheet.value = false
+  rejectReason.value = ''
+  showDetailSheet.value = false
+  await loadWeeklySchedules()
 }
 
 function goWorkout(session = selectedSchedule.value) {

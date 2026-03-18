@@ -69,6 +69,10 @@
               <span v-if="getBlockLabel(getScheduleAtSlot(date, time))" class="weekly-calendar__block-label">
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
+              <span
+                v-if="getScheduleAtSlot(date, time).status === 'change_requested' && getScheduleAtSlot(date, time).requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
+                class="weekly-calendar__block-sublabel"
+              >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
             </button>
 
             <div
@@ -274,6 +278,20 @@ function getBlockLabel(schedule) {
   }
 
   return schedule.category || ''
+}
+
+function getBlockRatio(schedule) {
+  return schedule.duration / effectiveSlotDuration.value
+}
+
+function getChangeRequestLabel(schedule) {
+  const time = schedule.requested_start_time?.slice(0, 5)
+  if (!time) return ''
+  if (schedule.requested_date && schedule.requested_date !== schedule.date) {
+    const [, month, day] = schedule.requested_date.split('-')
+    return `→${parseInt(month)}/${parseInt(day)} ${time}`
+  }
+  return `→${time}`
 }
 
 function hasMemberColor(schedule) {

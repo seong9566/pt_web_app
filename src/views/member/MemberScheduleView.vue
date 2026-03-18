@@ -202,25 +202,66 @@
           <AppButton variant="outline" :disabled="loading" @click="handleCancel">취소</AppButton>
         </div>
 
-        <p v-else-if="isChangeRequested(selectedSchedule.status)" class="detail-sheet__notice">
-          변경 요청을 전달했습니다. 트레이너의 확인을 기다려주세요.
-        </p>
+        <div v-else-if="isChangeRequested(selectedSchedule?.status)" class="detail-sheet__actions">
+          <p class="detail-sheet__notice">변경 요청을 전달했습니다. 트레이너의 확인을 기다려주세요.</p>
+          <AppButton
+            variant="outline"
+            :disabled="loading"
+            @click="handleCancelChangeRequest"
+          >변경 요청 취소</AppButton>
+        </div>
       </div>
     </AppBottomSheet>
 
     <AppBottomSheet v-model="showChangeSheet" title="변경 요청">
       <div class="change-sheet">
-        <p v-if="selectedSchedule" class="change-sheet__target">
-          {{ toDisplayDate(selectedSchedule.date) }} {{ selectedSchedule.start_time }} - {{ selectedSchedule.end_time }}
+        <p class="change-sheet__current">
+          현재: {{ toDisplayDate(selectedSchedule?.date) }}
+          {{ selectedSchedule?.start_time?.slice(0,5) }} - {{ selectedSchedule?.end_time?.slice(0,5) }}
         </p>
+        <p class="change-sheet__label">변경할 날짜</p>
+        <AppCalendar
+          :modelValue="changeRequestDate"
+          :holidays="holidays"
+          @update:modelValue="handleChangeRequestDateSelect"
+        />
+        <template v-if="changeRequestDate">
+          <p class="change-sheet__label">변경할 시간</p>
+          <div v-if="changeRequestSlotsLoading" class="change-sheet__loading">슬롯 조회 중...</div>
+          <div v-else-if="changeRequestSlots.length === 0" class="change-sheet__empty">해당 날짜에 가용 슬롯이 없습니다.</div>
+          <div v-else class="change-sheet__slots">
+            <button
+              v-for="slot in changeRequestSlots"
+              :key="slot.start_time"
+              class="change-sheet__slot-btn"
+              :class="{ 'change-sheet__slot-btn--selected': changeRequestSlot?.start_time === slot.start_time }"
+              @click="changeRequestSlot = slot"
+            >{{ slot.start_time?.slice(0,5) }} - {{ slot.end_time?.slice(0,5) }}</button>
+          </div>
+        </template>
+        <p class="change-sheet__label">변경 사유 <span class="change-sheet__optional">(선택)</span></p>
         <textarea
           v-model="changeReason"
           class="change-sheet__textarea"
-          placeholder="변경 사유를 입력해주세요"
+          placeholder="변경 사유를 입력해주세요 (선택)"
           maxlength="120"
         />
         <p class="change-sheet__hint">입력한 사유는 트레이너에게 전달됩니다.</p>
-        <AppButton :disabled="loading" @click="handleRequestChange">요청 보내기</AppButton>
+        <AppButton :disabled="loading || !changeRequestSlot" @click="handleRequestChange">요청 보내기</AppButton>
+      </div>
+    </AppBottomSheet>
+
+    <AppBottomSheet v-model="showDndConfirmSheet" title="변경 요청 확인">
+      <div class="dnd-confirm-sheet">
+        <p class="dnd-confirm-sheet__message">
+          {{ toDisplayDate(dndDropInfo?.toDate) }} {{ dndDropInfo?.toTime?.slice(0,5) }}으로 변경 요청하시겠습니까?
+        </p>
+        <p class="change-sheet__label">변경 사유 <span class="change-sheet__optional">(선택)</span></p>
+        <textarea v-model="dndConfirmReason" class="change-sheet__textarea" placeholder="변경 사유를 입력해주세요 (선택)" maxlength="120" />
+        <div class="dnd-confirm-sheet__actions">
+          <AppButton variant="outline" @click="showDndConfirmSheet = false">취소</AppButton>
+          <AppButton :disabled="loading" @click="handleDndConfirm">요청 보내기</AppButton>
+        </div>
       </div>
     </AppBottomSheet>
   </div>
@@ -304,6 +345,13 @@ function toMinutes(timeStr) {
   return (hour * 60) + minute
 }
 
+function minutesToTime(totalMinutes) {
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440
+  const hour = Math.floor(normalized / 60)
+  const minute = normalized % 60
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
 function normalizeStatus(status) {
   if (status === 'pending') return 'scheduled'
   if (status === 'approved') return 'scheduled'
@@ -338,10 +386,14 @@ const { confirm } = useConfirm()
 
 const {
   reservations,
+  slots,
+  slotDuration,
   loading,
   error,
   fetchMyReservations,
+  fetchAvailableSlots,
   requestChange,
+  cancelChangeRequest,
   cancelSchedule,
   checkTrainerConnection,
   getConnectedTrainerId,
@@ -370,6 +422,15 @@ const trainerWorkSchedule = ref({ ...DEFAULT_WORK_SCHEDULE })
 const workingDays = ref(new Set())
 const connectedTrainerId = ref(null)
 const workoutPlanCache = ref({})
+
+const changeRequestDate = ref('')
+const changeRequestSlot = ref(null)
+const changeRequestSlots = ref([])
+const changeRequestSlotsLoading = ref(false)
+
+const showDndConfirmSheet = ref(false)
+const dndDropInfo = ref(null)
+const dndConfirmReason = ref('')
 
 const reservationItems = computed(() => {
   return reservations.value
@@ -642,14 +703,16 @@ function handleScheduleTap({ scheduleId }) {
 }
 
 async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTime }) {
-  const reason = `일정 변경 요청 (${toDate} ${toTime}으로 이동)`
-  const requested = await requestChange(scheduleId, reason)
-  if (!requested) {
-    showToast(error.value || '일정 변경 요청에 실패했습니다.', 'error')
-    return
-  }
-  showSuccess('변경 요청을 보냈습니다.')
-  await fetchMyReservations('member')
+  const schedule = reservations.value.find(r => r.id === scheduleId)
+  if (!schedule) return
+  const startMin = toMinutes(schedule.start_time)
+  const endMin = toMinutes(schedule.end_time)
+  const durationMin = endMin - startMin
+  const toEndMin = toMinutes(toTime) + durationMin
+  const toEndTime = minutesToTime(toEndMin)
+  dndDropInfo.value = { scheduleId, toDate, toTime, toEndTime }
+  dndConfirmReason.value = ''
+  showDndConfirmSheet.value = true
 }
 
 function openChangeRequest() {
@@ -659,25 +722,23 @@ function openChangeRequest() {
 }
 
 async function handleRequestChange() {
-  if (!selectedSchedule.value) {
-    return
-  }
-
-  const reason = changeReason.value.trim()
-  if (!reason) {
-    alert('변경 사유를 입력해주세요')
-    return
-  }
-
-  const requested = await requestChange(selectedSchedule.value.id, reason)
+  if (!selectedSchedule.value || !changeRequestSlot.value) return
+  const requested = await requestChange(selectedSchedule.value.id, {
+    reason: changeReason.value.trim() || null,
+    requestedDate: changeRequestDate.value,
+    requestedStartTime: changeRequestSlot.value.start_time,
+    requestedEndTime: changeRequestSlot.value.end_time,
+  })
   if (!requested) {
     showToast(error.value || '변경 요청에 실패했습니다.', 'error')
     return
   }
-
   showSuccess('변경 요청을 보냈습니다.')
   showChangeSheet.value = false
   changeReason.value = ''
+  changeRequestDate.value = ''
+  changeRequestSlot.value = null
+  changeRequestSlots.value = []
   await fetchMyReservations('member')
 }
 
@@ -702,6 +763,61 @@ async function handleCancel() {
   await fetchMyReservations('member')
 }
 
+async function handleChangeRequestDateSelect(date) {
+  changeRequestDate.value = date
+  changeRequestSlot.value = null
+  changeRequestSlots.value = []
+  if (!date) return
+  changeRequestSlotsLoading.value = true
+  try {
+    await fetchAvailableSlots(connectedTrainerId.value, date)
+    const allSlots = [
+      ...(slots.value.am || []),
+      ...(slots.value.pm || []),
+      ...(slots.value.evening || []),
+    ]
+    changeRequestSlots.value = allSlots
+      .filter(s => s.status === '가능')
+      .map(s => ({
+        start_time: s.val,
+        end_time: minutesToTime(toMinutes(s.val) + (slotDuration.value || 60)),
+      }))
+  } finally {
+    changeRequestSlotsLoading.value = false
+  }
+}
+
+async function handleDndConfirm() {
+  if (!dndDropInfo.value) return
+  const { scheduleId, toDate, toTime, toEndTime } = dndDropInfo.value
+  const requested = await requestChange(scheduleId, {
+    reason: dndConfirmReason.value.trim() || null,
+    requestedDate: toDate,
+    requestedStartTime: toTime,
+    requestedEndTime: toEndTime,
+  })
+  if (!requested) {
+    showToast(error.value || '변경 요청에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 보냈습니다.')
+  showDndConfirmSheet.value = false
+  dndDropInfo.value = null
+  await fetchMyReservations('member')
+}
+
+async function handleCancelChangeRequest() {
+  if (!selectedSchedule.value) return
+  const cancelled = await cancelChangeRequest(selectedSchedule.value.id)
+  if (!cancelled) {
+    showToast(error.value || '취소에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청이 취소되었습니다.')
+  showDetailSheet.value = false
+  await fetchMyReservations('member')
+}
+
 function goToAvailability() {
   router.push({ path: '/member/availability' })
 }
@@ -712,6 +828,14 @@ watch(selectedDate, async (date, prevDate) => {
   }
 
   await loadWorkoutForDate(date)
+})
+
+watch(showChangeSheet, (val) => {
+  if (!val) {
+    changeRequestDate.value = ''
+    changeRequestSlot.value = null
+    changeRequestSlots.value = []
+  }
 })
 
 watch(error, (message) => {

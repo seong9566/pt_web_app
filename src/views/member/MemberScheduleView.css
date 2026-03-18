@@ -451,3 +451,67 @@
   font-size: var(--fs-caption);
   color: var(--color-gray-600);
 }
+
+.change-sheet__current {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin-bottom: 12px;
+}
+
+.change-sheet__label {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin: 16px 0 8px;
+}
+
+.change-sheet__optional {
+  font-weight: var(--fw-body2);
+  color: var(--color-gray-600);
+}
+
+.change-sheet__loading,
+.change-sheet__empty {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  text-align: center;
+  padding: 16px 0;
+}
+
+.change-sheet__slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.change-sheet__slot-btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-small);
+  border: 1px solid var(--color-gray-200);
+  background: var(--color-white);
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  cursor: pointer;
+}
+
+.change-sheet__slot-btn--selected {
+  border-color: var(--color-blue-primary);
+  background: var(--color-blue-light);
+  color: var(--color-blue-primary);
+  font-weight: var(--fw-body1-bold);
+}
+
+.dnd-confirm-sheet__message {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.dnd-confirm-sheet__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}

@@ -58,6 +58,15 @@
       </div>
     </AppBottomSheet>
 
+    <!-- ── 거절 사유 바텀시트 ── -->
+    <AppBottomSheet v-model="showRejectSheet" title="변경 요청 거절">
+      <div class="reject-sheet">
+        <p class="reject-sheet__hint">거절 사유를 입력하면 회원에게 전달됩니다.</p>
+        <textarea v-model="rejectReason" class="reject-sheet__textarea" placeholder="거절 사유를 입력해주세요 (선택)" maxlength="120" />
+        <AppButton :disabled="loading" @click="handleRejectConfirm">거절 확인</AppButton>
+      </div>
+    </AppBottomSheet>
+
     <!-- ── Header ── -->
     <div class="reservation__header">
       <button class="reservation__back press-effect" @click="router.back()">
@@ -157,21 +166,25 @@
                   {{ item.start_time }} ~ {{ item.end_time }}
                 </span>
               </div>
-              <div v-if="item.change_reason" class="res-card__reason">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>{{ item.change_reason }}</span>
+              <div class="res-card__change-info">
+                <div class="res-card__change-row">
+                  <span class="res-card__change-label">현재</span>
+                  <span class="res-card__change-value">{{ item.date }} {{ item.start_time?.slice(0,5) }}-{{ item.end_time?.slice(0,5) }}</span>
+                </div>
+                <div v-if="item.requested_date" class="res-card__change-row res-card__change-row--requested">
+                  <span class="res-card__change-label">요청</span>
+                  <span class="res-card__change-value">{{ item.requested_date }} {{ item.requested_start_time?.slice(0,5) }}-{{ item.requested_end_time?.slice(0,5) }}</span>
+                </div>
+                <div v-if="item.change_reason" class="res-card__change-row">
+                  <span class="res-card__change-label">사유</span>
+                  <span class="res-card__change-value">{{ item.change_reason }}</span>
+                </div>
               </div>
               <div class="res-card__divider" />
-              <div class="res-card__actions">
-                <button
-                  class="res-card__btn res-card__btn--reassign press-effect"
-                  :disabled="processingId === item.id"
-                  @click="handleReassignOpen(item)"
-                >
-                  재배정
-                </button>
+              <div class="res-card__change-actions">
+                <button v-if="item.requested_date" class="res-card__btn res-card__btn--approve" :disabled="loading" @click="handleApprove(item)">승인</button>
+                <button class="res-card__btn res-card__btn--reject" :disabled="loading" @click="handleRejectOpen(item)">거절</button>
+                <button class="res-card__btn res-card__btn--reassign" :disabled="loading" @click="handleReassignOpen(item)">다른 시간</button>
               </div>
             </div>
           </div>
@@ -346,6 +359,7 @@ const router = useRouter()
 const {
   reservations, loading, error, slots, slotDuration,
   fetchMyReservations, fetchAvailableSlots, reassignSchedule, cancelSchedule,
+  approveChangeRequest, rejectChangeRequest,
 } = useReservations()
 const reservationsStore = useReservationsStore()
 const { showToast } = useToast()
@@ -358,6 +372,9 @@ const filterChips = [
 ]
 const activeFilter = ref('all')
 const processingId = ref(null)
+const showRejectSheet = ref(false)
+const rejectTarget = ref(null)
+const rejectReason = ref('')
 
 onMounted(async () => {
   await fetchMyReservations('trainer')
@@ -408,6 +425,38 @@ async function confirmCancel() {
   } finally {
     processingId.value = null
   }
+}
+
+async function handleApprove(item) {
+  const approved = await approveChangeRequest(item.id)
+  if (!approved) {
+    alert(error.value || '승인에 실패했습니다.')
+    return
+  }
+  alert('변경 요청이 승인되었습니다.')
+  reservationsStore.invalidate()
+  await fetchMyReservations('trainer')
+}
+
+function handleRejectOpen(item) {
+  rejectTarget.value = item
+  rejectReason.value = ''
+  showRejectSheet.value = true
+}
+
+async function handleRejectConfirm() {
+  if (!rejectTarget.value) return
+  const rejected = await rejectChangeRequest(rejectTarget.value.id, rejectReason.value.trim() || null)
+  if (!rejected) {
+    alert(error.value || '거절에 실패했습니다.')
+    return
+  }
+  showRejectSheet.value = false
+  rejectTarget.value = null
+  rejectReason.value = ''
+  alert('변경 요청이 거절되었습니다.')
+  reservationsStore.invalidate()
+  await fetchMyReservations('trainer')
 }
 
 const showReassignSheet = ref(false)
