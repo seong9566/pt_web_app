@@ -320,7 +320,9 @@ export function useReservations() {
 
 
   /** 회원이 일정 변경 요청 */
-  async function requestChange(reservationId, { reason, requestedDate, requestedStartTime, requestedEndTime } = {}) {
+  async function requestChange(reservationId, reasonOrOptions = {}) {
+    const options = typeof reasonOrOptions === 'string' ? { reason: reasonOrOptions } : (reasonOrOptions || {})
+    const { reason, requestedDate, requestedStartTime, requestedEndTime } = options
     loading.value = true
     error.value = null
 

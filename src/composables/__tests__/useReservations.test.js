@@ -89,6 +89,9 @@ describe('useReservations', () => {
     expect(builder.update).toHaveBeenCalledWith({
       status: 'change_requested',
       change_reason: '시간이 안 됩니다',
+      requested_date: null,
+      requested_start_time: null,
+      requested_end_time: null,
     })
   })
 

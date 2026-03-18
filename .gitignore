@@ -8,3 +8,4 @@ dist-ssr
 .vscode
 *.log
 .sisyphus/
+.sisyphus/boulder.json
