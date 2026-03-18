@@ -562,7 +562,7 @@ const weeklySchedules = computed(() => {
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
-      category: getWeeklyCategory(reservation.date, reservation.member_id),
+      category: getWeeklyCategory(reservation.id),
     }))
 })
 
@@ -631,7 +631,9 @@ const calendarColorDots = computed(() => {
 const workoutMap = computed(() => {
   const map = {}
   dayWorkoutPlans.value.forEach((plan) => {
-    map[plan.member_id] = { exercises: plan.exercises, category: plan.category }
+    if (plan.reservation_id) {
+      map[plan.reservation_id] = plan
+    }
   })
   return map
 })
@@ -652,7 +654,7 @@ const selectedDateSessions = computed(() => {
       requested_date: reservation.requested_date,
       requested_start_time: reservation.requested_start_time,
       requested_end_time: reservation.requested_end_time,
-      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]?.exercises || workoutMap.value[reservation.member_id]),
+      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.id]?.exercises),
     }))
 })
 
@@ -871,11 +873,10 @@ async function openScheduleDetail(scheduleId) {
   if (selectedSchedule.value) {
     showDetailSheet.value = true
 
-    const memberId = selectedSchedule.value.member_id
-    const date = selectedSchedule.value.date
+    const scheduleId = selectedSchedule.value.id
 
-    if (memberId && date) {
-      await fetchWorkoutPlan(memberId, date)
+    if (scheduleId) {
+      await fetchWorkoutPlan(scheduleId)
       detailExercises.value = currentPlan.value?.exercises ?? []
       detailCategory.value = currentPlan.value?.category || ''
     }
@@ -979,6 +980,7 @@ function goWorkout(session = selectedSchedule.value) {
   router.push({
     name: 'trainer-today-workout',
     query: {
+      reservationId: session.id,
       memberId: session.member_id,
       date: session.date,
     },
