@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useWorkHours } from '@/composables/useWorkHours'
 
+const mockWorkHoursStore = {
+  days: [],
+  selectedUnit: 60,
+  loadWorkHours: vi.fn(),
+}
+
 const mockEnv = vi.hoisted(() => {
   const authStore = { user: { id: 'trainer-1' } }
   return {
@@ -11,6 +17,9 @@ const mockEnv = vi.hoisted(() => {
 
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => mockEnv.authStore }))
 vi.mock('@/lib/supabase', () => ({ supabase: mockEnv.supabase }))
+vi.mock('@/stores/workHours', () => ({
+  useWorkHoursStore: () => mockWorkHoursStore,
+}))
 
 function createBuilder() {
   const builder = {
@@ -38,13 +47,22 @@ describe('useWorkHours', () => {
   })
 
   it('fetchWorkHours DB 데이터 없으면 기본값(7요일 모두 disabled, 09:00-18:00)을 설정한다', async () => {
-    const builder = createBuilder()
-    builder.order.mockResolvedValue({ data: [], error: null })
-    mockEnv.supabase.from.mockReturnValue(builder)
+    mockWorkHoursStore.days = [
+      { id: 'sun', label: '일요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'mon', label: '월요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'tue', label: '화요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'wed', label: '수요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'thu', label: '목요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'fri', label: '금요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'sat', label: '토요일', enabled: false, start: '09:00', end: '18:00' },
+    ]
+    mockWorkHoursStore.selectedUnit = 60
+    mockWorkHoursStore.loadWorkHours.mockResolvedValue(undefined)
 
     const { fetchWorkHours, days, selectedUnit } = useWorkHours()
     await fetchWorkHours()
 
+    expect(mockWorkHoursStore.loadWorkHours).toHaveBeenCalled()
     expect(days.value).toHaveLength(7)
     expect(days.value.every(d => d.enabled === false)).toBe(true)
     expect(days.value[0].id).toBe('sun')
@@ -54,18 +72,17 @@ describe('useWorkHours', () => {
   })
 
   it('fetchWorkHours DB 데이터 있으면 selectedUnit을 slot_duration_minutes로 설정한다', async () => {
-    const builder = createBuilder()
-    builder.order.mockResolvedValue({
-      data: [{
-        day_of_week: 1,
-        start_time: '09:00:00',
-        end_time: '18:00:00',
-        is_enabled: true,
-        slot_duration_minutes: 30,
-      }],
-      error: null,
-    })
-    mockEnv.supabase.from.mockReturnValue(builder)
+    mockWorkHoursStore.days = [
+      { id: 'sun', label: '일요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'mon', label: '월요일', enabled: true, start: '09:00', end: '18:00' },
+      { id: 'tue', label: '화요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'wed', label: '수요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'thu', label: '목요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'fri', label: '금요일', enabled: false, start: '09:00', end: '18:00' },
+      { id: 'sat', label: '토요일', enabled: false, start: '09:00', end: '18:00' },
+    ]
+    mockWorkHoursStore.selectedUnit = 30
+    mockWorkHoursStore.loadWorkHours.mockResolvedValue(undefined)
 
     const { fetchWorkHours, selectedUnit } = useWorkHours()
     await fetchWorkHours()

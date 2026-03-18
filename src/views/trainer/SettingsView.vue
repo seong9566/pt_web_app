@@ -153,6 +153,12 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useConfirm } from '@/composables/useConfirm'
+import { useWorkHoursStore } from '@/stores/workHours'
+import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
+import { useAvailabilityStore } from '@/stores/availability'
+import { useWorkoutPlansStore } from '@/stores/workoutPlans'
+import { useReservationsStore } from '@/stores/reservations'
+import { useMembersStore } from '@/stores/members'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 
 const router = useRouter()
@@ -198,6 +204,12 @@ async function handleDeleteAccount() {
 
 async function handleLogout() {
   if (await confirm('로그아웃 하시겠습니까?')) {
+    useWorkHoursStore().$reset()
+    useScheduleOverridesStore().$reset()
+    useAvailabilityStore().$reset()
+    useWorkoutPlansStore().$reset()
+    useReservationsStore().$reset()
+    useMembersStore().$reset()
     await auth.signOut()
     router.push({ name: 'login' })
   }

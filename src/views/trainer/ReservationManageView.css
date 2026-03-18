@@ -508,3 +508,67 @@
 .reassign-sheet__footer {
   padding-bottom: 8px;
 }
+
+/* ── Change Info Block ── */
+.res-card__change-info {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-small);
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+.res-card__change-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+}
+.res-card__change-label {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  min-width: 28px;
+  flex-shrink: 0;
+}
+.res-card__change-value {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-900);
+}
+.res-card__change-row--requested .res-card__change-label,
+.res-card__change-row--requested .res-card__change-value {
+  color: var(--color-orange);
+  font-weight: var(--fw-body1-bold);
+}
+.res-card__change-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.res-card__btn--approve {
+  background: var(--color-blue-primary);
+  color: var(--color-white);
+}
+.res-card__btn--reject {
+  background: var(--color-white);
+  color: var(--color-red);
+  border: 1px solid var(--color-red);
+}
+
+/* ── Reject Sheet ── */
+.reject-sheet {
+  padding: 0 var(--side-margin) var(--side-margin);
+}
+.reject-sheet__hint {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin-bottom: 12px;
+}
+.reject-sheet__textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  resize: none;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}

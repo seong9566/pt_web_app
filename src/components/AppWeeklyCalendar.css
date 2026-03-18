@@ -27,6 +27,7 @@
 }
 
 .weekly-calendar__grid-wrapper {
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--color-gray-200);
   border-radius: 0;
@@ -186,6 +187,16 @@
   line-height: 1.2;
 }
 
+.weekly-calendar__block-sublabel {
+  display: block;
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .weekly-calendar__holiday-overlay {
   position: absolute;
   top: 12px;
@@ -241,4 +252,34 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-medium);
   z-index: 100;
+}
+
+.weekly-calendar__loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background-color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.weekly-calendar__loading-pulse {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-blue-primary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }

@@ -1,5 +1,5 @@
 <template>
-  <section class="weekly-calendar">
+  <section class="weekly-calendar" :aria-busy="loading">
     <header class="weekly-calendar__header">
       <button class="weekly-calendar__nav-btn" type="button" @click="moveWeek(-7)" aria-label="이전 주">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -69,6 +69,10 @@
               <span v-if="getBlockLabel(getScheduleAtSlot(date, time))" class="weekly-calendar__block-label">
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
+              <span
+                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getScheduleAtSlot(date, time)?.requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
+                class="weekly-calendar__block-sublabel"
+              >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
             </button>
 
             <div
@@ -91,7 +95,11 @@
         </template>
       </div>
 
-      <p v-if="!normalizedSchedules.length" class="weekly-calendar__empty-text">이번 주 일정이 없습니다</p>
+      <p v-if="!loading && !normalizedSchedules.length" class="weekly-calendar__empty-text">이번 주 일정이 없습니다</p>
+
+      <div v-if="loading" class="weekly-calendar__loading-overlay" aria-hidden="true">
+        <div class="weekly-calendar__loading-pulse" />
+      </div>
 
       <div
         v-if="dndState === 'dragging'"
@@ -131,6 +139,7 @@ const props = defineProps({
   slotDuration: { type: Number, default: 60 },
   draggable: { type: Boolean, default: false },
   memberColors: { type: Object, default: () => ({}) },
+  loading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['slot-tap', 'schedule-tap', 'week-change', 'schedule-drop'])
@@ -141,6 +150,7 @@ const dragSchedule = ref(null)
 const ghostStyle = ref({})
 const dropTarget = ref(null)
 const pressStartPos = ref({ x: 0, y: 0 })
+const justDropped = ref(false)
 
 function pad(num) {
   return String(num).padStart(2, '0')
@@ -191,7 +201,7 @@ const timeSlots = computed(() => {
 })
 
 const weekDates = computed(() => {
-  return Array.from({ length: 7 }, (_, index) => addDays(props.currentWeekStart, index - 1))
+  return Array.from({ length: 7 }, (_, index) => addDays(props.currentWeekStart, index))
 })
 
 const weekRangeLabel = computed(() => {
@@ -270,6 +280,20 @@ function getBlockLabel(schedule) {
   return schedule.category || ''
 }
 
+function getBlockRatio(schedule) {
+  return schedule.duration / effectiveSlotDuration.value
+}
+
+function getChangeRequestLabel(schedule) {
+  const time = schedule.requested_start_time?.slice(0, 5)
+  if (!time) return ''
+  if (schedule.requested_date && schedule.requested_date !== schedule.date) {
+    const [, month, day] = schedule.requested_date.split('-')
+    return `→${parseInt(month)}/${parseInt(day)} ${time}`
+  }
+  return `→${time}`
+}
+
 function hasMemberColor(schedule) {
   return props.role === 'trainer' && schedule?.member_id && props.memberColors[schedule.member_id]
 }
@@ -340,7 +364,8 @@ function handleSlotTap(dateStr, time) {
 }
 
 function handleScheduleTap(scheduleId) {
-  if (dndState.value !== 'idle') {
+  if (dndState.value !== 'idle' || justDropped.value) {
+    justDropped.value = false
     return
   }
 
@@ -356,6 +381,7 @@ function handlePointerDown(event, schedule) {
     return
   }
 
+  justDropped.value = false
   clearTimeout(pressTimer.value)
 
   event.currentTarget.setPointerCapture(event.pointerId)
@@ -465,6 +491,7 @@ function handlePointerUp() {
       toDate: dropTarget.value.date,
       toTime: dropTarget.value.time,
     })
+    justDropped.value = true
   }
 
   resetDrag()

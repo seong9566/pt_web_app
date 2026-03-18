@@ -320,7 +320,9 @@ export function useReservations() {
 
 
   /** 회원이 일정 변경 요청 */
-  async function requestChange(reservationId, reason) {
+  async function requestChange(reservationId, reasonOrOptions = {}) {
+    const options = typeof reasonOrOptions === 'string' ? { reason: reasonOrOptions } : (reasonOrOptions || {})
+    const { reason, requestedDate, requestedStartTime, requestedEndTime } = options
     loading.value = true
     error.value = null
 
@@ -338,7 +340,13 @@ export function useReservations() {
 
       const { error: updateError } = await supabase
         .from('reservations')
-        .update({ status: 'change_requested', change_reason: reason || null })
+        .update({
+          status: 'change_requested',
+          change_reason: reason || null,
+          requested_date: requestedDate || null,
+          requested_start_time: requestedStartTime || null,
+          requested_end_time: requestedEndTime || null,
+        })
         .eq('id', reservationId)
 
       if (updateError) throw updateError
@@ -347,7 +355,9 @@ export function useReservations() {
         user_id: reservation.trainer_id,
         type: 'change_requested',
         title: '일정 변경 요청',
-        body: '회원이 일정 변경을 요청했습니다.',
+        body: requestedDate
+          ? `회원이 ${requestedDate} ${requestedStartTime}으로 변경을 요청했습니다.`
+          : '회원이 일정 변경을 요청했습니다.',
         target_id: reservationId,
         target_type: 'reservation',
       })
@@ -358,6 +368,156 @@ export function useReservations() {
       return true
     } catch (e) {
       error.value = e?.message ?? '일정 변경 요청에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 트레이너가 회원의 일정 변경 요청 승인 */
+  async function approveChangeRequest(reservationId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('trainer_id, member_id, start_time, end_time, requested_date, requested_start_time, requested_end_time')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (reservationError) throw reservationError
+      if (!reservation?.trainer_id || !reservation?.member_id) {
+        throw new Error('예약 정보를 찾을 수 없습니다.')
+      }
+
+      const requestedDate = reservation.requested_date
+      const requestedStartTime = reservation.requested_start_time
+      if (!requestedDate || !requestedStartTime) {
+        throw new Error('변경 요청 시간 정보가 없습니다.')
+      }
+
+      const existingDuration = toMinutes(reservation.end_time) - toMinutes(reservation.start_time)
+      const duration = existingDuration > 0 ? existingDuration : (slotDuration.value ?? 60)
+      const endTime = addMinutes(requestedStartTime, duration)
+
+      const { error: cancelError } = await supabase
+        .from('reservations')
+        .update({ status: 'cancelled' })
+        .eq('id', reservationId)
+
+      if (cancelError) throw cancelError
+
+      const { error: assignError } = await supabase.rpc('assign_schedule', {
+        p_trainer_id: reservation.trainer_id,
+        p_member_id: reservation.member_id,
+        p_date: requestedDate,
+        p_start_time: requestedStartTime,
+        p_end_time: endTime,
+      })
+
+      if (assignError) throw assignError
+
+      // 변경 승인 알림 (non-blocking)
+      try {
+        await supabase.from('notifications').insert({
+          user_id: reservation.member_id,
+          type: 'schedule_reassigned',
+          title: '일정 변경 승인',
+          body: `변경 요청이 승인되었습니다. ${requestedDate} ${requestedStartTime}으로 일정이 변경되었습니다.`,
+          target_id: reservationId,
+          target_type: 'reservation',
+        })
+      } catch (notifErr) {
+        console.warn('변경 승인 알림 생성 실패:', notifErr?.message)
+      }
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '변경 요청 승인에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 트레이너가 회원의 일정 변경 요청 거절 */
+  async function rejectChangeRequest(reservationId, rejectionReason) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: reservation, error: reservationError } = await supabase
+        .from('reservations')
+        .select('member_id')
+        .eq('id', reservationId)
+        .maybeSingle()
+
+      if (reservationError) throw reservationError
+      if (!reservation?.member_id) {
+        throw new Error('예약 정보를 찾을 수 없습니다.')
+      }
+
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({
+          status: 'scheduled',
+          requested_date: null,
+          requested_start_time: null,
+          requested_end_time: null,
+        })
+        .eq('id', reservationId)
+
+      if (updateError) throw updateError
+
+      // 변경 거절 알림 (non-blocking)
+      try {
+        await supabase.from('notifications').insert({
+          user_id: reservation.member_id,
+          type: 'reservation_rejected',
+          title: '일정 변경 거절',
+          body: `변경 요청이 거절되었습니다${rejectionReason ? ': ' + rejectionReason : '.'}`,
+          target_id: reservationId,
+          target_type: 'reservation',
+        })
+      } catch (notifErr) {
+        console.warn('변경 거절 알림 생성 실패:', notifErr?.message)
+      }
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '변경 요청 거절에 실패했습니다'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 회원이 본인의 일정 변경 요청 취소 */
+  async function cancelChangeRequest(reservationId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: updateError } = await supabase
+        .from('reservations')
+        .update({
+          status: 'scheduled',
+          requested_date: null,
+          requested_start_time: null,
+          requested_end_time: null,
+          change_reason: null,
+        })
+        .eq('id', reservationId)
+
+      if (updateError) throw updateError
+
+      await refreshReservationsStore()
+      return true
+    } catch (e) {
+      error.value = e?.message ?? '변경 요청 취소에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -542,6 +702,9 @@ export function useReservations() {
     fetchMyReservations,
     updateReservationStatus,
     requestChange,
+    approveChangeRequest,
+    rejectChangeRequest,
+    cancelChangeRequest,
     reassignSchedule,
     cancelSchedule,
     checkTrainerConnection,

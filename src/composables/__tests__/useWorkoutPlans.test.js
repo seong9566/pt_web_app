@@ -16,6 +16,12 @@ vi.mock('@/lib/supabase', () => ({ supabase: mockEnv.supabase }))
 vi.mock('@/composables/useNotifications', () => ({
   useNotifications: () => ({ createNotification: mockCreateNotification }),
 }))
+vi.mock('@/stores/workoutPlans', () => ({
+  useWorkoutPlansStore: () => ({
+    invalidate: vi.fn(),
+    loadDayWorkoutPlans: vi.fn().mockResolvedValue([]),
+  }),
+}))
 
 function createBuilder() {
   const builder = {

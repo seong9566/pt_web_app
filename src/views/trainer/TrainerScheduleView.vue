@@ -48,6 +48,7 @@
           :memberColors="memberColorMap"
           role="trainer"
           :draggable="true"
+          :loading="calendarLoading"
           @slot-tap="handleSlotTap"
           @schedule-tap="handleScheduleTap"
           @schedule-drop="handleScheduleDrop"
@@ -63,68 +64,105 @@
       </section>
 
       <section v-else class="trainer-schedule__monthly">
-        <div class="trainer-schedule__monthly-card">
-          <AppCalendar
-            :model-value="selectedDate"
-            :dots="calendarDots"
-            :colorDots="calendarColorDots"
-            :holidays="monthlyHolidays"
-            @update:modelValue="handleMonthDateSelect"
-            @monthChange="handleMonthChange"
-          />
+        <div v-if="calendarLoading" class="calendar-skeleton calendar-skeleton--monthly">
+          <div class="calendar-skeleton__header">
+            <AppSkeleton type="rect" width="100%" height="36px" border-radius="var(--radius-small)" />
+          </div>
+          <div class="calendar-skeleton__day-bar">
+            <AppSkeleton
+              v-for="i in 7"
+              :key="i"
+              type="rect"
+              width="100%"
+              height="24px"
+              border-radius="var(--radius-small)"
+            />
+          </div>
+          <div class="calendar-skeleton__month-grid">
+            <AppSkeleton
+              v-for="i in 5"
+              :key="i"
+              type="rect"
+              width="100%"
+              height="40px"
+              border-radius="var(--radius-small)"
+            />
+          </div>
+          <div class="calendar-skeleton__list">
+            <AppSkeleton type="line" :count="3" />
+          </div>
         </div>
+        <template v-else>
+          <div class="trainer-schedule__monthly-card">
+            <AppCalendar
+              :model-value="selectedDate"
+              :dots="calendarDots"
+              :colorDots="calendarColorDots"
+              :holidays="monthlyHolidays"
+              @update:modelValue="handleMonthDateSelect"
+              @monthChange="handleMonthChange"
+            />
+          </div>
 
-        <div class="trainer-schedule__list-header">
-          <h2 class="trainer-schedule__list-title">{{ selectedDateLabel }}</h2>
-          <p class="trainer-schedule__list-count">{{ selectedDateSessions.length }}개의 일정</p>
-        </div>
+          <div class="trainer-schedule__list-header">
+            <h2 class="trainer-schedule__list-title">{{ selectedDateLabel }}</h2>
+            <p class="trainer-schedule__list-count">{{ selectedDateSessions.length }}개의 일정</p>
+          </div>
 
-        <div v-if="loading" class="trainer-schedule__loading">
-          <AppSkeleton type="line" :count="3" />
-        </div>
+          <div v-if="loading" class="trainer-schedule__loading">
+            <AppSkeleton type="line" :count="3" />
+          </div>
 
-        <div v-else-if="selectedDateSessions.length === 0" class="trainer-schedule__empty">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" />
-            <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
-            <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-          <p>선택한 날짜에 일정이 없습니다.</p>
-        </div>
+          <div v-else-if="selectedDateSessions.length === 0" class="trainer-schedule__empty">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" />
+              <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
+              <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <p>선택한 날짜에 일정이 없습니다.</p>
+          </div>
 
-        <div v-else class="trainer-schedule__monthly-list">
-          <article
-            v-for="session in selectedDateSessions"
-            :key="session.id"
-            class="schedule-item"
-            @click="openScheduleDetail(session.id)"
-          >
-            <div class="schedule-item__head">
-              <div class="schedule-item__member">
-                <div class="schedule-item__avatar">
-                  <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" />
-                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
-                    <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                  </svg>
-                </div>
-                <h3 class="schedule-item__name">{{ session.partner_name }}</h3>
-              </div>
-              <span class="schedule-item__status" :class="`schedule-item__status--${normalizeStatus(session.status)}`">
-                {{ statusLabel(session.status) }}
-              </span>
-            </div>
-            <p class="schedule-item__time">{{ session.start_time }} - {{ session.end_time }}</p>
-            <p v-if="session.workoutSummary" class="schedule-item__workout">{{ session.workoutSummary }}</p>
-            <button
-              v-if="canAssignWorkout(session.status)"
-              class="schedule-item__action"
-              @click.stop="goWorkout(session)"
+          <div v-else class="trainer-schedule__monthly-list">
+            <article
+              v-for="session in selectedDateSessions"
+              :key="session.id"
+              class="schedule-item"
+              @click="openScheduleDetail(session.id)"
             >
-              운동 배정하기
-            </button>
-          </article>
-        </div>
+              <div class="schedule-item__head">
+                <div class="schedule-item__member">
+                  <div class="schedule-item__avatar">
+                    <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" />
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <h3 class="schedule-item__name">{{ session.partner_name }}</h3>
+                </div>
+                <span class="schedule-item__status" :class="`schedule-item__status--${normalizeStatus(session.status)}`">
+                  {{ statusLabel(session.status) }}
+                </span>
+              </div>
+              <p class="schedule-item__time">
+                <template v-if="session.status === 'change_requested' && session.requested_start_time">
+                  {{ session.start_time?.slice(0,5) }}→{{ session.requested_start_time?.slice(0,5) }}
+                </template>
+                <template v-else>
+                  {{ session.start_time?.slice(0,5) }} - {{ session.end_time?.slice(0,5) }}
+                </template>
+              </p>
+              <p v-if="session.workoutSummary" class="schedule-item__workout">{{ session.workoutSummary }}</p>
+              <button
+                v-if="canAssignWorkout(session.status)"
+                class="schedule-item__action"
+                @click.stop="goWorkout(session)"
+              >
+                운동 배정하기
+              </button>
+            </article>
+          </div>
+        </template>
       </section>
 
       <div style="height: calc(var(--nav-height) + 32px);" />
@@ -201,9 +239,33 @@
             </li>
           </ul>
         </div>
-        <p v-if="selectedSchedule.change_reason" class="detail-sheet__reason">
-          변경 사유: {{ selectedSchedule.change_reason }}
-        </p>
+        <template v-if="selectedSchedule?.status === 'change_requested'">
+          <div class="detail-sheet__change-card">
+            <div class="detail-sheet__change-row">
+              <span class="detail-sheet__change-label">현재</span>
+              <span class="detail-sheet__change-value">
+                {{ toDisplayDate(selectedSchedule.date) }}
+                {{ selectedSchedule.start_time?.slice(0,5) }}-{{ selectedSchedule.end_time?.slice(0,5) }}
+              </span>
+            </div>
+            <div v-if="selectedSchedule.requested_date" class="detail-sheet__change-row detail-sheet__change-row--requested">
+              <span class="detail-sheet__change-label">요청</span>
+              <span class="detail-sheet__change-value">
+                {{ toDisplayDate(selectedSchedule.requested_date) }}
+                {{ selectedSchedule.requested_start_time?.slice(0,5) }}-{{ selectedSchedule.requested_end_time?.slice(0,5) }}
+              </span>
+            </div>
+            <div v-if="selectedSchedule.change_reason" class="detail-sheet__change-row">
+              <span class="detail-sheet__change-label">사유</span>
+              <span class="detail-sheet__change-value">{{ selectedSchedule.change_reason }}</span>
+            </div>
+          </div>
+          <div class="detail-sheet__change-actions">
+            <AppButton v-if="selectedSchedule.requested_date" :disabled="loading" @click="handleApproveChange">승인</AppButton>
+            <AppButton variant="outline" :disabled="loading" @click="showRejectSheet = true">거절</AppButton>
+            <AppButton variant="secondary" :disabled="loading" @click="startReassignMode">다른 시간</AppButton>
+          </div>
+        </template>
 
         <div class="detail-sheet__actions">
           <button
@@ -230,6 +292,14 @@
         </div>
       </div>
     </AppBottomSheet>
+
+    <AppBottomSheet v-model="showRejectSheet" title="변경 요청 거절">
+      <div class="reject-sheet">
+        <p class="reject-sheet__hint">거절 사유를 입력하면 회원에게 전달됩니다.</p>
+        <textarea v-model="rejectReason" class="reject-sheet__textarea" placeholder="거절 사유를 입력해주세요 (선택)" maxlength="120" />
+        <AppButton :disabled="loading" @click="handleRejectChange">거절 확인</AppButton>
+      </div>
+    </AppBottomSheet>
   </div>
 </template>
 
@@ -237,6 +307,7 @@
 import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppButton from '@/components/AppButton.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
@@ -248,10 +319,13 @@ import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useMembersStore } from '@/stores/members'
 import { useReservationsStore } from '@/stores/reservations'
+import { useWorkHoursStore } from '@/stores/workHours'
+import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
+import { useAvailabilityStore } from '@/stores/availability'
+import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import { resolveAvailabilityState } from '@/utils/availability'
 
 defineOptions({ name: 'TrainerScheduleView' })
@@ -299,9 +373,7 @@ function addDays(dateStr, amount) {
 
 function getWeekStart(dateStr) {
   const date = parseDate(dateStr)
-  const day = date.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  date.setDate(date.getDate() + diff)
+  date.setDate(date.getDate() - date.getDay())
   return formatDate(date)
 }
 
@@ -359,16 +431,17 @@ const membersStore = useMembersStore()
 const reservationsStore = useReservationsStore()
 const { showToast, showSuccess } = useToast()
 
-const { reservations, loading, error, fetchMyReservations, assignSchedule, cancelSchedule, reassignSchedule } = useReservations()
+const { reservations, loading, error, fetchMyReservations, assignSchedule, cancelSchedule, reassignSchedule, approveChangeRequest, rejectChangeRequest } = useReservations()
 const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
 const { members, fetchMembers } = useMembers()
-const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
+const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan, loadWeeklyWorkoutCategories, getWeeklyCategory } = useWorkoutPlans()
 
 const todayStr = formatDate(new Date())
 
 const loaded = ref(false)
+const calendarLoading = ref(false)
 const currentView = ref('weekly')
 const selectedDate = ref(todayStr)
 const currentWeekStart = ref(getWeekStart(todayStr))
@@ -377,14 +450,15 @@ const workingDays = ref(new Set())
 
 const showMemberSheet = ref(false)
 const showDetailSheet = ref(false)
+const showRejectSheet = ref(false)
 const memberSheetLoading = ref(false)
+const rejectReason = ref('')
 
 const selectedSlotDate = ref('')
 const selectedSlotTime = ref('')
 const selectedSchedule = ref(null)
 const detailExercises = ref([])
 const detailCategory = ref('')
-const weeklyWorkoutCache = ref({})
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
@@ -431,7 +505,7 @@ const holidays = computed(() => {
 
   if (workingDays.value.size > 0) {
     for (let index = 0; index < 7; index += 1) {
-      const dateStr = addDays(currentWeekStart.value, index - 1)
+      const dateStr = addDays(currentWeekStart.value, index)
       const dayOfWeek = parseDate(dateStr).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)
@@ -482,10 +556,13 @@ const weeklySchedules = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
+      requested_date: reservation.requested_date ?? null,
+      requested_start_time: reservation.requested_start_time ?? null,
+      requested_end_time: reservation.requested_end_time ?? null,
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
-      category: weeklyWorkoutCache.value[`${reservation.date}-${reservation.member_id}`] || null,
+      category: getWeeklyCategory(reservation.date, reservation.member_id),
     }))
 })
 
@@ -572,6 +649,9 @@ const selectedDateSessions = computed(() => {
       photo: reservation.partner_photo,
       member_id: reservation.member_id,
       change_reason: reservation.change_reason,
+      requested_date: reservation.requested_date,
+      requested_start_time: reservation.requested_start_time,
+      requested_end_time: reservation.requested_end_time,
       workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]?.exercises || workoutMap.value[reservation.member_id]),
     }))
 })
@@ -613,23 +693,7 @@ async function loadWeeklyWorkouts() {
     dates.push(addDays(currentWeekStart.value, i))
   }
 
-  for (const date of dates) {
-    if (weeklyWorkoutCache.value[`_loaded_${date}`]) continue
-
-    const { data } = await supabase
-      .from('workout_plans')
-      .select('member_id, category')
-      .eq('trainer_id', auth.user.id)
-      .eq('date', date)
-
-    if (data) {
-      data.forEach((plan) => {
-        weeklyWorkoutCache.value[`${date}-${plan.member_id}`] = plan.category
-      })
-    }
-
-    weeklyWorkoutCache.value[`_loaded_${date}`] = true
-  }
+  await loadWeeklyWorkoutCategories(dates)
 }
 
 async function loadData() {
@@ -640,17 +704,28 @@ async function loadData() {
   ])
 
   await loadWorkingDaySet()
-  await loadOverrides(currentMonthKey.value)
-  await fetchDayWorkoutPlans(selectedDate.value)
-  await loadWeeklyWorkouts()
 
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(currentMonthKey.value),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 
   loaded.value = true
 }
 
 async function handleRefresh() {
+  useWorkHoursStore().invalidate()
+  useScheduleOverridesStore().invalidate()
+  useAvailabilityStore().invalidate()
+  useWorkoutPlansStore().invalidate()
   await reservationsStore.loadReservations('trainer', true)
   await fetchMyReservations('trainer')
   await fetchWorkHours()
@@ -661,11 +736,18 @@ async function handleRefresh() {
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  await loadOverrides(monthKey)
-  await fetchDayWorkoutPlans(selectedDate.value)
-
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
-  weekAvailabilities.value = availRows || []
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(monthKey),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 }
 
 async function switchView(view) {
@@ -687,14 +769,21 @@ function handleAdd() {
 }
 
 async function handleWeekChange({ weekStart }) {
-  weeklyWorkoutCache.value = {}
   currentWeekStart.value = weekStart
   selectedDate.value = weekStart
   currentMonthKey.value = weekStart.slice(0, 7)
-  await loadOverrides(currentMonthKey.value)
-  const availRows = await fetchMemberAvailabilities(currentWeekStart.value)
-  weekAvailabilities.value = availRows || []
-  await loadWeeklyWorkouts()
+
+  calendarLoading.value = true
+  try {
+    const [, availRows] = await Promise.all([
+      loadOverrides(currentMonthKey.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 }
 
 async function handleMonthChange(month) {
@@ -856,6 +945,32 @@ function clearReassignMode() {
   reassignTarget.value = null
 }
 
+async function handleApproveChange() {
+  if (!selectedSchedule.value) return
+  const approved = await approveChangeRequest(selectedSchedule.value.id)
+  if (!approved) {
+    showToast(error.value || '변경 요청 승인에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 승인했습니다.')
+  showDetailSheet.value = false
+  await loadWeeklySchedules()
+}
+
+async function handleRejectChange() {
+  if (!selectedSchedule.value) return
+  const rejected = await rejectChangeRequest(selectedSchedule.value.id, rejectReason.value.trim() || null)
+  if (!rejected) {
+    showToast(error.value || '변경 요청 거절에 실패했습니다.', 'error')
+    return
+  }
+  showSuccess('변경 요청을 거절했습니다.')
+  showRejectSheet.value = false
+  rejectReason.value = ''
+  showDetailSheet.value = false
+  await loadWeeklySchedules()
+}
+
 function goWorkout(session = selectedSchedule.value) {
   if (!session?.member_id) return
 
@@ -890,20 +1005,29 @@ onMounted(() => {
 onActivated(async () => {
   if (!loaded.value) return
 
-  weeklyWorkoutCache.value = {}
-  await membersStore.loadMembers()
-  await fetchMyReservations('trainer')
-  await fetchWorkHours()
-  await fetchMembers()
+  await Promise.all([
+    membersStore.loadMembers(),
+    fetchMyReservations('trainer'),
+    fetchWorkHours(),
+  ])
   await loadWorkingDaySet()
 
   const monthKey = currentView.value === 'weekly'
     ? currentWeekStart.value.slice(0, 7)
     : currentMonthKey.value
 
-  await loadOverrides(monthKey)
-  await fetchDayWorkoutPlans(selectedDate.value)
-  await loadWeeklyWorkouts()
+  calendarLoading.value = true
+  try {
+    const [, , availRows] = await Promise.all([
+      loadOverrides(monthKey),
+      fetchDayWorkoutPlans(selectedDate.value),
+      fetchMemberAvailabilities(currentWeekStart.value),
+      loadWeeklyWorkouts(),
+    ])
+    weekAvailabilities.value = availRows || []
+  } finally {
+    calendarLoading.value = false
+  }
 })
 </script>
 

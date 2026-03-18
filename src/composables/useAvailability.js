@@ -11,19 +11,18 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useAvailabilityStore } from '@/stores/availability'
 
 /**
- * 이번 주 월요일 날짜를 YYYY-MM-DD 형식으로 반환
- * 월요일을 주 시작일로 간주 (일요일=0이면 -6, 나머지는 1-day)
+ * 이번 주 일요일 날짜를 YYYY-MM-DD 형식으로 반환
+ * 일요일을 주 시작일로 간주
  */
-function getCurrentWeekMonday() {
+function getCurrentWeekStart() {
   const today = new Date()
-  const day = today.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(today)
-  monday.setDate(today.getDate() + diff)
-  monday.setHours(0, 0, 0, 0)
-  return monday.toISOString().split('T')[0] // YYYY-MM-DD
+  const sunday = new Date(today)
+  sunday.setDate(today.getDate() - today.getDay())
+  sunday.setHours(0, 0, 0, 0)
+  return sunday.toISOString().split('T')[0] // YYYY-MM-DD
 }
 
 export function useAvailability() {
@@ -49,8 +48,8 @@ export function useAvailability() {
 
     try {
       // 과거 주 제출 차단 (이번 주 월요일 이전이면 거부)
-      const currentMonday = getCurrentWeekMonday()
-      if (weekStart < currentMonday) {
+      const currentStart = getCurrentWeekStart()
+      if (weekStart < currentStart) {
         error.value = '지난 주의 가능 시간은 등록할 수 없습니다.'
         return false
       }
@@ -85,6 +84,7 @@ export function useAvailability() {
         console.warn('알림 생성 실패:', notifError.message)
       }
 
+      useAvailabilityStore().invalidate()
       return true
     } catch (e) {
       error.value = e?.message ?? '가능 시간 등록 중 오류가 발생했습니다.'
@@ -138,45 +138,9 @@ export function useAvailability() {
     error.value = null
 
     try {
-      console.debug('[useAvailability]', 'fetchMemberAvailabilities called with weekStart:', weekStart)
-
-      // 1단계: 트레이너에 연결된 active 회원 목록 조회
-      const { data: members, error: membersError } = await supabase
-        .from('trainer_members')
-        .select('member_id, profiles!trainer_members_member_id_fkey(name, photo_url)')
-        .eq('trainer_id', auth.user.id)
-        .eq('status', 'active')
-
-      if (membersError) throw membersError
-      if (!members || members.length === 0) return []
-
-      // 2단계: 해당 주의 가능 시간 레코드 일괄 조회
-      const memberIds = members.map((m) => m.member_id)
-      const { data: availabilities, error: availError } = await supabase
-        .from('member_weekly_availability')
-        .select('member_id, available_slots, memo, created_at')
-        .in('member_id', memberIds)
-        .eq('week_start', weekStart)
-        .eq('trainer_id', auth.user.id)
-
-      if (availError) throw availError
-
-      console.debug('[useAvailability]', 'fetchMemberAvailabilities results:', { rows: availabilities?.length ?? 0, details: availabilities?.map(a => ({ member_id: a.member_id, week_start: weekStart })) ?? [] })
-
-      // 3단계: member_id 기준 가용성 맵 생성 후 회원 목록과 병합
-      const availMap = {}
-      for (const avail of availabilities ?? []) {
-        availMap[avail.member_id] = avail
-      }
-
-      return members.map((member) => ({
-        member_id: member.member_id,
-        name: member.profiles?.name ?? '',
-        photo_url: member.profiles?.photo_url ?? null,
-        available_slots: availMap[member.member_id]?.available_slots ?? null,
-        memo: availMap[member.member_id]?.memo ?? null,
-        created_at: availMap[member.member_id]?.created_at ?? null,
-      }))
+      const store = useAvailabilityStore()
+      const data = await store.loadMemberAvailabilities(auth.user.id, weekStart)
+      return data
     } catch (e) {
       error.value = e?.message ?? '회원 가능 시간을 불러오는 중 오류가 발생했습니다.'
       return []

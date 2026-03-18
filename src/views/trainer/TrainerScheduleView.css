@@ -128,6 +128,42 @@
   padding: 0;
 }
 
+.calendar-skeleton {
+  padding: 12px var(--side-margin);
+}
+
+.calendar-skeleton--monthly {
+  background-color: var(--color-white);
+  border-radius: var(--radius-large);
+  margin: 0;
+}
+
+.calendar-skeleton__header {
+  margin-bottom: 12px;
+}
+
+.calendar-skeleton__day-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.calendar-skeleton__grid {
+  margin-bottom: 12px;
+}
+
+.calendar-skeleton__month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.calendar-skeleton__list {
+  margin-top: 16px;
+}
+
 .trainer-schedule__legend {
   display: flex;
   flex-direction: row;
@@ -539,4 +575,59 @@
 .detail-sheet__btn--danger {
   background-color: var(--color-red-light);
   color: var(--color-red);
+}
+
+.detail-sheet__change-card {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-medium);
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+.detail-sheet__change-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 0;
+}
+.detail-sheet__change-label {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  min-width: 32px;
+  flex-shrink: 0;
+}
+.detail-sheet__change-value {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+}
+.detail-sheet__change-row--requested .detail-sheet__change-label,
+.detail-sheet__change-row--requested .detail-sheet__change-value {
+  color: var(--color-orange);
+  font-weight: var(--fw-body1-bold);
+}
+.detail-sheet__change-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.detail-sheet__change-actions .app-button {
+  flex: 1;
+}
+.reject-sheet {
+  padding: 0 var(--side-margin) var(--side-margin);
+}
+.reject-sheet__hint {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin-bottom: 12px;
+}
+.reject-sheet__textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  resize: none;
+  box-sizing: border-box;
+  margin-bottom: 16px;
 }

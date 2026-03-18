@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 
+const mockLoadOverrides = vi.fn()
+const mockInvalidateMonth = vi.fn()
+
 const mockEnv = vi.hoisted(() => {
   return {
     supabase: { from: vi.fn() },
@@ -8,6 +11,12 @@ const mockEnv = vi.hoisted(() => {
 })
 
 vi.mock('@/lib/supabase', () => ({ supabase: mockEnv.supabase }))
+vi.mock('@/stores/scheduleOverrides', () => ({
+  useScheduleOverridesStore: () => ({
+    loadOverrides: mockLoadOverrides,
+    invalidateMonth: mockInvalidateMonth,
+  }),
+}))
 
 function createBuilder() {
   const builder = {
@@ -35,34 +44,27 @@ describe('useScheduleOverrides (via useHolidays)', () => {
   })
 
   it('fetchOverrides는 overrides.value에 오버라이드 배열을 저장한다', async () => {
-    const builder = createBuilder()
-    builder.order.mockResolvedValue({
-      data: [
-        { trainer_id: 'trainer-1', date: '2026-03-10', is_working: false },
-        { trainer_id: 'trainer-1', date: '2026-03-15', is_working: false },
-      ],
-      error: null,
-    })
-    mockEnv.supabase.from.mockReturnValue(builder)
+    mockLoadOverrides.mockResolvedValue([
+      { trainer_id: 'trainer-1', date: '2026-03-10', is_working: false },
+      { trainer_id: 'trainer-1', date: '2026-03-15', is_working: false },
+    ])
 
     const { fetchOverrides, overrides } = useScheduleOverrides()
     await fetchOverrides('trainer-1', '2026-03')
 
+    expect(mockLoadOverrides).toHaveBeenCalledWith('trainer-1', '2026-03')
     expect(overrides.value).toHaveLength(2)
     expect(overrides.value[0].date).toBe('2026-03-10')
     expect(overrides.value[1].date).toBe('2026-03-15')
   })
 
-  it('fetchOverrides에 month를 전달하면 gte와 lte 필터를 적용한다', async () => {
-    const builder = createBuilder()
-    builder.lte.mockResolvedValue({ data: [], error: null })
-    mockEnv.supabase.from.mockReturnValue(builder)
+  it('fetchOverrides에 month를 전달하면 스토어의 loadOverrides를 호출한다', async () => {
+    mockLoadOverrides.mockResolvedValue([])
 
     const { fetchOverrides } = useScheduleOverrides()
     await fetchOverrides('trainer-1', '2026-03')
 
-    expect(builder.gte).toHaveBeenCalledWith('date', '2026-03-01')
-    expect(builder.lte).toHaveBeenCalledWith('date', '2026-03-31')
+    expect(mockLoadOverrides).toHaveBeenCalledWith('trainer-1', '2026-03')
   })
 
   it('setOverride 성공 시 overrides.value에 오버라이드를 추가하고 정렬한다', async () => {

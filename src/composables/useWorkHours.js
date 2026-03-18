@@ -8,6 +8,7 @@
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkHoursStore } from '@/stores/workHours'
 
 /** 요일 번호(0-6)를 UI 형식(id, label)으로 변환하는 맵 */
 const DAY_MAP_TO_UI = {
@@ -49,62 +50,15 @@ export function useWorkHours() {
   const loading = ref(false)
   const error = ref(null)
 
-  /** DB에서 근무시간 설정 조회 및 UI 형식으로 변환 */
+  /** DB에서 근무시간 설정 조회 및 UI 형식으로 변환 (스토어 위임) */
   async function fetchWorkHours(trainerId) {
-    const auth = useAuthStore()
-    const targetId = trainerId || auth.user.id
     loading.value = true
     error.value = null
-
     try {
-      const { data, error: fetchError } = await supabase
-        .from('work_schedules')
-        .select('*')
-        .eq('trainer_id', targetId)
-        .order('day_of_week')
-
-      if (fetchError) {
-        error.value = fetchError.message
-        return
-      }
-
-      if (!data || data.length === 0) {
-        days.value = buildDefaultDays()
-        selectedUnit.value = 60
-        return
-      }
-
-      // slot_duration_minutes를 첫 번째 레코드에서 가져옴
-      selectedUnit.value = data[0].slot_duration_minutes ?? 60
-
-      // DB 데이터를 day_of_week 기준으로 맵 생성
-      const dbMap = {}
-      for (const row of data) {
-        dbMap[row.day_of_week] = row
-      }
-
-      // 기본 요일 배열에 DB 데이터 병합
-      const uiOrder = [0, 1,2, 3, 4, 5, 6] // 일~토
-      days.value = uiOrder.map(dow => {
-        const info = DAY_MAP_TO_UI[dow]
-        const row = dbMap[dow]
-        if (row) {
-          return {
-            id: info.id,
-            label: info.label,
-            enabled: row.is_enabled,
-            start: trimSeconds(row.start_time),
-            end: trimSeconds(row.end_time),
-          }
-        }
-        return {
-          id: info.id,
-          label: info.label,
-          enabled: false,
-          start: '09:00',
-          end: '18:00',
-        }
-      })
+      const store = useWorkHoursStore()
+      await store.loadWorkHours(trainerId)
+      days.value = store.days
+      selectedUnit.value = store.selectedUnit
     } catch (e) {
       error.value = e.message || '근무시간을 불러오는 중 오류가 발생했습니다.'
     } finally {
