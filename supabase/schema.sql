@@ -1343,6 +1343,11 @@ alter type public.notification_type add value if not exists 'availability_remind
 -- reservations 테이블: change_reason 컬럼 추가
 alter table public.reservations add column if not exists change_reason text;
 
+-- 일정 변경 요청: 구조화된 요청 시간 컬럼 추가
+alter table public.reservations add column if not exists requested_date date;
+alter table public.reservations add column if not exists requested_start_time time;
+alter table public.reservations add column if not exists requested_end_time time;
+
 -- 인덱스 교체: 기존 approved 단일 → 신규 scheduled/confirmed 복합 조건
 drop index if exists public.reservations_unique_approved_slot;
 create unique index if not exists reservations_unique_active_slot
