@@ -38,31 +38,29 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
-        <template>
-          <AppWeeklyCalendar
-            :schedules="weeklySchedules"
-            :workSchedule="workSchedule"
-            :slotDuration="workSchedule.slotDuration"
-            :holidays="holidays"
-            :currentWeekStart="currentWeekStart"
-            :availabilities="weekAvailabilities"
-            :memberColors="memberColorMap"
-            role="trainer"
-            :draggable="true"
-            :loading="calendarLoading"
-            @slot-tap="handleSlotTap"
-            @schedule-tap="handleScheduleTap"
-            @schedule-drop="handleScheduleDrop"
-            @week-change="handleWeekChange"
-          />
-          <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
-            <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
-              <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
-              <span class="trainer-schedule__legend-name">{{ member.name }}</span>
-            </div>
+        <AppWeeklyCalendar
+          :schedules="weeklySchedules"
+          :workSchedule="workSchedule"
+          :slotDuration="workSchedule.slotDuration"
+          :holidays="holidays"
+          :currentWeekStart="currentWeekStart"
+          :availabilities="weekAvailabilities"
+          :memberColors="memberColorMap"
+          role="trainer"
+          :draggable="true"
+          :loading="calendarLoading"
+          @slot-tap="handleSlotTap"
+          @schedule-tap="handleScheduleTap"
+          @schedule-drop="handleScheduleDrop"
+          @week-change="handleWeekChange"
+        />
+        <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
+          <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
+            <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
+            <span class="trainer-schedule__legend-name">{{ member.name }}</span>
           </div>
-          <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
-        </template>
+        </div>
+        <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
       </section>
 
       <section v-else class="trainer-schedule__monthly">
@@ -375,9 +373,7 @@ function addDays(dateStr, amount) {
 
 function getWeekStart(dateStr) {
   const date = parseDate(dateStr)
-  const day = date.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  date.setDate(date.getDate() + diff)
+  date.setDate(date.getDate() - date.getDay())
   return formatDate(date)
 }
 
@@ -509,7 +505,7 @@ const holidays = computed(() => {
 
   if (workingDays.value.size > 0) {
     for (let index = 0; index < 7; index += 1) {
-      const dateStr = addDays(currentWeekStart.value, index - 1)
+      const dateStr = addDays(currentWeekStart.value, index)
       const dayOfWeek = parseDate(dateStr).getDay()
       if (!workingDays.value.has(dayOfWeek)) {
         holidaySet.add(dateStr)
