@@ -111,7 +111,7 @@
             v-for="(reservation, ri) in filteredReservations"
             :key="reservation.id"
             class="trainer-home__schedule-card stagger-fade-in"
-            :class="{ 'trainer-home__schedule-card--workout': workoutMap[reservation.member_id] }"
+            :class="{ 'trainer-home__schedule-card--workout': workoutMap[reservation.id] }"
             :style="{ '--stagger-index': ri }"
           >
             <div class="trainer-home__schedule-main">
@@ -127,10 +127,10 @@
                 <p class="trainer-home__schedule-sub">{{ reservation.start_time }} 수업 시작</p>
               </div>
             </div>
-            <template v-if="formatWorkoutSummary(workoutMap[reservation.member_id])">
+            <template v-if="formatWorkoutSummary(workoutMap[reservation.id])">
               <div class="trainer-home__schedule-divider" />
               <p class="trainer-home__schedule-workout-label">오늘의 운동 요약</p>
-              <p class="trainer-home__schedule-workout-text">{{ formatWorkoutSummary(workoutMap[reservation.member_id]) }}</p>
+              <p class="trainer-home__schedule-workout-text">{{ formatWorkoutSummary(workoutMap[reservation.id]) }}</p>
             </template>
           </div>
         </div>
@@ -249,11 +249,13 @@ const filteredReservations = computed(() => {
   return reservations.value.filter(r => r.date === selectedDate.value && r.status !== 'cancelled' && r.status !== 'rejected')
 })
 
-/** 회원별 운동 계획 맵 생성 (member_id → exercises 배열) */
+/** 예약별 운동 계획 맵 생성 (reservation_id → exercises 배열) */
 const workoutMap = computed(() => {
   const map = {}
   for (const plan of dayWorkoutPlans.value) {
-    map[plan.member_id] = plan.exercises
+    if (plan.reservation_id) {
+      map[plan.reservation_id] = plan.exercises
+    }
   }
   return map
 })
