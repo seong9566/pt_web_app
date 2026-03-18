@@ -442,9 +442,9 @@ const reservationItems = computed(() => {
       trainer_name: reservation.partner_name,
       trainer_photo: reservation.partner_photo,
       change_reason: reservation.change_reason,
-      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date]),
-      exercises: workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date] || [],
-      category: workoutPlanCache.value[reservation.date]?.category || null,
+      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.id]?.exercises || workoutPlanCache.value[reservation.id]),
+      exercises: workoutPlanCache.value[reservation.id]?.exercises || workoutPlanCache.value[reservation.id] || [],
+      category: workoutPlanCache.value[reservation.id]?.category || null,
     }))
     .sort((a, b) => {
       if (a.date !== b.date) {
@@ -583,24 +583,21 @@ function syncTrainerWorkSchedule() {
   }
 }
 
-async function loadWorkoutForDate(dateStr) {
-  if (!dateStr || workoutPlanCache.value[dateStr] !== undefined) {
+async function loadWorkoutForReservation(reservationId) {
+  if (!reservationId || workoutPlanCache.value[reservationId] !== undefined) {
     return
   }
 
-  await fetchWorkoutPlan(undefined, dateStr)
-  workoutPlanCache.value[dateStr] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
+  await fetchWorkoutPlan(reservationId)
+  workoutPlanCache.value[reservationId] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
 }
 
 async function preloadWeeklyWorkouts() {
   const weekEnd = addDays(currentWeekStart.value, 7)
-  const dates = new Set(
-    reservationItems.value
-      .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
-      .map(r => r.date)
-  )
-  for (const date of dates) {
-    await loadWorkoutForDate(date)
+  const reservations = reservationItems.value
+    .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
+  for (const reservation of reservations) {
+    await loadWorkoutForReservation(reservation.id)
   }
 }
 
@@ -617,7 +614,6 @@ async function loadData() {
   }
 
   await fetchMyReservations('member')
-  await loadWorkoutForDate(selectedDate.value)
   await preloadWeeklyWorkouts()
 
   const trainerId = await getConnectedTrainerId()
@@ -658,7 +654,6 @@ async function handleWeekChange({ weekStart }) {
     currentWeekStart.value = weekStart
     selectedDate.value = weekStart
     currentMonthKey.value = weekStart.slice(0, 7)
-    await loadWorkoutForDate(weekStart)
     await preloadWeeklyWorkouts()
 
     if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
@@ -681,7 +676,11 @@ async function handleMonthDateSelect(date) {
   selectedDate.value = date
   currentWeekStart.value = getWeekStart(date)
   currentMonthKey.value = date.slice(0, 7)
-  await loadWorkoutForDate(date)
+  // Load workouts for reservations on this date
+  const reservationsForDate = reservationItems.value.filter(r => r.date === date)
+  for (const reservation of reservationsForDate) {
+    await loadWorkoutForReservation(reservation.id)
+  }
 }
 
 async function openScheduleDetail(scheduleId) {
@@ -690,7 +689,7 @@ async function openScheduleDetail(scheduleId) {
     return
   }
 
-  await loadWorkoutForDate(schedule.date)
+  await loadWorkoutForReservation(schedule.id)
   const updatedSchedule = reservationItems.value.find((item) => item.id === scheduleId)
   selectedSchedule.value = updatedSchedule || schedule
   showDetailSheet.value = true
@@ -825,7 +824,11 @@ watch(selectedDate, async (date, prevDate) => {
     return
   }
 
-  await loadWorkoutForDate(date)
+  // Load workouts for reservations on this date
+  const reservationsForDate = reservationItems.value.filter(r => r.date === date)
+  for (const reservation of reservationsForDate) {
+    await loadWorkoutForReservation(reservation.id)
+  }
 })
 
 watch(showChangeSheet, (val) => {
