@@ -38,99 +38,143 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
-        <div v-if="calendarLoading" class="trainer-schedule__calendar-overlay">
-          <div class="trainer-schedule__spinner" />
-        </div>
-        <AppWeeklyCalendar
-          :schedules="weeklySchedules"
-          :workSchedule="workSchedule"
-          :slotDuration="workSchedule.slotDuration"
-          :holidays="holidays"
-          :currentWeekStart="currentWeekStart"
-          :availabilities="weekAvailabilities"
-          :memberColors="memberColorMap"
-          role="trainer"
-          :draggable="true"
-          @slot-tap="handleSlotTap"
-          @schedule-tap="handleScheduleTap"
-          @schedule-drop="handleScheduleDrop"
-          @week-change="handleWeekChange"
-        />
-        <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
-          <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
-            <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
-            <span class="trainer-schedule__legend-name">{{ member.name }}</span>
+        <div v-if="calendarLoading" class="calendar-skeleton calendar-skeleton--weekly">
+          <div class="calendar-skeleton__header">
+            <AppSkeleton type="rect" width="100%" height="36px" border-radius="var(--radius-small)" />
+          </div>
+          <div class="calendar-skeleton__day-bar">
+            <AppSkeleton
+              v-for="i in 7"
+              :key="i"
+              type="rect"
+              width="100%"
+              height="28px"
+              border-radius="var(--radius-small)"
+            />
+          </div>
+          <div class="calendar-skeleton__grid">
+            <AppSkeleton type="rect" width="100%" height="240px" border-radius="var(--radius-medium)" />
           </div>
         </div>
-        <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
+        <template v-else>
+          <AppWeeklyCalendar
+            :schedules="weeklySchedules"
+            :workSchedule="workSchedule"
+            :slotDuration="workSchedule.slotDuration"
+            :holidays="holidays"
+            :currentWeekStart="currentWeekStart"
+            :availabilities="weekAvailabilities"
+            :memberColors="memberColorMap"
+            role="trainer"
+            :draggable="true"
+            @slot-tap="handleSlotTap"
+            @schedule-tap="handleScheduleTap"
+            @schedule-drop="handleScheduleDrop"
+            @week-change="handleWeekChange"
+          />
+          <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
+            <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
+              <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
+              <span class="trainer-schedule__legend-name">{{ member.name }}</span>
+            </div>
+          </div>
+          <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
+        </template>
       </section>
 
       <section v-else class="trainer-schedule__monthly">
-        <div v-if="calendarLoading" class="trainer-schedule__calendar-overlay">
-          <div class="trainer-schedule__spinner" />
+        <div v-if="calendarLoading" class="calendar-skeleton calendar-skeleton--monthly">
+          <div class="calendar-skeleton__header">
+            <AppSkeleton type="rect" width="100%" height="36px" border-radius="var(--radius-small)" />
+          </div>
+          <div class="calendar-skeleton__day-bar">
+            <AppSkeleton
+              v-for="i in 7"
+              :key="i"
+              type="rect"
+              width="100%"
+              height="24px"
+              border-radius="var(--radius-small)"
+            />
+          </div>
+          <div class="calendar-skeleton__month-grid">
+            <AppSkeleton
+              v-for="i in 5"
+              :key="i"
+              type="rect"
+              width="100%"
+              height="40px"
+              border-radius="var(--radius-small)"
+            />
+          </div>
+          <div class="calendar-skeleton__list">
+            <AppSkeleton type="line" :count="3" />
+          </div>
         </div>
-        <div class="trainer-schedule__monthly-card">
-          <AppCalendar
-            :model-value="selectedDate"
-            :dots="calendarDots"
-            :colorDots="calendarColorDots"
-            :holidays="monthlyHolidays"
-            @update:modelValue="handleMonthDateSelect"
-            @monthChange="handleMonthChange"
-          />
-        </div>
+        <template v-else>
+          <div class="trainer-schedule__monthly-card">
+            <AppCalendar
+              :model-value="selectedDate"
+              :dots="calendarDots"
+              :colorDots="calendarColorDots"
+              :holidays="monthlyHolidays"
+              @update:modelValue="handleMonthDateSelect"
+              @monthChange="handleMonthChange"
+            />
+          </div>
 
-        <div class="trainer-schedule__list-header">
-          <h2 class="trainer-schedule__list-title">{{ selectedDateLabel }}</h2>
-          <p class="trainer-schedule__list-count">{{ selectedDateSessions.length }}개의 일정</p>
-        </div>
+          <div class="trainer-schedule__list-header">
+            <h2 class="trainer-schedule__list-title">{{ selectedDateLabel }}</h2>
+            <p class="trainer-schedule__list-count">{{ selectedDateSessions.length }}개의 일정</p>
+          </div>
 
-        <div v-if="loading" class="trainer-schedule__loading">
-          <AppSkeleton type="line" :count="3" />
-        </div>
+          <div v-if="loading" class="trainer-schedule__loading">
+            <AppSkeleton type="line" :count="3" />
+          </div>
 
-        <div v-else-if="selectedDateSessions.length === 0" class="trainer-schedule__empty">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" />
-            <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
-            <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-          <p>선택한 날짜에 일정이 없습니다.</p>
-        </div>
+          <div v-else-if="selectedDateSessions.length === 0" class="trainer-schedule__empty">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5" />
+              <path d="M3 9H21" stroke="currentColor" stroke-width="1.5" />
+              <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+            <p>선택한 날짜에 일정이 없습니다.</p>
+          </div>
 
-        <div v-else class="trainer-schedule__monthly-list">
-          <article
-            v-for="session in selectedDateSessions"
-            :key="session.id"
-            class="schedule-item"
-            @click="openScheduleDetail(session.id)"
-          >
-            <div class="schedule-item__head">
-              <div class="schedule-item__member">
-                <div class="schedule-item__avatar">
-                  <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" />
-                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
-                    <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                  </svg>
-                </div>
-                <h3 class="schedule-item__name">{{ session.partner_name }}</h3>
-              </div>
-              <span class="schedule-item__status" :class="`schedule-item__status--${normalizeStatus(session.status)}`">
-                {{ statusLabel(session.status) }}
-              </span>
-            </div>
-            <p class="schedule-item__time">{{ session.start_time }} - {{ session.end_time }}</p>
-            <p v-if="session.workoutSummary" class="schedule-item__workout">{{ session.workoutSummary }}</p>
-            <button
-              v-if="canAssignWorkout(session.status)"
-              class="schedule-item__action"
-              @click.stop="goWorkout(session)"
+          <div v-else class="trainer-schedule__monthly-list">
+            <article
+              v-for="session in selectedDateSessions"
+              :key="session.id"
+              class="schedule-item"
+              @click="openScheduleDetail(session.id)"
             >
-              운동 배정하기
-            </button>
-          </article>
-        </div>
+              <div class="schedule-item__head">
+                <div class="schedule-item__member">
+                  <div class="schedule-item__avatar">
+                    <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" />
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <h3 class="schedule-item__name">{{ session.partner_name }}</h3>
+                </div>
+                <span class="schedule-item__status" :class="`schedule-item__status--${normalizeStatus(session.status)}`">
+                  {{ statusLabel(session.status) }}
+                </span>
+              </div>
+              <p class="schedule-item__time">{{ session.start_time }} - {{ session.end_time }}</p>
+              <p v-if="session.workoutSummary" class="schedule-item__workout">{{ session.workoutSummary }}</p>
+              <button
+                v-if="canAssignWorkout(session.status)"
+                class="schedule-item__action"
+                @click.stop="goWorkout(session)"
+              >
+                운동 배정하기
+              </button>
+            </article>
+          </div>
+        </template>
       </section>
 
       <div style="height: calc(var(--nav-height) + 32px);" />

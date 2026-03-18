@@ -118,7 +118,6 @@
 .trainer-schedule__weekly,
 .trainer-schedule__monthly {
   margin-top: 14px;
-  position: relative;
 }
 
 .trainer-schedule__monthly {
@@ -129,31 +128,40 @@
   padding: 0;
 }
 
-.trainer-schedule__calendar-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(2px);
+.calendar-skeleton {
+  padding: 12px var(--side-margin);
+}
+
+.calendar-skeleton--monthly {
+  background-color: var(--color-white);
   border-radius: var(--radius-large);
+  margin: 0;
 }
 
-.trainer-schedule__spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--color-gray-200);
-  border-top-color: var(--color-blue-primary);
-  border-radius: 50%;
-  animation: schedule-spin 0.7s linear infinite;
+.calendar-skeleton__header {
+  margin-bottom: 12px;
 }
 
-@keyframes schedule-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.calendar-skeleton__day-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.calendar-skeleton__grid {
+  margin-bottom: 12px;
+}
+
+.calendar-skeleton__month-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.calendar-skeleton__list {
+  margin-top: 16px;
 }
 
 .trainer-schedule__legend {
