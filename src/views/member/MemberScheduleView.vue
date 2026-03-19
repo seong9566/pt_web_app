@@ -146,7 +146,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
       </svg>
-      가능 시간 등록
+      가능 시간 관리
     </button>
 
     <AppBottomSheet v-model="showDetailSheet" title="일정 상세">

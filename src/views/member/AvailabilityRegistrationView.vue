@@ -6,7 +6,7 @@
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h1 class="availability-registration__title">가능 시간 등록</h1>
+      <h1 class="availability-registration__title">가능 시간 관리</h1>
       <div class="availability-registration__header-spacer" />
     </header>
 
@@ -125,7 +125,7 @@
       <footer class="availability-registration__footer">
         <p v-if="submitError" class="form-error-text availability-registration__submit-error">{{ submitError }}</p>
         <AppButton :disabled="isSubmitting || loading || isWeekLoading" @click="handleSubmit">
-          {{ isSubmitting ? '전달 중...' : '전달하기' }}
+          {{ isSubmitting ? '저장 중...' : '선택 완료' }}
         </AppButton>
       </footer>
     </template>
