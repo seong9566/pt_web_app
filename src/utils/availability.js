@@ -37,3 +37,66 @@ export function countAvailableMembers(availabilities, dateStr, timeStr, slotDura
     return resolveAvailabilityState(availability.available_slots, dateStr, timeStr, slotDuration) === 'available'
   }).length
 }
+
+/**
+ * dayKey 형식의 가용시간을 날짜 형식으로 변환
+ * @param {Object|null|undefined} availableSlots - { "mon": ["09:00","10:00"], "tue": ["14:00"] } 형식
+ * @param {string} weekStartDate - 주의 시작 날짜 (일요일, YYYY-MM-DD 형식)
+ * @returns {Object} { "2026-03-17": ["09:00","10:00"], "2026-03-18": ["14:00"] } 형식
+ */
+export function dayKeySlotsToDateSlots(availableSlots, weekStartDate) {
+  if (!availableSlots || typeof availableSlots !== 'object' || Object.keys(availableSlots).length === 0) {
+    return {}
+  }
+
+  const weekStart = parseDate(weekStartDate)
+  const result = {}
+
+  DAY_KEY_BY_INDEX.forEach((dayKey, index) => {
+    const slots = availableSlots[dayKey]
+    if (Array.isArray(slots) && slots.length > 0) {
+      const date = new Date(weekStart)
+      date.setDate(date.getDate() + index)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
+      result[dateStr] = slots
+    }
+  })
+
+  return result
+}
+
+/**
+ * 날짜 형식의 가용시간을 dayKey 형식으로 변환 (역변환)
+ * @param {Object|null|undefined} dateSlots - { "2026-03-17": ["09:00"], "2026-03-18": ["14:00"] } 형식
+ * @param {string} weekStartDate - 주의 시작 날짜 (일요일, YYYY-MM-DD 형식)
+ * @returns {Object} { "mon": ["09:00"], "tue": ["14:00"] } 형식
+ */
+export function dateSlotsToDayKeySlots(dateSlots, weekStartDate) {
+  if (!dateSlots || typeof dateSlots !== 'object' || Object.keys(dateSlots).length === 0) {
+    return {}
+  }
+
+  const weekStart = parseDate(weekStartDate)
+  const result = {}
+
+  DAY_KEY_BY_INDEX.forEach((dayKey) => {
+    result[dayKey] = []
+  })
+
+  Object.entries(dateSlots).forEach(([dateStr, slots]) => {
+    if (Array.isArray(slots) && slots.length > 0) {
+      const date = parseDate(dateStr)
+      const dayIndex = Math.floor((date - weekStart) / (1000 * 60 * 60 * 24))
+
+      if (dayIndex >= 0 && dayIndex < 7) {
+        const dayKey = DAY_KEY_BY_INDEX[dayIndex]
+        result[dayKey] = slots
+      }
+    }
+  })
+
+  return result
+}
