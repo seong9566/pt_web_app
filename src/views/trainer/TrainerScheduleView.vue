@@ -38,6 +38,16 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
+        <div v-if="changeRequestCount > 0 || conflictCount > 0" class="trainer-schedule__summary-bar">
+          <span
+            v-if="changeRequestCount > 0"
+            class="trainer-schedule__summary-badge trainer-schedule__summary-badge--change"
+          >● 변경 요청 {{ changeRequestCount }}건</span>
+          <span
+            v-if="conflictCount > 0"
+            class="trainer-schedule__summary-badge trainer-schedule__summary-badge--conflict"
+          >충돌 {{ conflictCount }}건</span>
+        </div>
         <AppWeeklyCalendar
           :schedules="weeklySchedules"
           :workSchedule="workSchedule"
@@ -45,7 +55,7 @@
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"
-          :memberColors="memberColorMap"
+          :conflictIds="conflictIdSet"
           role="trainer"
           :draggable="true"
           :loading="calendarLoading"
@@ -54,12 +64,6 @@
           @schedule-drop="handleScheduleDrop"
           @week-change="handleWeekChange"
         />
-        <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
-          <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
-            <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
-            <span class="trainer-schedule__legend-name">{{ member.name }}</span>
-          </div>
-        </div>
         <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
       </section>
 
@@ -327,6 +331,7 @@ import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
 import { useAvailabilityStore } from '@/stores/availability'
 import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import { resolveAvailabilityState } from '@/utils/availability'
+import { detectConflicts } from '@/utils/conflictDetection'
 
 defineOptions({ name: 'TrainerScheduleView' })
 
@@ -464,10 +469,6 @@ const reassignTarget = ref(null)
 const membersWithAvailability = ref([])
 const weekAvailabilities = ref([])
 
-const changeRequestCount = computed(() => {
-  return reservations.value.filter((reservation) => reservation.status === 'change_requested').length
-})
-
 const workSchedule = computed(() => {
   const enabledDays = workDays.value.filter((day) => day.enabled)
 
@@ -566,18 +567,11 @@ const weeklySchedules = computed(() => {
     }))
 })
 
-const memberColorMap = computed(() => {
-  const map = {}
-  membersStore.members.forEach((member) => {
-    map[member.id] = member.color
-  })
-  return map
-})
-
-const weeklyLegendMembers = computed(() => {
-  const memberIds = new Set(weeklySchedules.value.map((schedule) => schedule.member_id).filter(Boolean))
-  return membersStore.members.filter((member) => memberIds.has(member.id))
-})
+const conflictIdSet = computed(() => detectConflicts(weeklySchedules.value))
+const changeRequestCount = computed(() =>
+  weeklySchedules.value.filter(s => s.status === 'change_requested').length
+)
+const conflictCount = computed(() => conflictIdSet.value.size)
 
 const calendarDots = computed(() => {
   const dots = {}
@@ -605,13 +599,17 @@ const calendarDots = computed(() => {
 
 const calendarColorDots = computed(() => {
   const dots = {}
+  const colorMap = {}
+  membersStore.members.forEach((member) => {
+    colorMap[member.id] = member.color
+  })
 
   reservations.value.forEach((reservation) => {
     if (!ACTIVE_STATUSES.has(reservation.status)) return
     if (!reservation.date.startsWith(`${currentMonthKey.value}-`)) return
 
     const day = Number(reservation.date.slice(8, 10))
-    const color = memberColorMap.value[reservation.member_id]
+    const color = colorMap[reservation.member_id]
     if (!color) return
 
     if (!dots[day]) {

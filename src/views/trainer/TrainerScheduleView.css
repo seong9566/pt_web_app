@@ -164,35 +164,31 @@
   margin-top: 16px;
 }
 
-.trainer-schedule__legend {
+.trainer-schedule__summary-bar {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 12px;
-  padding: 8px var(--side-margin);
-  -webkit-overflow-scrolling: touch;
-}
-
-.trainer-schedule__legend-item {
-  display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  gap: 8px;
+  padding: 8px var(--side-margin);
+  flex-wrap: wrap;
 }
 
-.trainer-schedule__legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.trainer-schedule__legend-name {
+.trainer-schedule__summary-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: var(--fs-caption);
-  color: var(--color-gray-600);
-  white-space: nowrap;
+  font-weight: var(--fw-body1-bold);
+}
+
+.trainer-schedule__summary-badge--change {
+  background-color: var(--color-block-change);
+  color: var(--color-gray-900);
+}
+
+.trainer-schedule__summary-badge--conflict {
+  background-color: var(--color-red);
+  color: var(--color-white);
 }
 
 .trainer-schedule__weekly-hint {
