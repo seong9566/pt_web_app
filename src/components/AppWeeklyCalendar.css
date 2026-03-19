@@ -8,6 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 var(--side-margin);
 }
 
 .weekly-calendar__nav-btn {
@@ -29,7 +30,8 @@
 .weekly-calendar__grid-wrapper {
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
   border-radius: 0;
   background-color: var(--color-white);
 }
@@ -117,35 +119,32 @@
   background-color: var(--color-gray-100);
 }
 
-.weekly-calendar__cell--available {
+/* Trainer availability block (shared block styles) */
+.weekly-calendar__block--available {
   background-color: var(--color-blue-light);
-} 
-
+  border: 1px solid var(--color-white);
+  pointer-events: none;
+}
 .weekly-calendar__cell--drop-target {
   background: var(--color-blue-light);
   outline: 2px solid var(--color-blue-primary);
   outline-offset: -2px;
 }
 
-.weekly-calendar__cell--my-available::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 4px;
-  background: radial-gradient(circle, var(--color-green) 1.5px, transparent 1.5px) 0 0 / 7px 4px;
-  opacity: 0.5;
+/* My availability block (applied as a block like schedules) */
+.weekly-calendar__block--my-available {
+  background-color: rgba(52, 199, 89, 0.08); /* light green bg */
+  border: 1px solid var(--color-green);
+  color: var(--color-green);
   pointer-events: none;
 }
 
 .weekly-calendar__block {
   position: absolute;
-  inset: 0;
+  inset: 1px;
   z-index: 1;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
   color: var(--color-gray-900);
   display: flex;
   flex-direction: column;
@@ -153,8 +152,14 @@
   gap: 2px;
   text-align: center;
   padding: 6px 2px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: transform var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
+}
+
+.weekly-calendar__block:active {
+  transform: scale(0.98);
+  z-index: 2;
 }
 
 .weekly-calendar__block--dragging {
@@ -163,7 +168,8 @@
 
 .weekly-calendar__block--scheduled,
 .weekly-calendar__block--pending {
-  background-color: var(--color-yellow);
+  background-color: var(--color-blue-light) !important;
+  color: var(--color-blue-primary);
 }
 
 .weekly-calendar__block--confirmed,
@@ -187,7 +193,7 @@
 }
 
 .weekly-calendar__block-name {
-  font-size: var(--fs-caption);
+  font-size: var(--fs-body2);
   font-weight: var(--fw-body1-bold);
   line-height: 1.2;
   white-space: nowrap;
@@ -196,7 +202,8 @@
 }
 
 .weekly-calendar__block-label {
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: var(--fw-body1-bold);
   line-height: 1.2;
 }
 
@@ -232,12 +239,9 @@
 }
 
 .weekly-calendar__preference-badge {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   padding: 4px 8px;
   background-color: var(--color-white);
@@ -249,6 +253,12 @@
   line-height: 1;
   pointer-events: none;
   white-space: nowrap;
+  
+  /* Center inside the block */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .weekly-calendar__empty-text {

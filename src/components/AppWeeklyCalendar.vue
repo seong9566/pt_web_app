@@ -46,9 +46,7 @@
             :class="{
               'weekly-calendar__cell--holiday': isHoliday(date),
               'weekly-calendar__cell--off-hours': isOffHours(time),
-              'weekly-calendar__cell--available': props.role === 'trainer' && !getScheduleAtSlot(date, time) && hasAvailableMember(date, time),
               'weekly-calendar__cell--drop-target': dropTarget?.date === date && dropTarget?.time === time,
-              'weekly-calendar__cell--my-available': props.myAvailability && !getScheduleAtSlot(date, time) && isMyAvailableSlot(date, time),
             }"
             :data-date="date"
             :data-time="time"
@@ -75,6 +73,13 @@
                 class="weekly-calendar__block-sublabel"
               >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
             </button>
+ 
+            <div
+              v-else-if="props.myAvailability && isMyAvailableSlot(date, time)"
+              class="weekly-calendar__block weekly-calendar__block--my-available"
+            >
+              <span class="weekly-calendar__block-name">가능</span>
+            </div>
 
             <div
               v-if="rowIndex === 0 && isHoliday(date)"
@@ -84,13 +89,15 @@
             </div>
 
             <div
-              v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
-              class="weekly-calendar__preference-badge"
+              v-else-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
+              class="weekly-calendar__block weekly-calendar__block--available"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-              {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+              <div class="weekly-calendar__preference-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+              </div>
             </div>
           </div>
         </template>
@@ -119,11 +126,11 @@ const CELL_HEIGHT = 56
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 const STATUS_COLORS = {
-  scheduled: 'var(--color-yellow)',
+  scheduled: 'var(--color-blue-light)',
   confirmed: 'var(--color-green)',
   change_requested: 'var(--color-orange)',
   completed: 'var(--color-gray-400)',
-  pending: 'var(--color-yellow)',
+  pending: 'var(--color-blue-light)',
   approved: 'var(--color-green)',
 }
 
@@ -281,7 +288,7 @@ function getBlockLabel(schedule) {
     return '변경요청'
   }
 
-  return schedule.category || ''
+  return schedule.category || 'PT'
 }
 
 function getBlockRatio(schedule) {
