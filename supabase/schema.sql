@@ -1490,7 +1490,13 @@ begin
   )
   returning id into v_new_reservation_id;
 
-  -- 7. 회원에게 알림 생성
+  -- 7. 운동 배정 데이터 이전 (기존 예약에 연결된 workout_plans를 새 예약으로 이전)
+  update public.workout_plans
+     set reservation_id = v_new_reservation_id,
+         date = p_new_date
+   where reservation_id = p_reservation_id;
+
+  -- 8. 회원에게 알림 생성
   insert into public.notifications (
     user_id, type, title, body, target_id, target_type
   ) values (
@@ -1598,7 +1604,13 @@ begin
   )
   returning id into v_new_reservation_id;
 
-  -- 7. 회원에게 알림 생성
+  -- 7. 운동 배정 데이터 이전
+  update public.workout_plans
+     set reservation_id = v_new_reservation_id,
+         date = v_requested_date
+   where reservation_id = p_reservation_id;
+
+  -- 8. 회원에게 알림 생성
   insert into public.notifications (
     user_id, type, title, body, target_id, target_type
   ) values (
