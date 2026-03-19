@@ -127,6 +127,19 @@
   outline-offset: -2px;
 }
 
+.weekly-calendar__cell--my-available::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 4px;
+  background: radial-gradient(circle, var(--color-green) 1.5px, transparent 1.5px) 0 0 / 7px 4px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .weekly-calendar__block {
   position: absolute;
   inset: 0;

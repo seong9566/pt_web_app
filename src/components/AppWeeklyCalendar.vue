@@ -48,6 +48,7 @@
               'weekly-calendar__cell--off-hours': isOffHours(time),
               'weekly-calendar__cell--available': props.role === 'trainer' && !getScheduleAtSlot(date, time) && hasAvailableMember(date, time),
               'weekly-calendar__cell--drop-target': dropTarget?.date === date && dropTarget?.time === time,
+              'weekly-calendar__cell--my-available': props.myAvailability && !getScheduleAtSlot(date, time) && isMyAvailableSlot(date, time),
             }"
             :data-date="date"
             :data-time="time"
@@ -136,6 +137,9 @@ const props = defineProps({
   currentWeekStart: { type: String, required: true },
   role: { type: String, default: 'trainer' },
   availabilities: { type: Array, default: () => [] },
+  myAvailability: { type: Object, default: null },
+  // 형식: { "2026-03-17": ["09:00","10:00"], "2026-03-18": ["14:00"] }
+  // (날짜 키 기반 - dayKeySlotsToDateSlots() 변환 결과)
   slotDuration: { type: Number, default: 60 },
   draggable: { type: Boolean, default: false },
   memberColors: { type: Object, default: () => ({}) },
@@ -345,6 +349,20 @@ function hasAvailableMember(date, time) {
   const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
   if (!dayKey) return false
   return getAvailableCount(date, time) > 0
+}
+
+function isMyAvailableSlot(dateStr, timeStr) {
+  if (!props.myAvailability) return false
+  const dateSlots = props.myAvailability[dateStr]
+  if (!Array.isArray(dateSlots) || dateSlots.length === 0) return false
+
+  const targetMinutes = timeToMinutes(timeStr)
+
+  // 60분 버킷 매칭: "09:30" -> "09:00" 슬롯에 매칭
+  return dateSlots.some((slot) => {
+    const slotMinutes = timeToMinutes(slot)
+    return slotMinutes <= targetMinutes && targetMinutes < (slotMinutes + 60)
+  })
 }
 
 function moveWeek(amount) {
