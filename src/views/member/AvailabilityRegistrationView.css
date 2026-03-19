@@ -51,7 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 20px var(--side-margin) 0;
+  padding: 20px 0 0;
 }
 
 .availability-registration__card {
@@ -59,6 +59,7 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px;
+  margin: 0 var(--side-margin);
   border-radius: var(--radius-large);
   border: 1px solid rgba(0, 0, 0, 0.04);
   background-color: var(--color-white);
@@ -117,10 +118,17 @@
   color: var(--color-gray-600);
 }
 
+.availability-registration__card--grid {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
 .availability-registration__grid-wrapper {
   overflow-x: auto;
-  margin: -2px;
-  padding: 2px;
 }
 
 .availability-registration__footer {
@@ -134,6 +142,7 @@
   border-top: 1px solid var(--color-gray-200);
   background-color: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(8px);
+  z-index: 20;
 }
 
 .availability-registration__submit-error {

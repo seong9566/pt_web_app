@@ -49,13 +49,14 @@
           <p v-if="isWeekLoading" class="availability-registration__load-message">기존 등록 정보를 불러오는 중...</p>
         </section>
 
-        <section class="availability-registration__card">
+        <section class="availability-registration__card availability-registration__card--grid">
           <div class="availability-registration__grid-wrapper">
             <AppAvailabilityGrid
               v-model="availabilitySlots"
               :weekStart="selectedWeekStart"
               :offHoursRange="trainerWorkSchedule"
               :loading="isWeekLoading"
+              :holidays="holidays"
             />
           </div>
         </section>
@@ -75,7 +76,7 @@
       <footer class="availability-registration__footer">
         <p v-if="submitError" class="form-error-text availability-registration__submit-error">{{ submitError }}</p>
         <AppButton :disabled="isSubmitting || loading || isWeekLoading" @click="handleSubmit">
-          {{ isSubmitting ? '저장 중...' : '선택 완료' }}
+          {{ isSubmitting ? '저장 중...' : '저장' }}
         </AppButton>
       </footer>
     </template>
@@ -92,6 +93,7 @@ import { useAvailability } from '@/composables/useAvailability'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -115,6 +117,13 @@ function getWeekStart(offsetWeeks = 0) {
   return toIsoDate(sunday)
 }
 
+function addDays(dateStr, amount) {
+  const next = parseIsoDate(dateStr)
+  if (Number.isNaN(next.getTime())) return dateStr
+  next.setDate(next.getDate() + amount)
+  return toIsoDate(next)
+}
+
 function formatDateWithWeekday(date) {
   const month = date.getMonth() + 1
   const day = date.getDate()
@@ -133,17 +142,41 @@ const router = useRouter()
 const { submitAvailability, fetchMyAvailability, loading, error } = useAvailability()
 const { getConnectedTrainerId } = useReservations()
 const { showToast, showSuccess } = useToast()
-const { days: workDays, fetchWorkHours } = useWorkHours()
+const { days: workDays, fetchWorkHours, fetchWorkingDays } = useWorkHours()
+const { overrides, fetchOverrides } = useScheduleOverrides()
 
 const availabilitySlots = ref({})
 const memo = ref('')
 const submitError = ref('')
 
 const trainerWorkSchedule = ref(null)
+const workingDays = ref(new Set())
 
 const selectedWeekOffset = ref(0)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
+
+const holidays = computed(() => {
+  const holidaySet = new Set()
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+  if (workingDays.value.size > 0 && selectedWeekStart.value) {
+    for (let index = 0; index < 7; index += 1) {
+      const dateStr = addDays(selectedWeekStart.value, index)
+      const dateObj = parseIsoDate(dateStr)
+      if (!Number.isNaN(dateObj.getTime())) {
+        const dayOfWeek = dateObj.getDay()
+        if (!workingDays.value.has(dayOfWeek)) {
+          holidaySet.add(dateStr)
+        }
+      }
+    }
+  }
+  return Array.from(holidaySet)
+})
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
@@ -220,6 +253,9 @@ onMounted(async () => {
 
   if (connectedTrainerId) {
     await fetchWorkHours(connectedTrainerId)
+    workingDays.value = await fetchWorkingDays(connectedTrainerId)
+    await fetchOverrides(connectedTrainerId, selectedWeekStart.value.slice(0, 7))
+    
     const enabledDays = workDays.value.filter((d) => d.enabled)
     if (enabledDays.length > 0) {
       const startTimes = enabledDays.map((d) => d.start).filter(Boolean)
@@ -240,6 +276,10 @@ onMounted(async () => {
 
 watch(selectedWeekStart, async (newValue, oldValue) => {
   if (!trainerId.value || newValue === oldValue) return
+  
+  if (newValue.slice(0, 7) !== oldValue.slice(0, 7)) {
+    await fetchOverrides(trainerId.value, newValue.slice(0, 7))
+  }
   await loadExistingAvailability()
 })
 

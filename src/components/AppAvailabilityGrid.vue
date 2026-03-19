@@ -1,25 +1,9 @@
 <template>
   <section class="availability-grid">
-    <div class="availability-grid__toolbar">
-      <button
-        class="availability-grid__paint-toggle"
-        :class="{ 'availability-grid__paint-toggle--active': isPaintMode }"
-        type="button"
-        :disabled="props.loading"
-        @click="togglePaintMode"
-      >
-        {{ isPaintMode ? '선택 모드 ON' : '선택 모드' }}
-      </button>
-    </div>
-
     <div
       class="availability-grid__wrapper"
-      :class="{ 'availability-grid__wrapper--paint-mode': isPaintMode }"
       role="grid"
       :aria-busy="props.loading"
-      @pointermove="handlePointerMove"
-      @pointerup="handlePointerUp"
-      @pointercancel="handlePointerUp"
     >
       <div class="availability-grid__grid">
         <div class="availability-grid__time-header" aria-hidden="true" />
@@ -28,6 +12,7 @@
           v-for="day in weekDays"
           :key="`header-${day.dateIso}`"
           class="availability-grid__day-header"
+          :class="{ 'availability-grid__day-header--holiday': props.holidays.includes(day.dateIso) }"
         >
           <span class="availability-grid__day-name">{{ day.dayLabel }}</span>
           <span class="availability-grid__day-date">{{ day.dateLabel }}</span>
@@ -43,6 +28,7 @@
             :class="{
               'availability-grid__cell--selected': isCellSelected(day.dayKey, timeStr),
               'availability-grid__cell--off-hours': isOffHours(timeStr),
+              'availability-grid__cell--holiday': props.holidays.includes(day.dateIso),
             }"
             type="button"
             role="gridcell"
@@ -51,9 +37,15 @@
             :data-day="day.dayKey"
             :data-time="timeStr"
             :disabled="props.loading"
-            @click="!isPaintMode && toggleCell(day.dayKey, timeStr)"
-            @pointerdown="isPaintMode && handlePaintStart($event, day.dayKey, timeStr)"
-          />
+            @click="toggleCell(day.dayKey, timeStr)"
+          >
+            <div
+              v-if="timeStr === timeSlots[0] && props.holidays.includes(day.dateIso)"
+              class="availability-grid__holiday-overlay"
+            >
+              <span class="availability-grid__holiday-label">휴무</span>
+            </div>
+          </button>
         </template>
       </div>
 
@@ -63,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
@@ -73,14 +65,10 @@ const props = defineProps({
   weekStart: { type: String, required: true },
   offHoursRange: { type: Object, default: null },
   loading: { type: Boolean, default: false },
+  holidays: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue'])
-const isPaintMode = ref(false)
-const paintAction = ref(null)
-const paintedCells = ref(new Set())
-let inactivityTimer = null
-
 function generateTimeSlots(startHour = 6, endHour = 22) {
   const generatedSlots = []
 
@@ -210,116 +198,9 @@ function toggleCell(dayKey, timeStr) {
   emit('update:modelValue', current)
 }
 
-function togglePaintMode() {
-  isPaintMode.value = !isPaintMode.value
-
-  if (isPaintMode.value) {
-    resetInactivityTimer()
-    return
-  }
-
-  clearInactivityTimer()
-  paintAction.value = null
-  paintedCells.value = new Set()
-}
-
-function resetInactivityTimer() {
-  clearInactivityTimer()
-
-  inactivityTimer = setTimeout(() => {
-    isPaintMode.value = false
-    paintAction.value = null
-    paintedCells.value = new Set()
-  }, 10000)
-}
-
-function clearInactivityTimer() {
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer)
-    inactivityTimer = null
-  }
-}
-
-function handlePaintStart(event, dayKey, timeStr) {
-  if (!isPaintMode.value || props.loading) {
-    return
-  }
-
-  event.preventDefault()
-  resetInactivityTimer()
-
-  const isSelected = isCellSelected(dayKey, timeStr)
-  paintAction.value = isSelected ? 'deselect' : 'select'
-  paintedCells.value = new Set()
-
-  paintCell(dayKey, timeStr)
-}
-
-function handlePointerMove(event) {
-  if (!isPaintMode.value || !paintAction.value || props.loading) {
-    return
-  }
-
-  event.preventDefault()
-  resetInactivityTimer()
-
-  const el = document.elementFromPoint(event.clientX, event.clientY)
-  const cellEl = el?.closest('[data-day][data-time]')
-
-  if (!cellEl) {
-    return
-  }
-
-  const dayKey = cellEl.dataset.day
-  const timeStr = cellEl.dataset.time
-
-  if (!dayKey || !timeStr) {
-    return
-  }
-
-  const cellKey = `${dayKey}-${timeStr}`
-
-  if (!paintedCells.value.has(cellKey)) {
-    paintCell(dayKey, timeStr)
-  }
-}
-
-function handlePointerUp() {
-  if (!isPaintMode.value) {
-    return
-  }
-
-  paintAction.value = null
-  paintedCells.value = new Set()
-}
-
-function paintCell(dayKey, timeStr) {
-  const cellKey = `${dayKey}-${timeStr}`
-  paintedCells.value.add(cellKey)
-
-  const current = { ...props.modelValue }
-  if (!Array.isArray(current[dayKey])) {
-    current[dayKey] = []
-  }
-
-  if (paintAction.value === 'select') {
-    if (!current[dayKey].includes(timeStr)) {
-      current[dayKey] = [...current[dayKey], timeStr].sort()
-    }
-  } else {
-    current[dayKey] = current[dayKey].filter((time) => time !== timeStr)
-  }
-
-  emit('update:modelValue', current)
-}
-
 function getCellAriaLabel(dayLabel, dayKey, timeStr) {
   return `${dayLabel} ${timeStr} ${isCellSelected(dayKey, timeStr) ? '선택됨' : '선택 안됨'}`
 }
-
-onUnmounted(() => {
-  clearInactivityTimer()
-})
 </script>
 
 <style src="./AppAvailabilityGrid.css" scoped></style>

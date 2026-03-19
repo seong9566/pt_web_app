@@ -2,46 +2,13 @@
   width: 100%;
 }
 
-.availability-grid__toolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 8px 0;
-}
-
-.availability-grid__paint-toggle {
-  padding: 6px 14px;
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-small);
-  background-color: var(--color-white);
-  color: var(--color-gray-600);
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.availability-grid__paint-toggle:disabled {
-  cursor: default;
-}
-
-.availability-grid__paint-toggle--active {
-  border-color: var(--color-blue-primary);
-  background-color: var(--color-blue-light);
-  color: var(--color-blue-primary);
-}
-
 .availability-grid__wrapper {
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-medium);
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  border-radius: 0;
   background-color: var(--color-white);
-}
-
-.availability-grid__wrapper--paint-mode {
-  touch-action: none;
-  outline: 2px solid var(--color-blue-primary);
-  outline-offset: -2px;
 }
 
 .availability-grid__grid {
@@ -103,6 +70,7 @@
 }
 
 .availability-grid__cell {
+  position: relative;
   height: 48px;
   min-width: 44px;
   border: none;
@@ -112,12 +80,58 @@
   transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
 }
 
+.availability-grid__cell--holiday {
+  background-color: var(--color-gray-100);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 255, 255, 0.4) 10px,
+    rgba(255, 255, 255, 0.4) 20px
+  );
+  opacity: 0.6;
+}
+
 .availability-grid__cell--off-hours {
   background-color: var(--color-gray-100);
 }
 
+.availability-grid__holiday-overlay {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.availability-grid__holiday-label {
+  padding: 4px 10px;
+  background-color: var(--color-gray-400);
+  color: var(--color-white);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: var(--fw-body1-bold);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .availability-grid__cell--selected {
-  background-color: var(--color-blue-primary);
+  background-color: rgba(52, 199, 89, 0.08);
+}
+
+.availability-grid__cell--selected::after {
+  content: '가능';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-green);
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .availability-grid__cell:focus-visible {
