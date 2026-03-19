@@ -1410,4 +1410,210 @@ update public.reservations set status = 'confirmed' where status = 'approved';
 -- ============================================================
 ALTER TABLE public.trainer_members ADD COLUMN IF NOT EXISTS color text;
 
+-- ============================================================
+-- RPC: reassign_schedule
+-- 기존 예약을 취소하고 새로운 날짜/시간으로 재배정
+-- ============================================================
+create or replace function public.reassign_schedule(
+  p_reservation_id uuid,
+  p_new_date date,
+  p_new_start_time time
+)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  v_trainer_id uuid;
+  v_member_id uuid;
+  v_start_time time;
+  v_end_time time;
+  v_status public.reservation_status;
+  v_session_type text;
+  v_duration interval;
+  v_new_end_time time;
+  v_new_reservation_id uuid;
+begin
+  -- 1. 기존 예약 조회
+  select trainer_id, member_id, start_time, end_time, status, session_type
+    into v_trainer_id, v_member_id, v_start_time, v_end_time, v_status, v_session_type
+    from public.reservations
+   where id = p_reservation_id;
+
+  -- 예약 없으면 예외
+  if v_trainer_id is null then
+    raise exception 'Reservation not found';
+  end if;
+
+  -- 2. 상태 유효성 검증 (scheduled, confirmed, change_requested만 재배정 가능)
+  if v_status not in ('scheduled', 'confirmed', 'change_requested') then
+    raise exception 'Reservation is not in an active status';
+  end if;
+
+  -- 3. 트레이너-회원 연결 확인
+  if not exists (
+    select 1 from public.trainer_members
+     where trainer_id = v_trainer_id
+       and member_id = v_member_id
+       and status = 'active'
+  ) then
+    raise exception 'No active trainer-member connection';
+  end if;
+
+  -- 4. 시간 충돌 확인 (새 날짜/시간에 다른 scheduled 예약이 있는지)
+  -- 먼저 duration 계산
+  v_duration := v_end_time - v_start_time;
+  v_new_end_time := p_new_start_time + v_duration;
+
+  if exists (
+    select 1 from public.reservations
+     where trainer_id = v_trainer_id
+       and date = p_new_date
+       and status in ('scheduled')
+       and start_time < v_new_end_time
+       and end_time > p_new_start_time
+       and id != p_reservation_id
+  ) then
+    raise exception 'Time slot conflict: another session exists at this time';
+  end if;
+
+  -- 5. 기존 예약 취소
+  update public.reservations
+     set status = 'cancelled'
+   where id = p_reservation_id;
+
+  -- 6. 새 예약 생성
+  insert into public.reservations (
+    trainer_id, member_id, date, start_time, end_time, status, session_type
+  ) values (
+    v_trainer_id, v_member_id, p_new_date, p_new_start_time, v_new_end_time, 'scheduled', v_session_type
+  )
+  returning id into v_new_reservation_id;
+
+  -- 7. 회원에게 알림 생성
+  insert into public.notifications (
+    user_id, type, title, body, target_id, target_type
+  ) values (
+    v_member_id,
+    'schedule_reassigned',
+    '일정 재배정',
+    '트레이너가 PT 일정을 재배정했습니다. 새 일정을 확인해주세요.',
+    v_new_reservation_id,
+    'reservation'
+  );
+
+  return v_new_reservation_id;
+end;
+$$;
+
+grant execute on function public.reassign_schedule(uuid, date, time) to authenticated;
+
+-- ============================================================
+-- RPC: approve_change_request (2026-03-19)
+-- 일정 변경 요청 승인 처리 (단일 트랜잭션)
+-- ============================================================
+create or replace function public.approve_change_request(p_reservation_id uuid)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  v_trainer_id uuid;
+  v_member_id uuid;
+  v_date date;
+  v_start_time time;
+  v_end_time time;
+  v_requested_date date;
+  v_requested_start_time time;
+  v_duration interval;
+  v_new_end_time time;
+  v_new_reservation_id uuid;
+  v_is_connected boolean;
+  v_session_type text;
+begin
+  -- 1. 예약 정보 조회
+  select trainer_id, member_id, date, start_time, end_time, requested_date, requested_start_time, session_type
+    into v_trainer_id, v_member_id, v_date, v_start_time, v_end_time, v_requested_date, v_requested_start_time, v_session_type
+    from public.reservations
+   where id = p_reservation_id;
+
+  -- 예약 없음 검증
+  if v_trainer_id is null then
+    raise exception 'Reservation not found';
+  end if;
+
+  -- 상태 검증 (change_requested 상태만 승인 가능)
+  if not exists (
+    select 1 from public.reservations
+     where id = p_reservation_id
+       and status = 'change_requested'
+  ) then
+    raise exception 'Reservation is not in change_requested status';
+  end if;
+
+  -- 변경 요청 데이터 검증
+  if v_requested_date is null or v_requested_start_time is null then
+    raise exception 'No change request data';
+  end if;
+
+  -- 2. 트레이너-회원 연결 확인
+  select exists (
+    select 1 from public.trainer_members
+     where trainer_id = v_trainer_id
+       and member_id = v_member_id
+       and status = 'active'
+  ) into v_is_connected;
+
+  if not v_is_connected then
+    raise exception 'No active trainer-member connection';
+  end if;
+
+  -- 3. 시간 충돌 확인 (새로운 날짜/시간에 기존 scheduled 예약이 있는지)
+  if exists (
+    select 1 from public.reservations
+     where trainer_id = v_trainer_id
+       and date = v_requested_date
+       and status in ('scheduled')
+       and start_time < (v_requested_start_time + (v_end_time - v_start_time))
+       and end_time > v_requested_start_time
+       and id <> p_reservation_id
+  ) then
+    raise exception 'Time slot conflict: another session exists at this time';
+  end if;
+
+  -- 4. 기존 예약의 duration 계산
+  v_duration := v_end_time - v_start_time;
+  v_new_end_time := v_requested_start_time + v_duration;
+
+  -- 5. 기존 예약 취소 처리
+  update public.reservations
+     set status = 'cancelled'
+   where id = p_reservation_id;
+
+  -- 6. 새로운 예약 생성 (변경된 날짜/시간으로)
+  insert into public.reservations (
+    trainer_id, member_id, date, start_time, end_time, status, session_type
+  ) values (
+    v_trainer_id, v_member_id, v_requested_date, v_requested_start_time, v_new_end_time, 'scheduled', v_session_type
+  )
+  returning id into v_new_reservation_id;
+
+  -- 7. 회원에게 알림 생성
+  insert into public.notifications (
+    user_id, type, title, body, target_id, target_type
+  ) values (
+    v_member_id,
+    'schedule_reassigned',
+    '일정 변경 승인',
+    '변경 요청이 승인되었습니다. ' || to_char(v_requested_date, 'MM월DD일') || ' ' || to_char(v_requested_start_time, 'HH24:MI') || '으로 일정이 변경되었습니다.',
+    v_new_reservation_id,
+    'reservation'
+  );
+
+  return v_new_reservation_id;
+end;
+$$;
+
+grant execute on function public.approve_change_request(uuid) to authenticated;
+
 commit;
