@@ -168,28 +168,36 @@
 
 .weekly-calendar__block--scheduled,
 .weekly-calendar__block--pending {
-  background-color: var(--color-blue-light) !important;
-  color: var(--color-blue-primary);
+  background-color: var(--color-block-normal);
+  color: var(--color-gray-900);
 }
 
 .weekly-calendar__block--confirmed,
 .weekly-calendar__block--approved {
-  background-color: var(--color-green);
-  color: var(--color-white);
+  background-color: var(--color-block-normal);
+  color: var(--color-gray-900);
 }
 
 .weekly-calendar__block--change_requested {
-  background-color: var(--color-orange);
-  color: var(--color-white);
+  background-color: var(--color-block-change);
+  color: var(--color-gray-900);
+}
+
+.weekly-calendar__block--change_requested::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-red);
+  pointer-events: none;
 }
 
 .weekly-calendar__block--completed {
   background-color: var(--color-gray-400);
   color: var(--color-white);
-}
-
-.weekly-calendar__block--completed-member {
-  opacity: 0.5;
 }
 
 .weekly-calendar__block-name {
@@ -215,6 +223,26 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.weekly-calendar__block-sublabel s {
+  color: inherit;
+  text-decoration: line-through;
+}
+
+.weekly-calendar__block--change_requested .weekly-calendar__block-sublabel {
+  text-decoration: none;
+}
+
+.weekly-calendar__block-conflict {
+  display: block;
+  font-size: 9px;
+  color: var(--color-red);
+  font-weight: var(--fw-body1-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
 }
 
 .weekly-calendar__holiday-overlay {

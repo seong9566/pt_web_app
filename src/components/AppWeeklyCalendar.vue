@@ -69,9 +69,13 @@
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
               <span
-                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getScheduleAtSlot(date, time)?.requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
+                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getChangeRequestLabel(getScheduleAtSlot(date, time))"
                 class="weekly-calendar__block-sublabel"
               >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
+              <span
+                v-if="props.conflictIds?.has(getScheduleAtSlot(date, time).id)"
+                class="weekly-calendar__block-conflict"
+              >⚠ 충돌</span>
             </button>
  
             <div
@@ -126,12 +130,10 @@ const CELL_HEIGHT = 56
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 const STATUS_COLORS = {
-  scheduled: 'var(--color-blue-light)',
-  confirmed: 'var(--color-green)',
-  change_requested: 'var(--color-orange)',
-  completed: 'var(--color-gray-400)',
-  pending: 'var(--color-blue-light)',
-  approved: 'var(--color-green)',
+  scheduled: 'var(--color-block-normal)',
+  change_requested: 'var(--color-block-change)',
+  completed: 'var(--color-gray-200)',
+  cancelled: 'var(--color-gray-200)',
 }
 
 const props = defineProps({
@@ -149,7 +151,8 @@ const props = defineProps({
   // (날짜 키 기반 - dayKeySlotsToDateSlots() 변환 결과)
   slotDuration: { type: Number, default: 60 },
   draggable: { type: Boolean, default: false },
-  memberColors: { type: Object, default: () => ({}) },
+  conflictIds: { type: Object, default: null },
+  // 형식: Set<string> — 충돌하는 스케줄 ID들
   loading: { type: Boolean, default: false },
 })
 
@@ -284,10 +287,10 @@ function getScheduleName(schedule) {
 }
 
 function getBlockLabel(schedule) {
-  if (schedule.status === 'change_requested') {
-    return '변경요청'
+  if (schedule.status === 'change_requested') return ''
+  if (props.role === 'trainer') {
+    return schedule.start_time?.slice(0, 5) || ''
   }
-
   return schedule.category || 'PT'
 }
 
@@ -296,17 +299,14 @@ function getBlockRatio(schedule) {
 }
 
 function getChangeRequestLabel(schedule) {
-  const time = schedule.requested_start_time?.slice(0, 5)
-  if (!time) return ''
+  const originalTime = schedule.start_time?.slice(0, 5)
+  const requestedTime = schedule.requested_start_time?.slice(0, 5)
+  if (!requestedTime) return ''
   if (schedule.requested_date && schedule.requested_date !== schedule.date) {
     const [, month, day] = schedule.requested_date.split('-')
-    return `→${parseInt(month)}/${parseInt(day)} ${time}`
+    return `${originalTime} → ${parseInt(month)}/${parseInt(day)} ${requestedTime}`
   }
-  return `→${time}`
-}
-
-function hasMemberColor(schedule) {
-  return props.role === 'trainer' && schedule?.member_id && props.memberColors[schedule.member_id]
+  return `${originalTime} → ${requestedTime}`
 }
 
 function getStatusColor(status) {
@@ -314,37 +314,16 @@ function getStatusColor(status) {
 }
 
 function getBlockClass(schedule) {
-  if (!schedule) {
-    return ''
-  }
-
-  if (hasMemberColor(schedule)) {
-    return schedule.status === 'completed' ? 'weekly-calendar__block--completed-member' : ''
-  }
-
-  const normalizedStatus = (schedule.status === 'pending' || schedule.status === 'approved' || schedule.status === 'confirmed')
+  if (!schedule) return ''
+  const normalizedStatus = ['pending', 'approved', 'confirmed'].includes(schedule.status)
     ? 'scheduled'
     : schedule.status
-
   return `weekly-calendar__block--${normalizedStatus}`
 }
 
 function getBlockStyle(schedule) {
   const ratio = schedule.duration / effectiveSlotDuration.value
-  const style = {
-    height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px`,
-  }
-
-  if (hasMemberColor(schedule)) {
-    style.backgroundColor = props.memberColors[schedule.member_id]
-    if (schedule.status === 'completed') {
-      style.opacity = '0.5'
-    }
-    return style
-  }
-
-  style.backgroundColor = getStatusColor(schedule.status)
-  return style
+  return { height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px` }
 }
 
 function getAvailableCount(date, time) {
@@ -449,9 +428,7 @@ function handlePointerMove(event) {
 
 function updateGhostPosition(x, y) {
   const ghostColor = dragSchedule.value
-    ? (hasMemberColor(dragSchedule.value)
-      ? props.memberColors[dragSchedule.value.member_id]
-      : getStatusColor(dragSchedule.value.status))
+    ? getStatusColor(dragSchedule.value.status)
     : 'var(--color-blue-primary)'
 
   ghostStyle.value = {
