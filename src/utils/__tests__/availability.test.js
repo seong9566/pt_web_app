@@ -223,3 +223,38 @@ describe('round-trip conversion', () => {
     expect(result).toEqual(original)
   })
 })
+
+describe('dateSlotsToDayKeySlots 역변환', () => {
+  it('날짜 키를 요일 키로 변환한다', () => {
+    const dateSlots = { '2026-03-16': ['09:00', '10:00'], '2026-03-17': ['14:00'] }
+    const result = dateSlotsToDayKeySlots(dateSlots, '2026-03-15')
+    expect(result).toEqual({ sun: [], mon: ['09:00', '10:00'], tue: ['14:00'], wed: [], thu: [], fri: [], sat: [] })
+  })
+
+  it('null 입력 시 빈 객체 반환', () => {
+    expect(dateSlotsToDayKeySlots(null, '2026-03-15')).toEqual({})
+  })
+
+  it('빈 배열인 날짜는 결과에서 제외되지 않음 (모든 요일 키 포함)', () => {
+    const dateSlots = { '2026-03-15': [], '2026-03-16': ['09:00'] }
+    const result = dateSlotsToDayKeySlots(dateSlots, '2026-03-15')
+    expect(result).toHaveProperty('sun')
+    expect(result.sun).toEqual([])
+    expect(result.mon).toEqual(['09:00'])
+  })
+
+  it('연말 경계값 — 12월 31일 주', () => {
+    // 2025-12-28 (일요일) 기준
+    const dateSlots = { '2025-12-31': ['10:00'] }
+    const result = dateSlotsToDayKeySlots(dateSlots, '2025-12-28')
+    expect(result.wed).toEqual(['10:00'])
+  })
+
+  it('왕복 변환 — dayKey → date → dayKey', () => {
+    const original = { mon: ['09:00', '10:00'], fri: ['18:00'], sun: [], tue: [], wed: [], thu: [], sat: [] }
+    const weekStart = '2026-03-15'
+    const dateSlots = dayKeySlotsToDateSlots(original, weekStart)
+    const restored = dateSlotsToDayKeySlots(dateSlots, weekStart)
+    expect(restored).toEqual(original)
+  })
+})
