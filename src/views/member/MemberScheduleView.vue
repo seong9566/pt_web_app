@@ -118,7 +118,17 @@
                 </span>
               </div>
 
-              <p class="member-session__time">{{ session.start_time }} - {{ session.end_time }}</p>
+              <p class="member-session__time">
+                <template v-if="session.status === 'change_requested' && session.requested_start_time">
+                  {{ session.start_time?.slice(0,5) }} → {{ session.requested_start_time?.slice(0,5) }}
+                  <span v-if="session.requested_date && session.requested_date !== session.date" class="member-session__requested-date">
+                    ({{ formatShortDate(session.requested_date) }})
+                  </span>
+                </template>
+                <template v-else>
+                  {{ session.start_time }} - {{ session.end_time }}
+                </template>
+              </p>
 
               <p v-if="session.workoutSummary" class="member-session__summary">
                 {{ session.workoutSummary }}
@@ -368,6 +378,14 @@ function toDisplayDate(dateStr) {
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${DAY_LABELS[date.getDay()]}`
 }
 
+const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return ''
+  const date = parseDate(dateStr)
+  return `${date.getMonth() + 1}/${date.getDate()}(${WEEKDAY_SHORT[date.getDay()]})`
+}
+
 function formatWorkoutSummary(exercises) {
   if (!Array.isArray(exercises) || exercises.length === 0) {
     return null
@@ -450,6 +468,10 @@ const reservationItems = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
+      session_type: reservation.session_type || 'PT',
+      requested_date: reservation.requested_date ?? null,
+      requested_start_time: reservation.requested_start_time ?? null,
+      requested_end_time: reservation.requested_end_time ?? null,
       trainer_name: reservation.partner_name,
       trainer_photo: reservation.partner_photo,
       change_reason: reservation.change_reason,
@@ -476,6 +498,10 @@ const weeklySchedules = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
+      session_type: reservation.session_type,
+      requested_date: reservation.requested_date,
+      requested_start_time: reservation.requested_start_time,
+      requested_end_time: reservation.requested_end_time,
       trainer_name: reservation.trainer_name,
       member_name: '',
       category: reservation.category,

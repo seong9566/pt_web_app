@@ -243,6 +243,11 @@
   color: var(--color-gray-600);
 }
 
+.member-session__requested-date {
+  color: var(--color-orange);
+  font-weight: var(--fw-body1-bold);
+}
+
 .member-session__summary {
   margin: 10px 0 0;
   padding: 8px 10px;
