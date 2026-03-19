@@ -1,0 +1,137 @@
+.availability-grid {
+  width: 100%;
+}
+
+.availability-grid__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0;
+}
+
+.availability-grid__paint-toggle {
+  padding: 6px 14px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-small);
+  background-color: var(--color-white);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.availability-grid__paint-toggle:disabled {
+  cursor: default;
+}
+
+.availability-grid__paint-toggle--active {
+  border-color: var(--color-blue-primary);
+  background-color: var(--color-blue-light);
+  color: var(--color-blue-primary);
+}
+
+.availability-grid__wrapper {
+  position: relative;
+  overflow-x: auto;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-white);
+}
+
+.availability-grid__wrapper--paint-mode {
+  touch-action: none;
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: -2px;
+}
+
+.availability-grid__grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, minmax(44px, 1fr));
+  min-width: 352px;
+}
+
+.availability-grid__time-header {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 44px;
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.availability-grid__day-header {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-left: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+}
+
+.availability-grid__day-name {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  line-height: 1;
+}
+
+.availability-grid__day-date {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-caption);
+  color: var(--color-gray-600);
+  line-height: 1;
+}
+
+.availability-grid__time-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 44px;
+  height: 48px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.availability-grid__cell {
+  height: 48px;
+  min-width: 44px;
+  border: none;
+  border-left: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-white);
+  transition: background-color var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.availability-grid__cell--off-hours {
+  background-color: var(--color-gray-100);
+}
+
+.availability-grid__cell--selected {
+  background-color: var(--color-blue-primary);
+}
+
+.availability-grid__cell:focus-visible {
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: -2px;
+}
+
+.availability-grid__cell:disabled {
+  cursor: default;
+}
+
+.availability-grid__loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(1px);
+}
