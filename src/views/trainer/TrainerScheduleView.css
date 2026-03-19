@@ -179,16 +179,26 @@
   border-radius: 999px;
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
-}
-
-.trainer-schedule__summary-badge--change {
-  background-color: var(--color-block-change);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
   color: var(--color-gray-900);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.trainer-schedule__summary-badge--conflict {
+.trainer-schedule__badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.trainer-schedule__badge-dot--change {
+  background-color: var(--color-orange);
+}
+
+.trainer-schedule__badge-dot--conflict {
   background-color: var(--color-red);
-  color: var(--color-white);
 }
 
 .trainer-schedule__weekly-hint {
@@ -357,6 +367,11 @@
   font-size: var(--fs-caption);
 }
 
+.member-sheet {
+  flex: 1;
+  min-height: 0;
+}
+
 .member-sheet__loading {
   margin-top: 12px;
 }
@@ -444,6 +459,8 @@
 }
 
 .detail-sheet {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -609,6 +626,10 @@
   flex: 1;
 }
 .reject-sheet {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   padding: 0 var(--side-margin) var(--side-margin);
 }
 .reject-sheet__hint {
@@ -626,4 +647,248 @@
   resize: none;
   box-sizing: border-box;
   margin-bottom: 16px;
+}
+
+/* ── Change Request Detail Sheet ── */
+.cr-sheet {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cr-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cr-sheet__title {
+  margin: 0;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-title);
+  color: var(--color-gray-900);
+}
+
+.cr-sheet__conflict-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: var(--fw-body1-bold);
+}
+
+.cr-sheet__timestamp {
+  margin: 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__conflict-card {
+  background-color: #FFF9E6;
+  border: 1px solid #FFE8A3;
+  border-radius: var(--radius-medium);
+  padding: 14px 16px;
+}
+
+.cr-sheet__conflict-title {
+  margin: 0 0 6px;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-red);
+}
+
+.cr-sheet__conflict-desc {
+  margin: 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+}
+
+.cr-sheet__member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.cr-sheet__member-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cr-sheet__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+}
+
+.cr-sheet__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cr-sheet__member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cr-sheet__member-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.cr-sheet__member-category {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__session-count {
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+  padding: 4px 10px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.cr-sheet__time-compare {
+  padding: 12px 0;
+}
+
+.cr-sheet__compare-label {
+  margin: 0 0 12px;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__compare-boxes {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.cr-sheet__compare-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: var(--radius-medium);
+  border: 1px solid var(--color-gray-200);
+  background: var(--color-gray-100);
+}
+
+.cr-sheet__compare-box--before {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+.cr-sheet__compare-box--after {
+  background: var(--color-blue-light);
+  border-color: var(--color-blue-primary);
+}
+
+.cr-sheet__compare-tag {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__compare-box--after .cr-sheet__compare-tag {
+  color: var(--color-blue-primary);
+  font-weight: var(--fw-body1-bold);
+}
+
+.cr-sheet__compare-time {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-display);
+  color: var(--color-gray-900);
+}
+
+.cr-sheet__compare-box--after .cr-sheet__compare-time {
+  color: var(--color-blue-primary);
+}
+
+.cr-sheet__compare-date {
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__compare-arrow {
+  padding: 0 12px;
+  font-size: var(--fs-title);
+  color: var(--color-gray-600);
+  flex-shrink: 0;
+}
+
+.cr-sheet__reason {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-medium);
+  padding: 14px 16px;
+}
+
+.cr-sheet__reason-label {
+  margin: 0 0 6px;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-600);
+}
+
+.cr-sheet__reason-text {
+  margin: 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-900);
+  line-height: var(--lh-body);
+  font-style: italic;
+}
+
+.cr-sheet__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cr-sheet__btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.cr-sheet__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cr-sheet__btn--reject {
+  background: var(--color-white);
+  border: 1.5px solid var(--color-gray-200);
+  color: var(--color-red);
+}
+
+.cr-sheet__btn--approve {
+  background: var(--color-green, #34C759);
+  border: 0;
+  color: var(--color-white);
 }
