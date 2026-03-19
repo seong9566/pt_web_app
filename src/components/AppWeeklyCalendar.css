@@ -8,6 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 var(--side-margin);
 }
 
 .weekly-calendar__nav-btn {
@@ -29,7 +30,8 @@
 .weekly-calendar__grid-wrapper {
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
   border-radius: 0;
   background-color: var(--color-white);
 }
@@ -117,31 +119,48 @@
   background-color: var(--color-gray-100);
 }
 
-.weekly-calendar__cell--available {
+/* Trainer availability block (shared block styles) */
+.weekly-calendar__block--available {
   background-color: var(--color-blue-light);
-} 
-
+  border: 1px solid var(--color-white);
+  pointer-events: none;
+}
 .weekly-calendar__cell--drop-target {
   background: var(--color-blue-light);
   outline: 2px solid var(--color-blue-primary);
   outline-offset: -2px;
 }
 
+/* My availability block (applied as a block like schedules) */
+.weekly-calendar__block--my-available {
+  background-color: rgba(52, 199, 89, 0.08); /* light green bg */
+  border: 1px solid var(--color-green);
+  color: var(--color-green);
+  pointer-events: none;
+}
+
 .weekly-calendar__block {
   position: absolute;
-  inset: 0;
+  inset: 1px;
   z-index: 1;
-  border: 0;
-  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
   color: var(--color-gray-900);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  text-align: center;
-  padding: 6px 2px;
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 1px; /* Tighter gap */
+  text-align: left;
+  padding: 4px; /* Less padding to give text more horizontal width */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  transition: transform var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
+}
+
+.weekly-calendar__block:active {
+  transform: scale(0.98);
+  z-index: 2;
 }
 
 .weekly-calendar__block--dragging {
@@ -150,18 +169,41 @@
 
 .weekly-calendar__block--scheduled,
 .weekly-calendar__block--pending {
-  background-color: var(--color-yellow);
+  background-color: var(--color-block-normal);
+  color: var(--color-gray-900);
 }
 
 .weekly-calendar__block--confirmed,
 .weekly-calendar__block--approved {
-  background-color: var(--color-green);
-  color: var(--color-white);
+  background-color: var(--color-block-normal);
+  color: var(--color-gray-900);
 }
 
+/* 변경요청 블록 스타일: 참조 이미지 반영 (옅은 오렌지 배경과 테두리) */
 .weekly-calendar__block--change_requested {
+  background-color: #FFF2E6; /* Light orange */
+  border: 1px solid #FFD8BA;
+  color: var(--color-gray-900);
+}
+
+.weekly-calendar__block--change_requested::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   background-color: var(--color-orange);
-  color: var(--color-white);
+  border: 1.5px solid var(--color-white);
+  pointer-events: none;
+  z-index: 2;
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .weekly-calendar__block--completed {
@@ -169,32 +211,98 @@
   color: var(--color-white);
 }
 
-.weekly-calendar__block--completed-member {
-  opacity: 0.5;
-}
-
 .weekly-calendar__block-name {
-  font-size: var(--fs-caption);
-  font-weight: var(--fw-body1-bold);
+  font-size: 12px;
+  font-weight: var(--fw-body2);
+  color: var(--color-gray-900);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
 }
 
 .weekly-calendar__block-label {
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
   line-height: 1.2;
-}
-
-.weekly-calendar__block-sublabel {
-  display: block;
-  font-size: 10px;
-  opacity: 0.85;
-  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+}
+
+.weekly-calendar__block-label--time {
+  font-size: 11px;
+  font-weight: var(--fw-body2); /* Use normal weight */
+  color: var(--color-gray-600);
+  line-height: 1.1;
+}
+
+.weekly-calendar__block-sublabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-size: 11px;
+  color: var(--color-gray-600);
+  line-height: 1.2;
+  width: 100%;
+  overflow: hidden;
+}
+
+.weekly-calendar__badge {
+  display: inline-block;
+  padding: 1px 4px;
+  background-color: var(--color-blue-light, #E5F1FF);
+  color: var(--color-blue-primary);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: var(--fw-body1-bold);
+  margin-bottom: 2px;
+  vertical-align: baseline;
+}
+
+.weekly-calendar__block-sublabel s {
+  color: var(--color-gray-600);
+  text-decoration: line-through;
+  opacity: 0.7; /* Make the original time look slightly fainter */
+}
+
+.weekly-calendar__block-sublabel b {
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary); /* 강조 텍스트(새로운 시간)는 파란색 */
+}
+
+.weekly-calendar__block--change_requested .weekly-calendar__block-sublabel {
+  text-decoration: none;
+}
+
+.weekly-calendar__cr-row {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.weekly-calendar__cr-arrow {
+  display: block;
+  font-size: 9px;
+  color: var(--color-orange);
+  line-height: 1;
+}
+
+.weekly-calendar__block-conflict {
+  display: block;
+  font-size: 9px;
+  color: var(--color-red);
+  font-weight: var(--fw-body1-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
 }
 
 .weekly-calendar__holiday-overlay {
@@ -219,12 +327,9 @@
 }
 
 .weekly-calendar__preference-badge {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   padding: 4px 8px;
   background-color: var(--color-white);
@@ -236,6 +341,12 @@
   line-height: 1;
   pointer-events: none;
   white-space: nowrap;
+  
+  /* Center inside the block */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .weekly-calendar__empty-text {

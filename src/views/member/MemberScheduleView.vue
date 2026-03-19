@@ -47,6 +47,7 @@
             :currentWeekStart="currentWeekStart"
             :draggable="true"
             :loading="weeklyLoading || !loaded"
+            :myAvailability="myAvailabilityForCalendar"
             role="member"
             @schedule-tap="handleScheduleTap"
             @week-change="handleWeekChange"
@@ -117,7 +118,17 @@
                 </span>
               </div>
 
-              <p class="member-session__time">{{ session.start_time }} - {{ session.end_time }}</p>
+              <p class="member-session__time">
+                <template v-if="session.status === 'change_requested' && session.requested_start_time">
+                  {{ session.start_time?.slice(0,5) }} → {{ session.requested_start_time?.slice(0,5) }}
+                  <span v-if="session.requested_date && session.requested_date !== session.date" class="member-session__requested-date">
+                    ({{ formatShortDate(session.requested_date) }})
+                  </span>
+                </template>
+                <template v-else>
+                  {{ session.start_time }} - {{ session.end_time }}
+                </template>
+              </p>
 
               <p v-if="session.workoutSummary" class="member-session__summary">
                 {{ session.workoutSummary }}
@@ -146,7 +157,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
       </svg>
-      가능 시간 등록
+      가능 시간 관리
     </button>
 
     <AppBottomSheet v-model="showDetailSheet" title="일정 상세">
@@ -282,6 +293,8 @@ import { useToast } from '@/composables/useToast'
 import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useAvailability } from '@/composables/useAvailability'
+import { dayKeySlotsToDateSlots } from '@/utils/availability'
 import { useReservationsStore } from '@/stores/reservations'
 
 defineOptions({ name: 'MemberScheduleView' })
@@ -365,6 +378,14 @@ function toDisplayDate(dateStr) {
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${DAY_LABELS[date.getDay()]}`
 }
 
+const WEEKDAY_SHORT = ['일', '월', '화', '수', '목', '금', '토']
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return ''
+  const date = parseDate(dateStr)
+  return `${date.getMonth() + 1}/${date.getDate()}(${WEEKDAY_SHORT[date.getDay()]})`
+}
+
 function formatWorkoutSummary(exercises) {
   if (!Array.isArray(exercises) || exercises.length === 0) {
     return null
@@ -400,6 +421,7 @@ const {
 const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
+const { fetchMyAvailability } = useAvailability()
 
 const todayString = formatDate(new Date())
 
@@ -419,6 +441,8 @@ const changeReason = ref('')
 const trainerWorkSchedule = ref({ ...DEFAULT_WORK_SCHEDULE })
 const workingDays = ref(new Set())
 const connectedTrainerId = ref(null)
+const myAvailabilitySlots = ref(null)
+// 형식: { "mon": ["09:00","10:00"], ... } 또는 null
 const workoutPlanCache = ref({})
 
 const changeRequestDate = ref('')
@@ -430,6 +454,11 @@ const showDndConfirmSheet = ref(false)
 const dndDropInfo = ref(null)
 const dndConfirmReason = ref('')
 
+const myAvailabilityForCalendar = computed(() => {
+  if (!myAvailabilitySlots.value) return null
+  return dayKeySlotsToDateSlots(myAvailabilitySlots.value, currentWeekStart.value)
+})
+
 const reservationItems = computed(() => {
   return reservations.value
     .filter((reservation) => ACTIVE_STATUSES.has(reservation.status))
@@ -439,12 +468,16 @@ const reservationItems = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
+      session_type: reservation.session_type || 'PT',
+      requested_date: reservation.requested_date ?? null,
+      requested_start_time: reservation.requested_start_time ?? null,
+      requested_end_time: reservation.requested_end_time ?? null,
       trainer_name: reservation.partner_name,
       trainer_photo: reservation.partner_photo,
       change_reason: reservation.change_reason,
-      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date]),
-      exercises: workoutPlanCache.value[reservation.date]?.exercises || workoutPlanCache.value[reservation.date] || [],
-      category: workoutPlanCache.value[reservation.date]?.category || null,
+      workoutSummary: formatWorkoutSummary(workoutPlanCache.value[reservation.id]?.exercises || workoutPlanCache.value[reservation.id]),
+      exercises: workoutPlanCache.value[reservation.id]?.exercises || workoutPlanCache.value[reservation.id] || [],
+      category: workoutPlanCache.value[reservation.id]?.category || null,
     }))
     .sort((a, b) => {
       if (a.date !== b.date) {
@@ -465,6 +498,10 @@ const weeklySchedules = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
+      session_type: reservation.session_type,
+      requested_date: reservation.requested_date,
+      requested_start_time: reservation.requested_start_time,
+      requested_end_time: reservation.requested_end_time,
       trainer_name: reservation.trainer_name,
       member_name: '',
       category: reservation.category,
@@ -583,24 +620,21 @@ function syncTrainerWorkSchedule() {
   }
 }
 
-async function loadWorkoutForDate(dateStr) {
-  if (!dateStr || workoutPlanCache.value[dateStr] !== undefined) {
+async function loadWorkoutForReservation(reservationId) {
+  if (!reservationId || workoutPlanCache.value[reservationId] !== undefined) {
     return
   }
 
-  await fetchWorkoutPlan(undefined, dateStr)
-  workoutPlanCache.value[dateStr] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
+  await fetchWorkoutPlan(reservationId)
+  workoutPlanCache.value[reservationId] = currentPlan.value ? { exercises: [...(currentPlan.value.exercises || [])], category: currentPlan.value.category || null } : null
 }
 
 async function preloadWeeklyWorkouts() {
   const weekEnd = addDays(currentWeekStart.value, 7)
-  const dates = new Set(
-    reservationItems.value
-      .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
-      .map(r => r.date)
-  )
-  for (const date of dates) {
-    await loadWorkoutForDate(date)
+  const reservations = reservationItems.value
+    .filter(r => r.date >= currentWeekStart.value && r.date < weekEnd)
+  for (const reservation of reservations) {
+    await loadWorkoutForReservation(reservation.id)
   }
 }
 
@@ -617,7 +651,6 @@ async function loadData() {
   }
 
   await fetchMyReservations('member')
-  await loadWorkoutForDate(selectedDate.value)
   await preloadWeeklyWorkouts()
 
   const trainerId = await getConnectedTrainerId()
@@ -629,6 +662,8 @@ async function loadData() {
     syncTrainerWorkSchedule()
     workingDays.value = await fetchWorkingDays(trainerId)
     await fetchOverrides(trainerId, currentMonthKey.value)
+    const availResult = await fetchMyAvailability(trainerId, currentWeekStart.value)
+    myAvailabilitySlots.value = availResult?.available_slots ?? null
   }
 
   loaded.value = true
@@ -658,11 +693,15 @@ async function handleWeekChange({ weekStart }) {
     currentWeekStart.value = weekStart
     selectedDate.value = weekStart
     currentMonthKey.value = weekStart.slice(0, 7)
-    await loadWorkoutForDate(weekStart)
     await preloadWeeklyWorkouts()
 
     if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
       await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+    }
+
+    if (connectedTrainerId.value) {
+      const availResult = await fetchMyAvailability(connectedTrainerId.value, weekStart)
+      myAvailabilitySlots.value = availResult?.available_slots ?? null
     }
   } finally {
     weeklyLoading.value = false
@@ -681,7 +720,11 @@ async function handleMonthDateSelect(date) {
   selectedDate.value = date
   currentWeekStart.value = getWeekStart(date)
   currentMonthKey.value = date.slice(0, 7)
-  await loadWorkoutForDate(date)
+  // Load workouts for reservations on this date
+  const reservationsForDate = reservationItems.value.filter(r => r.date === date)
+  for (const reservation of reservationsForDate) {
+    await loadWorkoutForReservation(reservation.id)
+  }
 }
 
 async function openScheduleDetail(scheduleId) {
@@ -690,7 +733,7 @@ async function openScheduleDetail(scheduleId) {
     return
   }
 
-  await loadWorkoutForDate(schedule.date)
+  await loadWorkoutForReservation(schedule.id)
   const updatedSchedule = reservationItems.value.find((item) => item.id === scheduleId)
   selectedSchedule.value = updatedSchedule || schedule
   showDetailSheet.value = true
@@ -825,7 +868,11 @@ watch(selectedDate, async (date, prevDate) => {
     return
   }
 
-  await loadWorkoutForDate(date)
+  // Load workouts for reservations on this date
+  const reservationsForDate = reservationItems.value.filter(r => r.date === date)
+  for (const reservation of reservationsForDate) {
+    await loadWorkoutForReservation(reservation.id)
+  }
 })
 
 watch(showChangeSheet, (val) => {
@@ -851,6 +898,11 @@ onMounted(() => {
 onActivated(() => {
   if (loaded.value && reservationsStore.isStale()) {
     loadData()
+  } else if (loaded.value && connectedTrainerId.value) {
+    // 가용 시간만 재조회 (stale 여부 무관)
+    fetchMyAvailability(connectedTrainerId.value, currentWeekStart.value).then((result) => {
+      myAvailabilitySlots.value = result?.available_slots ?? null
+    })
   }
 })
 </script>

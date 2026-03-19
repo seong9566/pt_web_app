@@ -38,6 +38,16 @@
       </div>
 
       <section v-if="currentView === 'weekly'" class="trainer-schedule__weekly">
+        <div v-if="changeRequestCount > 0 || conflictCount > 0" class="trainer-schedule__summary-bar">
+          <span
+            v-if="changeRequestCount > 0"
+            class="trainer-schedule__summary-badge"
+          ><i class="trainer-schedule__badge-dot trainer-schedule__badge-dot--change"></i>변경 요청 {{ changeRequestCount }}건</span>
+          <span
+            v-if="conflictCount > 0"
+            class="trainer-schedule__summary-badge"
+          ><i class="trainer-schedule__badge-dot trainer-schedule__badge-dot--conflict"></i>충돌 {{ conflictCount }}건</span>
+        </div>
         <AppWeeklyCalendar
           :schedules="weeklySchedules"
           :workSchedule="workSchedule"
@@ -45,7 +55,7 @@
           :holidays="holidays"
           :currentWeekStart="currentWeekStart"
           :availabilities="weekAvailabilities"
-          :memberColors="memberColorMap"
+          :conflictIds="conflictIdSet"
           role="trainer"
           :draggable="true"
           :loading="calendarLoading"
@@ -54,12 +64,6 @@
           @schedule-drop="handleScheduleDrop"
           @week-change="handleWeekChange"
         />
-        <div v-if="weeklyLegendMembers.length" class="trainer-schedule__legend">
-          <div v-for="member in weeklyLegendMembers" :key="member.id" class="trainer-schedule__legend-item">
-            <span class="trainer-schedule__legend-dot" :style="{ backgroundColor: member.color }" />
-            <span class="trainer-schedule__legend-name">{{ member.name }}</span>
-          </div>
-        </div>
         <p class="trainer-schedule__weekly-hint">빈 슬롯을 탭하면 회원을 바로 배정할 수 있습니다.</p>
       </section>
 
@@ -239,33 +243,7 @@
             </li>
           </ul>
         </div>
-        <template v-if="selectedSchedule?.status === 'change_requested'">
-          <div class="detail-sheet__change-card">
-            <div class="detail-sheet__change-row">
-              <span class="detail-sheet__change-label">현재</span>
-              <span class="detail-sheet__change-value">
-                {{ toDisplayDate(selectedSchedule.date) }}
-                {{ selectedSchedule.start_time?.slice(0,5) }}-{{ selectedSchedule.end_time?.slice(0,5) }}
-              </span>
-            </div>
-            <div v-if="selectedSchedule.requested_date" class="detail-sheet__change-row detail-sheet__change-row--requested">
-              <span class="detail-sheet__change-label">요청</span>
-              <span class="detail-sheet__change-value">
-                {{ toDisplayDate(selectedSchedule.requested_date) }}
-                {{ selectedSchedule.requested_start_time?.slice(0,5) }}-{{ selectedSchedule.requested_end_time?.slice(0,5) }}
-              </span>
-            </div>
-            <div v-if="selectedSchedule.change_reason" class="detail-sheet__change-row">
-              <span class="detail-sheet__change-label">사유</span>
-              <span class="detail-sheet__change-value">{{ selectedSchedule.change_reason }}</span>
-            </div>
-          </div>
-          <div class="detail-sheet__change-actions">
-            <AppButton v-if="selectedSchedule.requested_date" :disabled="loading" @click="handleApproveChange">승인</AppButton>
-            <AppButton variant="outline" :disabled="loading" @click="showRejectSheet = true">거절</AppButton>
-            <AppButton variant="secondary" :disabled="loading" @click="startReassignMode">다른 시간</AppButton>
-          </div>
-        </template>
+
 
         <div class="detail-sheet__actions">
           <button
@@ -289,6 +267,71 @@
           >
             운동 배정하기
           </button>
+        </div>
+      </div>
+    </AppBottomSheet>
+
+    <AppBottomSheet v-model="showChangeRequestSheet" title="">
+      <div v-if="selectedSchedule" class="cr-sheet">
+        <div class="cr-sheet__header">
+          <h3 class="cr-sheet__title">변경 요청 상세</h3>
+          <span v-if="selectedScheduleConflict" class="cr-sheet__conflict-badge">⚠ 충돌</span>
+        </div>
+        <p class="cr-sheet__timestamp">
+          요청 시간: {{ formatChangeRequestTime(selectedSchedule.requested_at || selectedSchedule.updated_at || selectedSchedule.created_at) }}
+        </p>
+
+        <div v-if="selectedScheduleConflict" class="cr-sheet__conflict-card">
+          <p class="cr-sheet__conflict-title">⚠ 스케줄 충돌 감지</p>
+          <p class="cr-sheet__conflict-desc">
+            변경 요청 시간에 <strong>{{ selectedScheduleConflict.partner_name }}</strong>님의 수업이 이미 예약되어 있습니다.
+          </p>
+        </div>
+
+        <div class="cr-sheet__member-row">
+          <div class="cr-sheet__member-left">
+            <div class="cr-sheet__avatar">
+              <img v-if="selectedSchedule.partner_photo" :src="selectedSchedule.partner_photo" :alt="selectedSchedule.partner_name" class="cr-sheet__avatar-img" />
+              <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
+                <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+            </div>
+            <div class="cr-sheet__member-info">
+              <span class="cr-sheet__member-name">{{ selectedSchedule.partner_name }}</span>
+              <span class="cr-sheet__member-category">{{ detailCategory || selectedSchedule.category || 'PT' }}</span>
+            </div>
+          </div>
+          <span class="cr-sheet__session-count">잔여 {{ selectedScheduleRemainingSessions ?? '–' }}회</span>
+        </div>
+
+        <div class="cr-sheet__time-compare">
+          <p class="cr-sheet__compare-label">시간 변경 비교</p>
+          <div class="cr-sheet__compare-boxes">
+            <div class="cr-sheet__compare-box cr-sheet__compare-box--before">
+              <span class="cr-sheet__compare-tag">기존</span>
+              <span class="cr-sheet__compare-time">{{ selectedSchedule.start_time?.slice(0,5) }}</span>
+              <span class="cr-sheet__compare-date">{{ formatShortDate(selectedSchedule.date) }}</span>
+            </div>
+            <span class="cr-sheet__compare-arrow">→</span>
+            <div class="cr-sheet__compare-box cr-sheet__compare-box--after">
+              <span class="cr-sheet__compare-tag">변경 요청</span>
+              <span class="cr-sheet__compare-time">{{ selectedSchedule.requested_start_time?.slice(0,5) }}</span>
+              <span class="cr-sheet__compare-date">
+                {{ selectedSchedule.requested_date === selectedSchedule.date ? '같은 날' : formatShortDate(selectedSchedule.requested_date) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="selectedSchedule.change_reason" class="cr-sheet__reason">
+          <p class="cr-sheet__reason-label">변경 사유</p>
+          <p class="cr-sheet__reason-text">"{{ selectedSchedule.change_reason }}"</p>
+        </div>
+
+        <div class="cr-sheet__actions">
+          <button class="cr-sheet__btn cr-sheet__btn--reject" :disabled="loading" @click="openRejectSheet">거절</button>
+          <button class="cr-sheet__btn cr-sheet__btn--approve" :disabled="loading" @click="handleApproveChange">승인</button>
         </div>
       </div>
     </AppBottomSheet>
@@ -318,6 +361,7 @@ import { useReservations } from '@/composables/useReservations'
 import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useToast } from '@/composables/useToast'
 import { useWorkHours } from '@/composables/useWorkHours'
+import { usePtSessions } from '@/composables/usePtSessions'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useAuthStore } from '@/stores/auth'
 import { useMembersStore } from '@/stores/members'
@@ -327,10 +371,12 @@ import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
 import { useAvailabilityStore } from '@/stores/availability'
 import { useWorkoutPlansStore } from '@/stores/workoutPlans'
 import { resolveAvailabilityState } from '@/utils/availability'
+import { detectConflicts } from '@/utils/conflictDetection'
 
 defineOptions({ name: 'TrainerScheduleView' })
 
 const DAY_LABELS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+const WEEKDAY_LABELS_SHORT = ['일', '월', '화', '수', '목', '금', '토']
 const AVAILABILITY_ORDER = { available: 0, unavailable: 1, unknown: 2 }
 const ACTIVE_STATUSES = new Set(['scheduled', 'confirmed', 'change_requested', 'completed', 'pending', 'approved'])
 
@@ -387,6 +433,27 @@ function toDisplayDate(dateStr) {
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${DAY_LABELS[date.getDay()]}`
 }
 
+function formatShortDate(dateStr) {
+  if (!dateStr) return ''
+  const date = parseDate(dateStr)
+  return `${date.getMonth() + 1}/${date.getDate()}(${WEEKDAY_LABELS_SHORT[date.getDay()]})`
+}
+
+function formatChangeRequestTime(dateTimeStr) {
+  if (!dateTimeStr) return ''
+  const d = new Date(dateTimeStr)
+  if (isNaN(d.getTime())) return ''
+  const year = d.getFullYear()
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  const hour = d.getHours()
+  const minute = pad(d.getMinutes())
+  const second = pad(d.getSeconds())
+  const ampm = hour < 12 ? '오전' : '오후'
+  const h12 = hour % 12 || 12
+  return `${year}. ${month}. ${day}. ${ampm} ${h12}:${minute}:${second}`
+}
+
 function normalizeStatus(status) {
   if (status === 'pending') return 'scheduled'
   if (status === 'approved') return 'scheduled'
@@ -436,6 +503,7 @@ const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWo
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
 const { members, fetchMembers } = useMembers()
+const { fetchRemainingByPair } = usePtSessions()
 const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan, loadWeeklyWorkoutCategories, getWeeklyCategory } = useWorkoutPlans()
 
 const todayStr = formatDate(new Date())
@@ -450,6 +518,7 @@ const workingDays = ref(new Set())
 
 const showMemberSheet = ref(false)
 const showDetailSheet = ref(false)
+const showChangeRequestSheet = ref(false)
 const showRejectSheet = ref(false)
 const memberSheetLoading = ref(false)
 const rejectReason = ref('')
@@ -459,14 +528,11 @@ const selectedSlotTime = ref('')
 const selectedSchedule = ref(null)
 const detailExercises = ref([])
 const detailCategory = ref('')
+const selectedScheduleRemainingSessions = ref(null)
 const reassignTarget = ref(null)
 
 const membersWithAvailability = ref([])
 const weekAvailabilities = ref([])
-
-const changeRequestCount = computed(() => {
-  return reservations.value.filter((reservation) => reservation.status === 'change_requested').length
-})
 
 const workSchedule = computed(() => {
   const enabledDays = workDays.value.filter((day) => day.enabled)
@@ -562,21 +628,31 @@ const weeklySchedules = computed(() => {
       member_name: reservation.partner_name,
       trainer_name: auth.profile?.name ?? '트레이너',
       member_id: reservation.member_id,
-      category: getWeeklyCategory(reservation.date, reservation.member_id),
+      category: getWeeklyCategory(reservation.id),
     }))
 })
 
-const memberColorMap = computed(() => {
-  const map = {}
-  membersStore.members.forEach((member) => {
-    map[member.id] = member.color
-  })
-  return map
-})
+const conflictIdSet = computed(() => detectConflicts(weeklySchedules.value))
+const changeRequestCount = computed(() =>
+  weeklySchedules.value.filter(s => s.status === 'change_requested').length
+)
+const conflictCount = computed(() => conflictIdSet.value.size)
 
-const weeklyLegendMembers = computed(() => {
-  const memberIds = new Set(weeklySchedules.value.map((schedule) => schedule.member_id).filter(Boolean))
-  return membersStore.members.filter((member) => memberIds.has(member.id))
+const selectedScheduleConflict = computed(() => {
+  const s = selectedSchedule.value
+  if (!s || s.status !== 'change_requested' || !s.requested_start_time) return null
+  const reqDate = s.requested_date || s.date
+  const reqStart = toMinutes(s.requested_start_time)
+  const reqEnd = toMinutes(s.requested_end_time || s.requested_start_time) || reqStart + (toMinutes(s.end_time) - toMinutes(s.start_time))
+
+  return reservations.value.find((r) => {
+    if (r.id === s.id) return false
+    if (r.date !== reqDate) return false
+    if (!ACTIVE_STATUSES.has(r.status)) return false
+    const rStart = toMinutes(r.start_time)
+    const rEnd = toMinutes(r.end_time)
+    return rStart < reqEnd && rEnd > reqStart
+  }) || null
 })
 
 const calendarDots = computed(() => {
@@ -605,13 +681,17 @@ const calendarDots = computed(() => {
 
 const calendarColorDots = computed(() => {
   const dots = {}
+  const colorMap = {}
+  membersStore.members.forEach((member) => {
+    colorMap[member.id] = member.color
+  })
 
   reservations.value.forEach((reservation) => {
     if (!ACTIVE_STATUSES.has(reservation.status)) return
     if (!reservation.date.startsWith(`${currentMonthKey.value}-`)) return
 
     const day = Number(reservation.date.slice(8, 10))
-    const color = memberColorMap.value[reservation.member_id]
+    const color = colorMap[reservation.member_id]
     if (!color) return
 
     if (!dots[day]) {
@@ -631,7 +711,9 @@ const calendarColorDots = computed(() => {
 const workoutMap = computed(() => {
   const map = {}
   dayWorkoutPlans.value.forEach((plan) => {
-    map[plan.member_id] = { exercises: plan.exercises, category: plan.category }
+    if (plan.reservation_id) {
+      map[plan.reservation_id] = plan
+    }
   })
   return map
 })
@@ -652,7 +734,7 @@ const selectedDateSessions = computed(() => {
       requested_date: reservation.requested_date,
       requested_start_time: reservation.requested_start_time,
       requested_end_time: reservation.requested_end_time,
-      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.member_id]?.exercises || workoutMap.value[reservation.member_id]),
+      workoutSummary: formatWorkoutSummary(workoutMap.value[reservation.id]?.exercises),
     }))
 })
 
@@ -851,6 +933,14 @@ async function handleSlotTap({ date, time }) {
     if (success) {
       showSuccess('일정을 재배정했습니다.')
       clearReassignMode()
+      // 재배정 후 대상 날짜로 이동
+      selectedDate.value = date
+      currentWeekStart.value = getWeekStart(date)
+      const newMonthKey = date.slice(0, 7)
+      if (newMonthKey !== currentMonthKey.value) {
+        currentMonthKey.value = newMonthKey
+        await loadOverrides(newMonthKey)
+      }
       await loadWeeklySchedules()
       return
     }
@@ -867,19 +957,41 @@ async function openScheduleDetail(scheduleId) {
   selectedSchedule.value = reservations.value.find((reservation) => reservation.id === scheduleId) ?? null
   detailExercises.value = []
   detailCategory.value = ''
+  selectedScheduleRemainingSessions.value = null
 
   if (selectedSchedule.value) {
-    showDetailSheet.value = true
+    if (selectedSchedule.value.status === 'change_requested') {
+      showChangeRequestSheet.value = true
+    } else {
+      showDetailSheet.value = true
+    }
 
-    const memberId = selectedSchedule.value.member_id
-    const date = selectedSchedule.value.date
+    const scheduleId = selectedSchedule.value.id
 
-    if (memberId && date) {
-      await fetchWorkoutPlan(memberId, date)
+    if (scheduleId) {
+      let remaining = null
+      const tasks = [fetchWorkoutPlan(scheduleId)]
+      if (selectedSchedule.value.member_id && selectedSchedule.value.trainer_id) {
+        tasks.push(
+          fetchRemainingByPair(selectedSchedule.value.member_id, selectedSchedule.value.trainer_id)
+            .then((value) => {
+              remaining = value
+            })
+        )
+      }
+
+      await Promise.all(tasks)
       detailExercises.value = currentPlan.value?.exercises ?? []
       detailCategory.value = currentPlan.value?.category || ''
+      selectedScheduleRemainingSessions.value = typeof remaining === 'number' ? remaining : null
     }
   }
+}
+
+function openRejectSheet() {
+  showChangeRequestSheet.value = false
+  rejectReason.value = ''
+  showRejectSheet.value = true
 }
 
 function handleScheduleTap({ scheduleId }) {
@@ -891,6 +1003,14 @@ async function handleScheduleDrop({ scheduleId, fromDate, fromTime, toDate, toTi
 
   if (success) {
     showSuccess('일정을 재배정했습니다.')
+    // 드래그 후 대상 날짜로 이동
+    selectedDate.value = toDate
+    currentWeekStart.value = getWeekStart(toDate)
+    const newMonthKey = toDate.slice(0, 7)
+    if (newMonthKey !== currentMonthKey.value) {
+      currentMonthKey.value = newMonthKey
+      await loadOverrides(newMonthKey)
+    }
     await loadWeeklySchedules()
     return
   }
@@ -947,13 +1067,31 @@ function clearReassignMode() {
 
 async function handleApproveChange() {
   if (!selectedSchedule.value) return
+  
+  // 승인 전에 요청 날짜 캡처
+  const requestedDate = selectedSchedule.value.requested_date
+  
   const approved = await approveChangeRequest(selectedSchedule.value.id)
   if (!approved) {
     showToast(error.value || '변경 요청 승인에 실패했습니다.', 'error')
     return
   }
   showSuccess('변경 요청을 승인했습니다.')
-  showDetailSheet.value = false
+  showChangeRequestSheet.value = false
+  showRejectSheet.value = false
+  selectedScheduleRemainingSessions.value = null
+  
+  // 승인 성공 시 뷰를 요청 날짜로 이동
+  if (requestedDate) {
+    selectedDate.value = requestedDate
+    currentWeekStart.value = getWeekStart(requestedDate)
+    const newMonthKey = requestedDate.slice(0, 7)
+    if (newMonthKey !== currentMonthKey.value) {
+      currentMonthKey.value = newMonthKey
+      await loadOverrides(newMonthKey)
+    }
+  }
+  
   await loadWeeklySchedules()
 }
 
@@ -967,7 +1105,8 @@ async function handleRejectChange() {
   showSuccess('변경 요청을 거절했습니다.')
   showRejectSheet.value = false
   rejectReason.value = ''
-  showDetailSheet.value = false
+  showChangeRequestSheet.value = false
+  selectedScheduleRemainingSessions.value = null
   await loadWeeklySchedules()
 }
 
@@ -979,6 +1118,7 @@ function goWorkout(session = selectedSchedule.value) {
   router.push({
     name: 'trainer-today-workout',
     query: {
+      reservationId: session.id,
       memberId: session.member_id,
       date: session.date,
     },
@@ -992,6 +1132,12 @@ watch(selectedDate, (date) => {
 
 watch(error, (message) => {
   if (message) showToast(message, 'error')
+})
+
+watch(showRejectSheet, (opened) => {
+  if (!opened) {
+    rejectReason.value = ''
+  }
 })
 
 onMounted(() => {

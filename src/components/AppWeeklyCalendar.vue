@@ -46,7 +46,6 @@
             :class="{
               'weekly-calendar__cell--holiday': isHoliday(date),
               'weekly-calendar__cell--off-hours': isOffHours(time),
-              'weekly-calendar__cell--available': props.role === 'trainer' && !getScheduleAtSlot(date, time) && hasAvailableMember(date, time),
               'weekly-calendar__cell--drop-target': dropTarget?.date === date && dropTarget?.time === time,
             }"
             :data-date="date"
@@ -66,14 +65,30 @@
               @click.stop="handleScheduleTap(getScheduleAtSlot(date, time).id)"
             >
               <span class="weekly-calendar__block-name">{{ getScheduleName(getScheduleAtSlot(date, time)) }}</span>
-              <span v-if="getBlockLabel(getScheduleAtSlot(date, time))" class="weekly-calendar__block-label">
+              <span
+                v-if="getBlockLabel(getScheduleAtSlot(date, time))"
+                class="weekly-calendar__block-label"
+                :class="{ 'weekly-calendar__block-label--time': props.role === 'trainer' }"
+              >
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
               <span
-                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getScheduleAtSlot(date, time)?.requested_start_time && getBlockRatio(getScheduleAtSlot(date, time)) >= 1"
+                v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getChangeRequestLabel(getScheduleAtSlot(date, time))"
                 class="weekly-calendar__block-sublabel"
-              >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
+                v-html="getChangeRequestLabel(getScheduleAtSlot(date, time))"
+              />
+              <span
+                v-if="props.conflictIds?.has(getScheduleAtSlot(date, time).id)"
+                class="weekly-calendar__block-conflict"
+              >⚠ 충돌</span>
             </button>
+ 
+            <div
+              v-else-if="props.myAvailability && isMyAvailableSlot(date, time)"
+              class="weekly-calendar__block weekly-calendar__block--my-available"
+            >
+              <span class="weekly-calendar__block-name">가능</span>
+            </div>
 
             <div
               v-if="rowIndex === 0 && isHoliday(date)"
@@ -83,13 +98,15 @@
             </div>
 
             <div
-              v-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
-              class="weekly-calendar__preference-badge"
+              v-else-if="props.role === 'trainer' && !getScheduleAtSlot(date, time) && getAvailableCount(date, time) > 0"
+              class="weekly-calendar__block weekly-calendar__block--available"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-              {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+              <div class="weekly-calendar__preference-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                {{ getAvailableCount(date, time) >= 9 ? '9+' : getAvailableCount(date, time) }}명
+              </div>
             </div>
           </div>
         </template>
@@ -114,16 +131,14 @@
 import { computed, ref } from 'vue'
 import { countAvailableMembers, DAY_KEY_BY_INDEX } from '@/utils/availability'
 
-const CELL_HEIGHT = 56
+const CELL_HEIGHT = 68
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 const STATUS_COLORS = {
-  scheduled: 'var(--color-yellow)',
-  confirmed: 'var(--color-green)',
-  change_requested: 'var(--color-orange)',
-  completed: 'var(--color-gray-400)',
-  pending: 'var(--color-yellow)',
-  approved: 'var(--color-green)',
+  scheduled: 'var(--color-block-normal)',
+  change_requested: 'var(--color-block-change)',
+  completed: 'var(--color-gray-200)',
+  cancelled: 'var(--color-gray-200)',
 }
 
 const props = defineProps({
@@ -136,9 +151,13 @@ const props = defineProps({
   currentWeekStart: { type: String, required: true },
   role: { type: String, default: 'trainer' },
   availabilities: { type: Array, default: () => [] },
+  myAvailability: { type: Object, default: null },
+  // 형식: { "2026-03-17": ["09:00","10:00"], "2026-03-18": ["14:00"] }
+  // (날짜 키 기반 - dayKeySlotsToDateSlots() 변환 결과)
   slotDuration: { type: Number, default: 60 },
   draggable: { type: Boolean, default: false },
-  memberColors: { type: Object, default: () => ({}) },
+  conflictIds: { type: Object, default: null },
+  // 형식: Set<string> — 충돌하는 스케줄 ID들
   loading: { type: Boolean, default: false },
 })
 
@@ -273,11 +292,11 @@ function getScheduleName(schedule) {
 }
 
 function getBlockLabel(schedule) {
-  if (schedule.status === 'change_requested') {
-    return '변경요청'
+  if (schedule.status === 'change_requested') return ''
+  if (props.role === 'trainer') {
+    return schedule.start_time?.slice(0, 5) || ''
   }
-
-  return schedule.category || ''
+  return schedule.category || 'PT'
 }
 
 function getBlockRatio(schedule) {
@@ -285,17 +304,14 @@ function getBlockRatio(schedule) {
 }
 
 function getChangeRequestLabel(schedule) {
-  const time = schedule.requested_start_time?.slice(0, 5)
-  if (!time) return ''
+  const originalTime = schedule.start_time?.slice(0, 5)
+  const requestedTime = schedule.requested_start_time?.slice(0, 5)
+  if (!requestedTime) return ''
   if (schedule.requested_date && schedule.requested_date !== schedule.date) {
     const [, month, day] = schedule.requested_date.split('-')
-    return `→${parseInt(month)}/${parseInt(day)} ${time}`
+    return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${parseInt(month)}/${parseInt(day)} ${requestedTime}</b></span>`
   }
-  return `→${time}`
-}
-
-function hasMemberColor(schedule) {
-  return props.role === 'trainer' && schedule?.member_id && props.memberColors[schedule.member_id]
+  return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${requestedTime}</b></span>`
 }
 
 function getStatusColor(status) {
@@ -303,37 +319,22 @@ function getStatusColor(status) {
 }
 
 function getBlockClass(schedule) {
-  if (!schedule) {
-    return ''
-  }
-
-  if (hasMemberColor(schedule)) {
-    return schedule.status === 'completed' ? 'weekly-calendar__block--completed-member' : ''
-  }
-
-  const normalizedStatus = (schedule.status === 'pending' || schedule.status === 'approved' || schedule.status === 'confirmed')
+  if (!schedule) return ''
+  const normalizedStatus = ['pending', 'approved', 'confirmed'].includes(schedule.status)
     ? 'scheduled'
     : schedule.status
-
   return `weekly-calendar__block--${normalizedStatus}`
 }
 
 function getBlockStyle(schedule) {
   const ratio = schedule.duration / effectiveSlotDuration.value
-  const style = {
-    height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px`,
+  const baseHeight = Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)
+  if (schedule.status === 'change_requested' && schedule.requested_start_time) {
+    const hasDifferentDate = schedule.requested_date && schedule.requested_date !== schedule.date
+    const expandedHeight = baseHeight + 10
+    return { height: `${expandedHeight}px`, zIndex: 3 }
   }
-
-  if (hasMemberColor(schedule)) {
-    style.backgroundColor = props.memberColors[schedule.member_id]
-    if (schedule.status === 'completed') {
-      style.opacity = '0.5'
-    }
-    return style
-  }
-
-  style.backgroundColor = getStatusColor(schedule.status)
-  return style
+  return { height: `${baseHeight}px` }
 }
 
 function getAvailableCount(date, time) {
@@ -345,6 +346,20 @@ function hasAvailableMember(date, time) {
   const dayKey = DAY_KEY_BY_INDEX[parseDate(date).getDay()]
   if (!dayKey) return false
   return getAvailableCount(date, time) > 0
+}
+
+function isMyAvailableSlot(dateStr, timeStr) {
+  if (!props.myAvailability) return false
+  const dateSlots = props.myAvailability[dateStr]
+  if (!Array.isArray(dateSlots) || dateSlots.length === 0) return false
+
+  const targetMinutes = timeToMinutes(timeStr)
+
+  // 60분 버킷 매칭: "09:30" -> "09:00" 슬롯에 매칭
+  return dateSlots.some((slot) => {
+    const slotMinutes = timeToMinutes(slot)
+    return slotMinutes <= targetMinutes && targetMinutes < (slotMinutes + 60)
+  })
 }
 
 function moveWeek(amount) {
@@ -424,9 +439,7 @@ function handlePointerMove(event) {
 
 function updateGhostPosition(x, y) {
   const ghostColor = dragSchedule.value
-    ? (hasMemberColor(dragSchedule.value)
-      ? props.memberColors[dragSchedule.value.member_id]
-      : getStatusColor(dragSchedule.value.status))
+    ? getStatusColor(dragSchedule.value.status)
     : 'var(--color-blue-primary)'
 
   ghostStyle.value = {

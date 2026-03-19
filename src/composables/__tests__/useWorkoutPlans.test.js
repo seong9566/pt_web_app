@@ -48,7 +48,7 @@ describe('useWorkoutPlans', () => {
     vi.clearAllMocks()
   })
 
-  it('fetchWorkoutPlan은 member_id와 date로 필터링하여 currentPlan을 설정한다', async () => {
+  it('fetchWorkoutPlan은 reservation_id로 필터링하여 currentPlan을 설정한다', async () => {
     const builder = createBuilder()
     builder.maybeSingle.mockResolvedValue({
       data: { id: 'wp1', exercises: [{ name: '스쿼트', sets: 3, reps: 10, memo: '' }] },
@@ -57,10 +57,9 @@ describe('useWorkoutPlans', () => {
     mockEnv.supabase.from.mockReturnValue(builder)
 
     const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
-    await fetchWorkoutPlan('member-1', '2026-03-01')
+    await fetchWorkoutPlan('reservation-1')
 
-    expect(builder.eq).toHaveBeenCalledWith('member_id', 'member-1')
-    expect(builder.eq).toHaveBeenCalledWith('date', '2026-03-01')
+    expect(builder.eq).toHaveBeenCalledWith('reservation_id', 'reservation-1')
     expect(currentPlan.value.id).toBe('wp1')
     expect(currentPlan.value.exercises[0].name).toBe('스쿼트')
   })
@@ -71,7 +70,7 @@ describe('useWorkoutPlans', () => {
     mockEnv.supabase.from.mockReturnValue(builder)
 
     const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
-    await fetchWorkoutPlan('member-1', '2026-03-01')
+    await fetchWorkoutPlan('reservation-1')
 
     expect(currentPlan.value).toBeNull()
   })
@@ -90,17 +89,18 @@ describe('useWorkoutPlans', () => {
 
     const exercises = [{ name: '스쿼트', sets: 3, reps: 10, memo: '' }]
     const { saveWorkoutPlan } = useWorkoutPlans()
-    const result = await saveWorkoutPlan('member-1', '2026-03-01', exercises)
+    const result = await saveWorkoutPlan('reservation-1', 'member-1', '2026-03-01', exercises)
 
     expect(result).toBe(true)
     expect(upsertBuilder.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
+        reservation_id: 'reservation-1',
         trainer_id: 'trainer-1',
         member_id: 'member-1',
         date: '2026-03-01',
         exercises,
       }),
-      { onConflict: 'trainer_id,member_id,date' }
+      { onConflict: 'reservation_id' }
     )
   })
 
@@ -111,7 +111,7 @@ describe('useWorkoutPlans', () => {
 
     const exercises = [{ name: '스쿼트', sets: 3, reps: 10, memo: '' }]
     const { saveWorkoutPlan, error } = useWorkoutPlans()
-    const result = await saveWorkoutPlan('member-1', '2026-03-01', exercises)
+    const result = await saveWorkoutPlan('reservation-1', 'member-1', '2026-03-01', exercises)
 
     expect(result).toBe(false)
     expect(error.value).toBe('저장 실패')
@@ -131,7 +131,7 @@ describe('useWorkoutPlans', () => {
 
     const exercises = [{ name: '스쿼트', sets: 3, reps: 10, memo: '' }]
     const { saveWorkoutPlan } = useWorkoutPlans()
-    await saveWorkoutPlan('member-1', '2026-03-01', exercises)
+    await saveWorkoutPlan('reservation-1', 'member-1', '2026-03-01', exercises)
 
     expect(mockCreateNotification).toHaveBeenCalledWith(
       'member-1',
@@ -150,7 +150,7 @@ describe('useWorkoutPlans', () => {
 
     const exercises = [{ name: '스쿼트', sets: 3, reps: 10, memo: '' }]
     const { saveWorkoutPlan } = useWorkoutPlans()
-    await saveWorkoutPlan('member-1', '2026-03-01', exercises)
+    await saveWorkoutPlan('reservation-1', 'member-1', '2026-03-01', exercises)
 
     expect(mockCreateNotification).not.toHaveBeenCalled()
   })
@@ -180,5 +180,24 @@ describe('useWorkoutPlans', () => {
     expect(result).toBe(false)
     expect(error.value).toBe('삭제 실패')
     expect(workoutPlans.value).toHaveLength(2)
+  })
+
+  it('fetchMemberReservationDates는 예약 목록을 { id, date, start_time } 형태로 반환한다', async () => {
+    const builder = createBuilder()
+    builder.order.mockResolvedValue({
+      data: [
+        { id: 'r1', date: '2026-03-20', start_time: '10:00:00' },
+        { id: 'r2', date: '2026-03-21', start_time: '14:30:00' },
+      ],
+      error: null,
+    })
+    mockEnv.supabase.from.mockReturnValue(builder)
+
+    const { fetchMemberReservationDates, reservationDates } = useWorkoutPlans()
+    await fetchMemberReservationDates('member-1')
+
+    expect(reservationDates.value).toHaveLength(2)
+    expect(reservationDates.value[0]).toEqual({ id: 'r1', date: '2026-03-20', start_time: '10:00' })
+    expect(reservationDates.value[1]).toEqual({ id: 'r2', date: '2026-03-21', start_time: '14:30' })
   })
 })

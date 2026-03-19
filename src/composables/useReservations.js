@@ -380,62 +380,23 @@ export function useReservations() {
     error.value = null
 
     try {
-      const { data: reservation, error: reservationError } = await supabase
-        .from('reservations')
-        .select('trainer_id, member_id, start_time, end_time, requested_date, requested_start_time, requested_end_time')
-        .eq('id', reservationId)
-        .maybeSingle()
-
-      if (reservationError) throw reservationError
-      if (!reservation?.trainer_id || !reservation?.member_id) {
-        throw new Error('예약 정보를 찾을 수 없습니다.')
-      }
-
-      const requestedDate = reservation.requested_date
-      const requestedStartTime = reservation.requested_start_time
-      if (!requestedDate || !requestedStartTime) {
-        throw new Error('변경 요청 시간 정보가 없습니다.')
-      }
-
-      const existingDuration = toMinutes(reservation.end_time) - toMinutes(reservation.start_time)
-      const duration = existingDuration > 0 ? existingDuration : (slotDuration.value ?? 60)
-      const endTime = addMinutes(requestedStartTime, duration)
-
-      const { error: cancelError } = await supabase
-        .from('reservations')
-        .update({ status: 'cancelled' })
-        .eq('id', reservationId)
-
-      if (cancelError) throw cancelError
-
-      const { error: assignError } = await supabase.rpc('assign_schedule', {
-        p_trainer_id: reservation.trainer_id,
-        p_member_id: reservation.member_id,
-        p_date: requestedDate,
-        p_start_time: requestedStartTime,
-        p_end_time: endTime,
+      const { error: rpcError } = await supabase.rpc('approve_change_request', {
+        p_reservation_id: reservationId,
       })
 
-      if (assignError) throw assignError
-
-      // 변경 승인 알림 (non-blocking)
-      try {
-        await supabase.from('notifications').insert({
-          user_id: reservation.member_id,
-          type: 'schedule_reassigned',
-          title: '일정 변경 승인',
-          body: `변경 요청이 승인되었습니다. ${requestedDate} ${requestedStartTime}으로 일정이 변경되었습니다.`,
-          target_id: reservationId,
-          target_type: 'reservation',
-        })
-      } catch (notifErr) {
-        console.warn('변경 승인 알림 생성 실패:', notifErr?.message)
-      }
+      if (rpcError) throw rpcError
 
       await refreshReservationsStore()
       return true
     } catch (e) {
-      error.value = e?.message ?? '변경 요청 승인에 실패했습니다'
+      const ERROR_MESSAGES = {
+        'Reservation not found': '예약 정보를 찾을 수 없습니다.',
+        'Reservation is not in change_requested status': '변경 요청 상태가 아닙니다.',
+        'No change request data': '변경 요청 시간 정보가 없습니다.',
+        'No active trainer-member connection': '트레이너와의 연결이 활성화되지 않았습니다.',
+        'Time slot conflict: another session exists at this time': '해당 시간에 이미 다른 일정이 있습니다.',
+      }
+      error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '변경 요청 승인에 실패했습니다'
       return false
     } finally {
       loading.value = false
@@ -463,6 +424,8 @@ export function useReservations() {
         .from('reservations')
         .update({
           status: 'scheduled',
+          rejection_reason: rejectionReason || null,
+          change_reason: null,
           requested_date: null,
           requested_start_time: null,
           requested_end_time: null,
@@ -530,56 +493,24 @@ export function useReservations() {
     error.value = null
 
     try {
-      const { data: reservation, error: reservationError } = await supabase
-        .from('reservations')
-        .select('trainer_id, member_id, start_time, end_time')
-        .eq('id', reservationId)
-        .maybeSingle()
-
-      if (reservationError) throw reservationError
-      if (!reservation?.trainer_id || !reservation?.member_id) {
-        throw new Error('예약 정보를 찾을 수 없습니다.')
-      }
-
-      const existingDuration = toMinutes(reservation.end_time) - toMinutes(reservation.start_time)
-      const duration = existingDuration > 0 ? existingDuration : (slotDuration.value ?? 60)
-      const endTime = addMinutes(newStartTime, duration)
-
-      const { error: cancelError } = await supabase
-        .from('reservations')
-        .update({ status: 'cancelled' })
-        .eq('id', reservationId)
-
-      if (cancelError) throw cancelError
-
-      const { error: assignError } = await supabase.rpc('assign_schedule', {
-        p_trainer_id: reservation.trainer_id,
-        p_member_id: reservation.member_id,
-        p_date: newDate,
-        p_start_time: newStartTime,
-        p_end_time: endTime,
+      const { error: rpcError } = await supabase.rpc('reassign_schedule', {
+        p_reservation_id: reservationId,
+        p_new_date: newDate,
+        p_new_start_time: newStartTime,
       })
 
-      if (assignError) throw assignError
-
-      // 재배정 알림 (non-blocking)
-      try {
-        await supabase.from('notifications').insert({
-          user_id: reservation.member_id,
-          type: 'schedule_reassigned',
-          title: '일정 재배정',
-          body: '트레이너가 PT 일정을 재배정했습니다. 새 일정을 확인해주세요.',
-          target_id: reservationId,
-          target_type: 'reservation',
-        })
-      } catch (notifErr) {
-        console.warn('재배정 알림 생성 실패:', notifErr?.message)
-      }
+      if (rpcError) throw rpcError
 
       await refreshReservationsStore()
       return true
     } catch (e) {
-      error.value = e?.message ?? '일정 재배정에 실패했습니다'
+      const ERROR_MESSAGES = {
+        'Reservation not found': '예약 정보를 찾을 수 없습니다.',
+        'Reservation is not in an active status': '재배정할 수 없는 예약 상태입니다.',
+        'No active trainer-member connection': '트레이너와의 연결이 활성화되지 않았습니다.',
+        'Time slot conflict: another session exists at this time': '해당 시간에 이미 다른 일정이 있습니다.',
+      }
+      error.value = ERROR_MESSAGES[e?.message] ?? e?.message ?? '일정 재배정에 실패했습니다'
       return false
     } finally {
       loading.value = false

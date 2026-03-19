@@ -6,7 +6,7 @@
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <h1 class="availability-registration__title">가능 시간 등록</h1>
+      <h1 class="availability-registration__title">가능 시간 관리</h1>
       <div class="availability-registration__header-spacer" />
     </header>
 
@@ -49,65 +49,16 @@
           <p v-if="isWeekLoading" class="availability-registration__load-message">기존 등록 정보를 불러오는 중...</p>
         </section>
 
-        <section class="availability-registration__card">
-          <div class="availability-registration__day-tabs">
-            <button
-              v-for="day in weekDaysWithDates"
-              :key="`tab-${day.key}`"
-              class="availability-registration__day-tab"
-              :class="{ 'availability-registration__day-tab--active': selectedDay === day.key }"
-              type="button"
-              @click="selectedDay = day.key"
-            >
-              <span class="availability-registration__day-tab-label">{{ day.label }}</span>
-              <span
-                v-if="slots[day.key].length > 0"
-                class="availability-registration__day-tab-badge"
-              >{{ slots[day.key].length }}</span>
-            </button>
+        <section class="availability-registration__card availability-registration__card--grid">
+          <div class="availability-registration__grid-wrapper">
+            <AppAvailabilityGrid
+              v-model="availabilitySlots"
+              :weekStart="selectedWeekStart"
+              :offHoursRange="trainerWorkSchedule"
+              :loading="isWeekLoading"
+              :holidays="holidays"
+            />
           </div>
-
-          <p class="availability-registration__selected-day-date">
-            {{ selectedDayInfo.label }}요일 {{ selectedDayInfo.dateLabel }}
-          </p>
-
-          <div class="availability-registration__time-section">
-            <p class="availability-registration__time-section-title">오전</p>
-            <div class="availability-registration__time-list">
-              <button
-                v-for="slot in amSlots"
-                :key="`slot-${slot.key}`"
-                class="availability-registration__time-item"
-                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
-                type="button"
-                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
-                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
-                @click="toggleSlot(selectedDay, slot.key)"
-              >
-                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="availability-registration__time-section">
-            <p class="availability-registration__time-section-title">오후</p>
-            <div class="availability-registration__time-list">
-              <button
-                v-for="slot in pmSlots"
-                :key="`slot-${slot.key}`"
-                class="availability-registration__time-item"
-                :class="{ 'availability-registration__time-item--active': isSlotSelected(selectedDay, slot.key) }"
-                type="button"
-                :aria-label="`${selectedDayInfo.label}요일 ${slot.label} 선택`"
-                :aria-pressed="isSlotSelected(selectedDay, slot.key)"
-                @click="toggleSlot(selectedDay, slot.key)"
-              >
-                <span class="availability-registration__time-item-label">{{ slot.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <p class="availability-registration__selected-count">선택된 시간대 {{ selectedCount }}개</p>
         </section>
 
         <section class="availability-registration__card">
@@ -125,7 +76,7 @@
       <footer class="availability-registration__footer">
         <p v-if="submitError" class="form-error-text availability-registration__submit-error">{{ submitError }}</p>
         <AppButton :disabled="isSubmitting || loading || isWeekLoading" @click="handleSubmit">
-          {{ isSubmitting ? '전달 중...' : '전달하기' }}
+          {{ isSubmitting ? '저장 중...' : '저장' }}
         </AppButton>
       </footer>
     </template>
@@ -133,49 +84,18 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppButton from '@/components/AppButton.vue'
 import AppInput from '@/components/AppInput.vue'
+import AppAvailabilityGrid from '@/components/AppAvailabilityGrid.vue'
 import { useAvailability } from '@/composables/useAvailability'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
-
-const DAYS = [
-  { key: 'sun', label: '일' },
-  { key: 'mon', label: '월' },
-  { key: 'tue', label: '화' },
-  { key: 'wed', label: '수' },
-  { key: 'thu', label: '목' },
-  { key: 'fri', label: '금' },
-  { key: 'sat', label: '토' },
-]
-
-function generateTimeSlots(startHour = 6, endHour = 22) {
-  const generatedSlots = []
-
-  for (let hour = startHour; hour < endHour; hour += 1) {
-    const timeStr = `${String(hour).padStart(2, '0')}:00`
-    const nextTimeStr = `${String(hour + 1).padStart(2, '0')}:00`
-    generatedSlots.push({ key: timeStr, label: `${timeStr} ~ ${nextTimeStr}` })
-  }
-
-  return generatedSlots
-}
-
-const TIME_SLOTS = generateTimeSlots(6, 22)
-const amSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) < 12)
-const pmSlots = TIME_SLOTS.filter((slot) => parseInt(slot.key) >= 12)
-const TIME_SLOT_PATTERN = /^\d{2}:\d{2}$/
+import { useWorkHours } from '@/composables/useWorkHours'
+import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
-
-function createEmptySlots() {
-  return DAYS.reduce((acc, day) => {
-    acc[day.key] = []
-    return acc
-  }, {})
-}
 
 function toIsoDate(date) {
   const year = date.getFullYear()
@@ -197,6 +117,13 @@ function getWeekStart(offsetWeeks = 0) {
   return toIsoDate(sunday)
 }
 
+function addDays(dateStr, amount) {
+  const next = parseIsoDate(dateStr)
+  if (Number.isNaN(next.getTime())) return dateStr
+  next.setDate(next.getDate() + amount)
+  return toIsoDate(next)
+}
+
 function formatDateWithWeekday(date) {
   const month = date.getMonth() + 1
   const day = date.getDate()
@@ -211,46 +138,45 @@ function formatWeekRange(weekStart) {
   return `${formatDateWithWeekday(start)} ~ ${formatDateWithWeekday(end)}`
 }
 
-function getWeekDatesForDays(weekStart) {
-  const start = parseIsoDate(weekStart)
-  return DAYS.map((day, index) => {
-    const d = new Date(start)
-    d.setDate(start.getDate() + index)
-    return {
-      ...day,
-      date: d,
-      dateStr: toIsoDate(d),
-      dateLabel: `${d.getMonth() + 1}/${d.getDate()}`,
-    }
-  })
-}
-
-function normalizeDaySlots(daySlots) {
-  if (!Array.isArray(daySlots)) return []
-
-  return daySlots
-    .filter((slot) => TIME_SLOT_PATTERN.test(slot))
-    .filter((slot, index, allSlots) => allSlots.indexOf(slot) === index)
-    .sort()
-}
-
 const router = useRouter()
 const { submitAvailability, fetchMyAvailability, loading, error } = useAvailability()
 const { getConnectedTrainerId } = useReservations()
 const { showToast, showSuccess } = useToast()
+const { days: workDays, fetchWorkHours, fetchWorkingDays } = useWorkHours()
+const { overrides, fetchOverrides } = useScheduleOverrides()
 
-const slots = reactive(createEmptySlots())
+const availabilitySlots = ref({})
 const memo = ref('')
 const submitError = ref('')
 
+const trainerWorkSchedule = ref(null)
+const workingDays = ref(new Set())
+
 const selectedWeekOffset = ref(0)
-const selectedDay = ref(DAYS[0].key)
 const selectedWeekStart = computed(() => getWeekStart(selectedWeekOffset.value))
 const weekRangeText = computed(() => formatWeekRange(selectedWeekStart.value))
-const weekDaysWithDates = computed(() => getWeekDatesForDays(selectedWeekStart.value))
-const selectedDayInfo = computed(() =>
-  weekDaysWithDates.value.find((day) => day.key === selectedDay.value) || weekDaysWithDates.value[0]
-)
+
+const holidays = computed(() => {
+  const holidaySet = new Set()
+  overrides.value.forEach((override) => {
+    if (override.is_working === false) {
+      holidaySet.add(override.date)
+    }
+  })
+  if (workingDays.value.size > 0 && selectedWeekStart.value) {
+    for (let index = 0; index < 7; index += 1) {
+      const dateStr = addDays(selectedWeekStart.value, index)
+      const dateObj = parseIsoDate(dateStr)
+      if (!Number.isNaN(dateObj.getTime())) {
+        const dayOfWeek = dateObj.getDay()
+        if (!workingDays.value.has(dayOfWeek)) {
+          holidaySet.add(dateStr)
+        }
+      }
+    }
+  }
+  return Array.from(holidaySet)
+})
 
 const trainerId = ref(null)
 const hasActiveConnection = ref(null)
@@ -258,58 +184,11 @@ const isInitializing = ref(true)
 const isWeekLoading = ref(false)
 const isSubmitting = ref(false)
 
-const selectedCount = computed(() =>
-  DAYS.reduce((count, day) => count + slots[day.key].length, 0)
+const hasAnySelection = computed(() =>
+  Object.values(availabilitySlots.value).some((arr) => Array.isArray(arr) && arr.length > 0)
 )
 
-const hasAnySelection = computed(() => selectedCount.value > 0)
-
 let latestLoadToken = 0
-
-function resetSlots() {
-  const emptySlots = createEmptySlots()
-  DAYS.forEach((day) => {
-    slots[day.key] = emptySlots[day.key]
-  })
-}
-
-function applyExistingSlots(availableSlots) {
-  const normalized = createEmptySlots()
-
-  DAYS.forEach((day) => {
-    normalized[day.key] = normalizeDaySlots(availableSlots?.[day.key])
-  })
-
-  DAYS.forEach((day) => {
-    slots[day.key] = normalized[day.key]
-  })
-}
-
-function isSlotSelected(dayKey, timeKey) {
-  return slots[dayKey].includes(timeKey)
-}
-
-function toggleSlot(dayKey, timeKey) {
-  submitError.value = ''
-
-  const daySlots = slots[dayKey]
-  const selectedIndex = daySlots.indexOf(timeKey)
-
-  if (selectedIndex >= 0) {
-    daySlots.splice(selectedIndex, 1)
-    return
-  }
-
-  daySlots.push(timeKey)
-  daySlots.sort()
-}
-
-function buildAvailableSlotsPayload() {
-  return DAYS.reduce((acc, day) => {
-    acc[day.key] = [...slots[day.key]]
-    return acc
-  }, {})
-}
 
 function selectWeek(offset) {
   if (selectedWeekOffset.value === offset) return
@@ -330,7 +209,7 @@ async function loadExistingAvailability() {
     return
   }
 
-  applyExistingSlots(existing?.available_slots)
+  availabilitySlots.value = { ...(existing?.available_slots ?? {}) }
   memo.value = existing?.memo ?? ''
   isWeekLoading.value = false
 }
@@ -353,7 +232,7 @@ async function handleSubmit() {
   const success = await submitAvailability(
     trainerId.value,
     selectedWeekStart.value,
-    buildAvailableSlotsPayload(),
+    availabilitySlots.value,
     memo.value.trim() || null,
   )
 
@@ -373,9 +252,22 @@ onMounted(async () => {
   hasActiveConnection.value = !!connectedTrainerId
 
   if (connectedTrainerId) {
+    await fetchWorkHours(connectedTrainerId)
+    workingDays.value = await fetchWorkingDays(connectedTrainerId)
+    await fetchOverrides(connectedTrainerId, selectedWeekStart.value.slice(0, 7))
+    
+    const enabledDays = workDays.value.filter((d) => d.enabled)
+    if (enabledDays.length > 0) {
+      const startTimes = enabledDays.map((d) => d.start).filter(Boolean)
+      const endTimes = enabledDays.map((d) => d.end).filter(Boolean)
+      trainerWorkSchedule.value = {
+        startTime: startTimes.sort()[0] || '09:00',
+        endTime: endTimes.sort().reverse()[0] || '22:00',
+      }
+    }
     await loadExistingAvailability()
   } else {
-    resetSlots()
+    availabilitySlots.value = {}
     memo.value = ''
   }
 
@@ -384,6 +276,10 @@ onMounted(async () => {
 
 watch(selectedWeekStart, async (newValue, oldValue) => {
   if (!trainerId.value || newValue === oldValue) return
+  
+  if (newValue.slice(0, 7) !== oldValue.slice(0, 7)) {
+    await fetchOverrides(trainerId.value, newValue.slice(0, 7))
+  }
   await loadExistingAvailability()
 })
 

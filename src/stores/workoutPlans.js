@@ -5,9 +5,9 @@
  *
  * 캐시 구조:
  *   _dayPlansCache: Map<date, { data: Array, lastFetchedAt: number }>
- *     — 특정 날짜의 모든 운동 계획 (id, member_id, exercises, category)
- *   _weeklyCache: Map<"${date}-${memberId}", { category: string|null, lastFetchedAt: number }>
- *     — 주간 카테고리 조회 결과 (TrainerScheduleView용)
+ *     — 특정 날짜의 모든 운동 계획 (id, member_id, reservation_id, exercises, category)
+ *   _weeklyCache: Map<reservationId, { category: string|null, lastFetchedAt: number }>
+ *     — 주간 카테고리 조회 결과 (TrainerScheduleView용, reservation_id 기반)
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -33,7 +33,7 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
 
     const { data, error } = await supabase
       .from('workout_plans')
-      .select('id, member_id, exercises, category')
+      .select('id, member_id, reservation_id, exercises, category')
       .eq('trainer_id', trainerId)
       .eq('date', date)
 
@@ -60,13 +60,14 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
     for (const date of datesToFetch) {
       const { data, error } = await supabase
         .from('workout_plans')
-        .select('member_id, category')
+        .select('member_id, category, reservation_id')
         .eq('trainer_id', trainerId)
         .eq('date', date)
 
       if (!error && data) {
         data.forEach((plan) => {
-          const key = `${date}-${plan.member_id}`
+          if (!plan.reservation_id) return
+          const key = plan.reservation_id
           _weeklyCache.value.set(key, {
             category: plan.category,
             lastFetchedAt: Date.now(),
@@ -84,9 +85,9 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
     _dirty.value = false
   }
 
-  function getWeeklyCategory(date, memberId) {
-    const key = `${date}-${memberId}`
-    const entry = _weeklyCache.value.get(key)
+  function getWeeklyCategory(reservationId) {
+    if (!reservationId) return null
+    const entry = _weeklyCache.value.get(reservationId)
     return entry ? entry.category : null
   }
 

@@ -76,6 +76,7 @@ export const useReservationsStore = defineStore('reservations', () => {
         requested_start_time,
         requested_end_time,
         created_at,
+        updated_at,
         trainer_profile:trainer_id(name, photo_url),
         member_profile:member_id(name, photo_url)
       `)
@@ -98,6 +99,7 @@ export const useReservationsStore = defineStore('reservations', () => {
           status: item.status,
           session_type: item.session_type,
           created_at: item.created_at,
+          updated_at: item.updated_at,
           rejection_reason: item.rejection_reason ?? null,
           change_reason: item.change_reason ?? null,
           requested_date: item.requested_date ?? null,

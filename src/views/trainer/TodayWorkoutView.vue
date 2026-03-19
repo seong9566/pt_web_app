@@ -58,13 +58,13 @@
         <h2 class="today-workout__section-title">예약된 PT</h2>
         <div class="today-workout__date-chips">
           <button
-            v-for="date in reservationDates"
-            :key="date"
+            v-for="reservation in reservationDates"
+            :key="reservation.id"
             class="today-workout__date-chip"
-            :class="{ 'today-workout__date-chip--active': selectedDate === date }"
-            @click="selectDate(date)"
+            :class="{ 'today-workout__date-chip--active': selectedReservationId === reservation.id }"
+            @click="selectReservation(reservation)"
           >
-            {{ date === todayStr ? '오늘' : formatChipDate(date) }}
+            {{ reservation.date === todayStr ? '오늘' : formatChipLabel(reservation, reservationDates) }}
           </button>
         </div>
       </section>
@@ -288,6 +288,7 @@ const _now = new Date()
 const todayStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`
 const WORKOUT_CATEGORIES = ['가슴', '어깨', '등', '팔', '하체', '코어', '전신', '유산소', '스트레칭']
 const selectedDate = ref(route.query.date || todayStr)
+const selectedReservationId = ref(null)
 const selectedCategory = ref('')
 const exercises = ref([{ name: '', sets: 3, reps: 10, memo: '' }])
 const isSaving = ref(false)
@@ -309,16 +310,26 @@ onMounted(async () => {
     fetchMemberProfile(memberId),
     fetchMemberReservationDates(memberId),
   ])
+  // reservationId 우선, 없으면 reservationDates 첫 번째로 fallback
+  const reservationId = route.query.reservationId
+  if (reservationId) {
+    selectedReservationId.value = reservationId
+    const matched = reservationDates.value.find(r => r.id === reservationId)
+    if (matched) selectedDate.value = matched.date
+  } else if (reservationDates.value.length > 0) {
+    const first = reservationDates.value[0]
+    selectedReservationId.value = first.id
+    selectedDate.value = first.date
+  }
   await loadPlanAndHistory()
 })
 
-async function selectDate(date) {
+async function selectReservation(reservation) {
   if (hasActiveConnection.value !== true) return
-  if (selectedDate.value === date) return
-  selectedDate.value = date
-  const memberId = route.query.memberId
-  if (!memberId) return
-  await fetchWorkoutPlan(memberId, date)
+  if (selectedReservationId.value === reservation.id) return
+  selectedReservationId.value = reservation.id
+  selectedDate.value = reservation.date
+  await fetchWorkoutPlan(reservation.id)
   exercises.value = currentPlan.value?.exercises?.length
     ? currentPlan.value.exercises.map(e => ({ ...e }))
     : [{ name: '', sets: 3, reps: 10, memo: '' }]
@@ -330,7 +341,7 @@ async function loadPlanAndHistory() {
   const memberId = route.query.memberId
   if (!memberId) return
   historyLoading.value = true
-  await fetchWorkoutPlan(memberId, selectedDate.value)
+  await fetchWorkoutPlan(selectedReservationId.value)
   exercises.value = currentPlan.value?.exercises?.length
     ? currentPlan.value.exercises.map(e => ({ ...e }))
     : [{ name: '', sets: 3, reps: 10, memo: '' }]
@@ -345,7 +356,7 @@ async function handleSave() {
   const validExercises = exercises.value.filter(e => e.name.trim())
   if (!memberId || validExercises.length === 0 || isSaving.value) return
   isSaving.value = true
-  const success = await saveWorkoutPlan(memberId, selectedDate.value, validExercises, selectedCategory.value)
+  const success = await saveWorkoutPlan(selectedReservationId.value, memberId, selectedDate.value, validExercises, selectedCategory.value)
   isSaving.value = false
   if (success) {
     showSuccess('저장되었습니다')
@@ -417,6 +428,16 @@ function formatChipDate(dateStr) {
   const dateObj = new Date(dateStr + 'T00:00:00')
   const dayName = dayNames[dateObj.getDay()]
   return `${Number(m)}/${Number(d)}(${dayName})`
+}
+
+function formatChipLabel(reservation, allReservations) {
+  const sameDay = allReservations.filter(r => r.date === reservation.date)
+  if (sameDay.length > 1) {
+    const [month, day] = reservation.date.split('-').slice(1)
+    return `${parseInt(month)}/${parseInt(day)} ${reservation.start_time}`
+  }
+  const [month, day] = reservation.date.split('-').slice(1)
+  return `${parseInt(month)}/${parseInt(day)}`
 }
 
 watch(error, (e) => { if (e) showToast(e, 'error') })

@@ -7,7 +7,7 @@
           <div v-if="title" class="app-bottom-sheet__header">
             <h3 class="app-bottom-sheet__title">{{ title }}</h3>
           </div>
-          <div class="app-bottom-sheet__content">
+          <div class="app-bottom-sheet__content" @touchmove.stop>
             <slot />
           </div>
         </div>
@@ -17,7 +17,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { watch, onUnmounted } from 'vue'
+
+const props = defineProps({
   modelValue: { type: Boolean, default: false },
   title: { type: String, default: '' },
 })
@@ -27,6 +29,26 @@ const emit = defineEmits(['update:modelValue'])
 function close() {
   emit('update:modelValue', false)
 }
+
+function lockBodyScroll() {
+  document.body.style.overflow = 'hidden'
+}
+
+function unlockBodyScroll() {
+  document.body.style.overflow = ''
+}
+
+watch(() => props.modelValue, (open) => {
+  if (open) {
+    lockBodyScroll()
+  } else {
+    unlockBodyScroll()
+  }
+})
+
+onUnmounted(() => {
+  unlockBodyScroll()
+})
 </script>
 
 <style scoped>
@@ -38,6 +60,7 @@ function close() {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overscroll-behavior: contain;
 }
 
 .app-bottom-sheet__panel {
@@ -46,9 +69,11 @@ function close() {
   background: var(--color-white);
   border-radius: var(--radius-large) var(--radius-large) 0 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  max-height: 85vh;
+  max-height: calc(100vh - 12px);
+  max-height: calc(100dvh - 12px);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app-bottom-sheet__handle {
@@ -71,8 +96,14 @@ function close() {
 }
 
 .app-bottom-sheet__content {
-  padding: 24px var(--side-margin) 32px;
+  padding: 16px var(--side-margin) 32px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* ── Transition ── */

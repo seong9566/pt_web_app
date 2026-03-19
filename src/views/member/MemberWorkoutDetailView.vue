@@ -1,4 +1,4 @@
-<!-- 회원용 운동 상세 뷰 — 날짜별 배정된 운동 확인 -->
+<!-- 회원용 운동 상세 뷰 — 예약 기반 배정된 운동 확인 -->
 <template>
   <div class="workout-detail">
 
@@ -31,18 +31,18 @@
       <div class="workout-detail__date-nav">
         <button
           class="workout-detail__date-arrow"
-          :disabled="!prevDate"
-          @click="prevDate && goToDate(prevDate)"
+          :disabled="!prevReservationId"
+          @click="prevReservationId && goToReservation(prevReservationId)"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <span class="workout-detail__date-label">{{ formatDate(selectedDate) }}</span>
+        <span class="workout-detail__date-label">{{ formatDate(currentDate) }}</span>
         <button
           class="workout-detail__date-arrow"
-          :disabled="!nextDate"
-          @click="nextDate && goToDate(nextDate)"
+          :disabled="!nextReservationId"
+          @click="nextReservationId && goToReservation(nextReservationId)"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -102,34 +102,45 @@ const auth = useAuthStore()
 
 const { workoutPlans, currentPlan, loading, fetchWorkoutPlan, fetchWorkoutPlans, error } = useWorkoutPlans()
 const { checkTrainerConnection } = useReservations()
-const { showToast, showError, showSuccess } = useToast()
+const { showError } = useToast()
 const hasActiveConnection = ref(null)
 
 watch(error, (val) => {
   if (val) showError(val)
 })
 
-const selectedDate = ref(route.query.date || new Date().toISOString().split('T')[0])
+// 현재 선택된 예약 ID (route.query.reservationId 우선, 없으면 null)
+const currentReservationId = ref(route.query.reservationId || null)
 
-const sortedDates = computed(() =>
-  workoutPlans.value.map(p => p.date).sort()
+// workoutPlans를 날짜 오름차순으로 정렬한 배열
+const sortedPlans = computed(() =>
+  [...workoutPlans.value].sort((a, b) => a.date.localeCompare(b.date))
 )
 
-const prevDate = computed(() => {
-  const idx = sortedDates.value.indexOf(selectedDate.value)
+// 현재 예약의 날짜 (날짜 표시용)
+const currentDate = computed(() => {
+  if (!currentReservationId.value) return null
+  const plan = sortedPlans.value.find(p => p.reservation_id === currentReservationId.value)
+  return plan?.date || null
+})
+
+// 이전 예약 ID
+const prevReservationId = computed(() => {
+  const idx = sortedPlans.value.findIndex(p => p.reservation_id === currentReservationId.value)
   if (idx <= 0) return null
-  return sortedDates.value[idx - 1]
+  return sortedPlans.value[idx - 1].reservation_id
 })
 
-const nextDate = computed(() => {
-  const idx = sortedDates.value.indexOf(selectedDate.value)
-  if (idx === -1 || idx >= sortedDates.value.length - 1) return null
-  return sortedDates.value[idx + 1]
+// 다음 예약 ID
+const nextReservationId = computed(() => {
+  const idx = sortedPlans.value.findIndex(p => p.reservation_id === currentReservationId.value)
+  if (idx === -1 || idx >= sortedPlans.value.length - 1) return null
+  return sortedPlans.value[idx + 1].reservation_id
 })
 
-async function goToDate(date) {
-  selectedDate.value = date
-  await fetchWorkoutPlan(auth.user.id, date)
+async function goToReservation(reservationId) {
+  currentReservationId.value = reservationId
+  await fetchWorkoutPlan(reservationId)
 }
 
 function formatDate(dateStr) {
@@ -145,7 +156,9 @@ onMounted(async () => {
     return
   }
   await fetchWorkoutPlans(auth.user.id)
-  await fetchWorkoutPlan(auth.user.id, selectedDate.value)
+  if (currentReservationId.value) {
+    await fetchWorkoutPlan(currentReservationId.value)
+  }
 })
 </script>
 

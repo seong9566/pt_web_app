@@ -24,21 +24,18 @@ export function useWorkoutPlans() {
   const error = ref(null)
 
   /**
-   * 특정 날짜의 운동 계획 조회
-   * @param {string} memberId - 회원 ID
-   * @param {string} date - 날짜 (YYYY-MM-DD)
+   * 특정 예약의 운동 계획 조회
+   * @param {string} reservationId - 예약 ID
    */
-  async function fetchWorkoutPlan(memberId, date) {
-    const targetId = memberId || auth.user?.id
-    if (!targetId) return
+  async function fetchWorkoutPlan(reservationId) {
+    if (!reservationId) return
     loading.value = true
     error.value = null
     try {
       const { data, error: err } = await supabase
         .from('workout_plans')
-        .select('*')
-        .eq('member_id', targetId)
-        .eq('date', date)
+        .select('id, member_id, reservation_id, exercises, category')
+        .eq('reservation_id', reservationId)
         .maybeSingle()
       if (err) throw err
       currentPlan.value = data
@@ -85,29 +82,31 @@ export function useWorkoutPlans() {
 
    /**
      * 운동 계획 생성/수정 (UPSERT)
+     * @param {string} reservationId - 예약 ID
      * @param {string} memberId - 회원 ID
      * @param {string} date - 날짜 (YYYY-MM-DD)
      * @param {Array} exercises - 운동 배열
      */
-   async function saveWorkoutPlan(memberId, date, exercises, category) {
+   async function saveWorkoutPlan(reservationId, memberId, date, exercises, category) {
      loading.value = true
      error.value = null
      try {
-        const { data, error: err } = await supabase
-          .from('workout_plans')
-          .upsert(
-            {
-              trainer_id: auth.user.id,
-              member_id: memberId,
-              date,
-              exercises,
-              category,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'trainer_id,member_id,date' }
-          )
-         .select('id')
-         .single()
+         const { data, error: err } = await supabase
+           .from('workout_plans')
+           .upsert(
+             {
+              reservation_id: reservationId,
+               trainer_id: auth.user.id,
+               member_id: memberId,
+               date,
+               exercises,
+               category,
+               updated_at: new Date().toISOString(),
+             },
+            { onConflict: 'reservation_id' }
+           )
+          .select('id')
+          .single()
        if (err) throw err
        const { createNotification } = useNotifications()
        await createNotification(
@@ -118,9 +117,9 @@ export function useWorkoutPlans() {
          data.id,
          'workout'
        )
-       await fetchWorkoutPlan(memberId, date)
-       useWorkoutPlansStore().invalidate()
-       return true
+        await fetchWorkoutPlan(reservationId)
+        useWorkoutPlansStore().invalidate()
+        return true
      } catch (e) {
        error.value = e?.message ?? '운동 계획 저장에 실패했습니다'
        return false
@@ -185,26 +184,31 @@ export function useWorkoutPlans() {
     }
   }
 
-  /**
-   * 해당 회원의 예약 날짜 목록 조회 (오늘 이후, approved/pending)
-   * @param {string} memberId - 회원 ID
-   */
-  async function fetchMemberReservationDates(memberId) {
-    try {
-      const now = new Date()
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-       const { data, error: rErr } = await supabase
-         .from('reservations')
-         .select('date')
-         .eq('trainer_id', auth.user.id)
-         .eq('member_id', memberId)
-         .in('status', ['approved'])
-         .gte('date', today)
-        .order('date', { ascending: true })
-      if (rErr) throw rErr
+   /**
+    * 해당 회원의 예약 날짜/시간 목록 조회 (오늘 이후, approved)
+    * @param {string} memberId - 회원 ID
+    */
+   async function fetchMemberReservationDates(memberId) {
+     try {
+       const now = new Date()
+       const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+        const { data, error: rErr } = await supabase
+          .from('reservations')
+          .select('id, date, start_time')
+          .eq('trainer_id', auth.user.id)
+          .eq('member_id', memberId)
+          .in('status', ['approved'])
+          .gte('date', today)
+         .order('date', { ascending: true })
+       if (rErr) throw rErr
 
-      const uniqueDates = [...new Set((data || []).map(r => r.date))]
-      reservationDates.value = uniqueDates
+      reservationDates.value = (data || [])
+        .map((r) => ({
+          id: r.id,
+          date: r.date,
+          start_time: r.start_time?.slice(0, 5) ?? '',
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.start_time.localeCompare(b.start_time))
     } catch (e) {
       reservationDates.value = []
     }
@@ -225,9 +229,9 @@ export function useWorkoutPlans() {
     await store.loadWeeklyWorkoutCategories(auth.user.id, dates)
   }
 
-  function getWeeklyCategory(date, memberId) {
+  function getWeeklyCategory(reservationId) {
     const store = useWorkoutPlansStore()
-    return store.getWeeklyCategory(date, memberId)
+    return store.getWeeklyCategory(reservationId)
   }
 
   return {

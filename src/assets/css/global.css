@@ -20,6 +20,9 @@
   --color-red-light: #FFE5E5;
   --color-yellow: #FFCC00;
   --color-orange: #FF9500;   /* 변경 요청 상태 */
+  --color-block-normal: #F2F4F7;       /* 일반 블록 배경 */
+  --color-block-change: #FFE5E5;       /* 변경요청 블록 배경 (연한 핑크) */
+  --color-block-change-text: #CC3333;  /* 변경요청 블록 강조 텍스트 */
 
   /* ── Typography ── */
   --fs-display: 24px;

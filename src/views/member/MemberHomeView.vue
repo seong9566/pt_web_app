@@ -257,8 +257,8 @@ function fetchNextWorkoutPlan() {
       return rd > todayStr || (rd === todayStr && (r.start_time || '') > nowTime)
     })
     .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.start_time || '').localeCompare(b.start_time || ''))[0]
-  if (next?.date && auth.user?.id) {
-    fetchWorkoutPlan(auth.user.id, next.date)
+  if (next?.id) {
+    fetchWorkoutPlan(next.id)
   }
 }
 
