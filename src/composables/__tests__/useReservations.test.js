@@ -249,33 +249,100 @@ describe('useReservations', () => {
     mockEnv.authStore.user = { id: 'trainer-1' }
   })
 
-  it('reassignSchedule이 성공 후 schedule_reassigned 알림을 생성한다', async () => {
-    const builder = createBuilder()
-    // 1. select('trainer_id, member_id, start_time, end_time').eq().maybeSingle()
-    builder.maybeSingle.mockResolvedValueOnce({
-      data: { trainer_id: 'trainer-1', member_id: 'member-1', start_time: '14:00', end_time: '15:00' },
-      error: null,
-    })
-    // 2. update (cancel old).eq() → 성공
-    builder.eq
-      .mockReturnValueOnce(builder)   // select 체인
-      .mockResolvedValueOnce({ error: null })  // update 체인
-    // 3. rpc assign_schedule → 성공
+  it('reassignSchedule이 reassign_schedule RPC를 올바른 파라미터로 호출한다', async () => {
     mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
-    // 4. insert (notification) → 성공
-    builder.insert.mockResolvedValueOnce({ error: null })
-    mockEnv.supabase.from.mockReturnValue(builder)
 
     const { reassignSchedule } = useReservations()
     const result = await reassignSchedule('reservation-id', '2026-03-25', '10:00')
 
+    expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('reassign_schedule', {
+      p_reservation_id: 'reservation-id',
+      p_new_date: '2026-03-25',
+      p_new_start_time: '10:00',
+    })
     expect(result).toBe(true)
-    expect(builder.insert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'member-1',
-        type: 'schedule_reassigned',
-        title: '일정 재배정',
+  })
+
+  it('reassignSchedule 성공 시 스토어를 갱신한다', async () => {
+    mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
+
+    const { reassignSchedule } = useReservations()
+    await reassignSchedule('reservation-id', '2026-03-25', '10:00')
+
+    expect(mockEnv.reservationsStore.invalidate).toHaveBeenCalled()
+    expect(mockEnv.reservationsStore.loadReservations).toHaveBeenCalled()
+  })
+
+  it('reassignSchedule 충돌 시 error를 한글로 설정하고 false를 반환한다', async () => {
+    mockEnv.supabase.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Time slot conflict: another session exists at this time' },
+    })
+
+    const { reassignSchedule, error } = useReservations()
+    const result = await reassignSchedule('reservation-id', '2026-03-25', '10:00')
+
+    expect(result).toBe(false)
+    expect(error.value).toBe('해당 시간에 이미 다른 일정이 있습니다.')
+  })
+
+  describe('approveChangeRequest', () => {
+    it('approveChangeRequest가 approve_change_request RPC를 올바른 파라미터로 호출한다', async () => {
+      mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
+
+      const { approveChangeRequest } = useReservations()
+      const result = await approveChangeRequest('reservation-id')
+
+      expect(mockEnv.supabase.rpc).toHaveBeenCalledWith('approve_change_request', {
+        p_reservation_id: 'reservation-id',
       })
-    )
+      expect(result).toBe(true)
+    })
+
+    it('approveChangeRequest 성공 시 스토어를 갱신한다', async () => {
+      mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
+
+      const { approveChangeRequest } = useReservations()
+      await approveChangeRequest('reservation-id')
+
+      expect(mockEnv.reservationsStore.invalidate).toHaveBeenCalled()
+      expect(mockEnv.reservationsStore.loadReservations).toHaveBeenCalled()
+    })
+
+    it('approveChangeRequest 성공 시 true 반환 및 loading이 false', async () => {
+      mockEnv.supabase.rpc.mockResolvedValueOnce({ data: 'new-id', error: null })
+
+      const { approveChangeRequest, loading } = useReservations()
+      const result = await approveChangeRequest('reservation-id')
+
+      expect(result).toBe(true)
+      expect(loading.value).toBe(false)
+    })
+
+    it('approveChangeRequest 충돌 시 error를 한글로 설정하고 false를 반환한다', async () => {
+      mockEnv.supabase.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Time slot conflict: another session exists at this time' },
+      })
+
+      const { approveChangeRequest, error } = useReservations()
+      const result = await approveChangeRequest('reservation-id')
+
+      expect(result).toBe(false)
+      expect(error.value).toBe('해당 시간에 이미 다른 일정이 있습니다.')
+    })
+
+    it('approveChangeRequest 연결 비활성 시 error를 한글로 설정한다', async () => {
+      mockEnv.supabase.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'No active trainer-member connection' },
+      })
+
+      const { approveChangeRequest, error } = useReservations()
+      const result = await approveChangeRequest('reservation-id')
+
+      expect(result).toBe(false)
+      expect(error.value).toBe('트레이너와의 연결이 활성화되지 않았습니다.')
+    })
   })
 })
