@@ -47,6 +47,7 @@
             :currentWeekStart="currentWeekStart"
             :draggable="true"
             :loading="weeklyLoading || !loaded"
+            :myAvailability="myAvailabilityForCalendar"
             role="member"
             @schedule-tap="handleScheduleTap"
             @week-change="handleWeekChange"
@@ -282,6 +283,8 @@ import { useToast } from '@/composables/useToast'
 import { useScheduleOverrides } from '@/composables/useScheduleOverrides'
 import { useWorkHours } from '@/composables/useWorkHours'
 import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
+import { useAvailability } from '@/composables/useAvailability'
+import { dayKeySlotsToDateSlots } from '@/utils/availability'
 import { useReservationsStore } from '@/stores/reservations'
 
 defineOptions({ name: 'MemberScheduleView' })
@@ -400,6 +403,7 @@ const {
 const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWorkHours()
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchWorkoutPlan, currentPlan } = useWorkoutPlans()
+const { fetchMyAvailability } = useAvailability()
 
 const todayString = formatDate(new Date())
 
@@ -419,6 +423,8 @@ const changeReason = ref('')
 const trainerWorkSchedule = ref({ ...DEFAULT_WORK_SCHEDULE })
 const workingDays = ref(new Set())
 const connectedTrainerId = ref(null)
+const myAvailabilitySlots = ref(null)
+// 형식: { "mon": ["09:00","10:00"], ... } 또는 null
 const workoutPlanCache = ref({})
 
 const changeRequestDate = ref('')
@@ -429,6 +435,11 @@ const changeRequestSlotsLoading = ref(false)
 const showDndConfirmSheet = ref(false)
 const dndDropInfo = ref(null)
 const dndConfirmReason = ref('')
+
+const myAvailabilityForCalendar = computed(() => {
+  if (!myAvailabilitySlots.value) return null
+  return dayKeySlotsToDateSlots(myAvailabilitySlots.value, currentWeekStart.value)
+})
 
 const reservationItems = computed(() => {
   return reservations.value
@@ -625,6 +636,8 @@ async function loadData() {
     syncTrainerWorkSchedule()
     workingDays.value = await fetchWorkingDays(trainerId)
     await fetchOverrides(trainerId, currentMonthKey.value)
+    const availResult = await fetchMyAvailability(trainerId, currentWeekStart.value)
+    myAvailabilitySlots.value = availResult?.available_slots ?? null
   }
 
   loaded.value = true
@@ -658,6 +671,11 @@ async function handleWeekChange({ weekStart }) {
 
     if (connectedTrainerId.value && currentMonthKey.value !== prevMonth) {
       await fetchOverrides(connectedTrainerId.value, currentMonthKey.value)
+    }
+
+    if (connectedTrainerId.value) {
+      const availResult = await fetchMyAvailability(connectedTrainerId.value, weekStart)
+      myAvailabilitySlots.value = availResult?.available_slots ?? null
     }
   } finally {
     weeklyLoading.value = false
@@ -854,6 +872,11 @@ onMounted(() => {
 onActivated(() => {
   if (loaded.value && reservationsStore.isStale()) {
     loadData()
+  } else if (loaded.value && connectedTrainerId.value) {
+    // 가용 시간만 재조회 (stale 여부 무관)
+    fetchMyAvailability(connectedTrainerId.value, currentWeekStart.value).then((result) => {
+      myAvailabilitySlots.value = result?.available_slots ?? null
+    })
   }
 })
 </script>
