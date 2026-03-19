@@ -65,13 +65,18 @@
               @click.stop="handleScheduleTap(getScheduleAtSlot(date, time).id)"
             >
               <span class="weekly-calendar__block-name">{{ getScheduleName(getScheduleAtSlot(date, time)) }}</span>
-              <span v-if="getBlockLabel(getScheduleAtSlot(date, time))" class="weekly-calendar__block-label">
+              <span
+                v-if="getBlockLabel(getScheduleAtSlot(date, time))"
+                class="weekly-calendar__block-label"
+                :class="{ 'weekly-calendar__block-label--time': props.role === 'trainer' }"
+              >
                 {{ getBlockLabel(getScheduleAtSlot(date, time)) }}
               </span>
               <span
                 v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getChangeRequestLabel(getScheduleAtSlot(date, time))"
                 class="weekly-calendar__block-sublabel"
-              >{{ getChangeRequestLabel(getScheduleAtSlot(date, time)) }}</span>
+                v-html="getChangeRequestLabel(getScheduleAtSlot(date, time))"
+              />
               <span
                 v-if="props.conflictIds?.has(getScheduleAtSlot(date, time).id)"
                 class="weekly-calendar__block-conflict"
@@ -126,7 +131,7 @@
 import { computed, ref } from 'vue'
 import { countAvailableMembers, DAY_KEY_BY_INDEX } from '@/utils/availability'
 
-const CELL_HEIGHT = 56
+const CELL_HEIGHT = 68
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 const STATUS_COLORS = {
@@ -304,9 +309,9 @@ function getChangeRequestLabel(schedule) {
   if (!requestedTime) return ''
   if (schedule.requested_date && schedule.requested_date !== schedule.date) {
     const [, month, day] = schedule.requested_date.split('-')
-    return `${originalTime} → ${parseInt(month)}/${parseInt(day)} ${requestedTime}`
+    return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${parseInt(month)}/${parseInt(day)} ${requestedTime}</b></span>`
   }
-  return `${originalTime} → ${requestedTime}`
+  return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${requestedTime}</b></span>`
 }
 
 function getStatusColor(status) {
@@ -323,7 +328,13 @@ function getBlockClass(schedule) {
 
 function getBlockStyle(schedule) {
   const ratio = schedule.duration / effectiveSlotDuration.value
-  return { height: `${Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)}px` }
+  const baseHeight = Math.max(CELL_HEIGHT, CELL_HEIGHT * ratio)
+  if (schedule.status === 'change_requested' && schedule.requested_start_time) {
+    const hasDifferentDate = schedule.requested_date && schedule.requested_date !== schedule.date
+    const expandedHeight = baseHeight + 10
+    return { height: `${expandedHeight}px`, zIndex: 3 }
+  }
+  return { height: `${baseHeight}px` }
 }
 
 function getAvailableCount(date, time) {

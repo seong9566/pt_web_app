@@ -148,12 +148,13 @@
   color: var(--color-gray-900);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  text-align: center;
-  padding: 6px 2px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 1px; /* Tighter gap */
+  text-align: left;
+  padding: 4px; /* Less padding to give text more horizontal width */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  overflow: visible;
   transition: transform var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
 }
 
@@ -178,21 +179,31 @@
   color: var(--color-gray-900);
 }
 
+/* 변경요청 블록 스타일: 참조 이미지 반영 (옅은 오렌지 배경과 테두리) */
 .weekly-calendar__block--change_requested {
-  background-color: var(--color-block-change);
+  background-color: #FFF2E6; /* Light orange */
+  border: 1px solid #FFD8BA;
   color: var(--color-gray-900);
 }
 
 .weekly-calendar__block--change_requested::after {
   content: '';
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 6px;
-  height: 6px;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: var(--color-red);
+  background-color: var(--color-orange);
+  border: 1.5px solid var(--color-white);
   pointer-events: none;
+  z-index: 2;
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .weekly-calendar__block--completed {
@@ -201,37 +212,86 @@
 }
 
 .weekly-calendar__block-name {
-  font-size: var(--fs-body2);
-  font-weight: var(--fw-body1-bold);
+  font-size: 12px;
+  font-weight: var(--fw-body2);
+  color: var(--color-gray-900);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
 }
 
 .weekly-calendar__block-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
   line-height: 1.2;
-}
-
-.weekly-calendar__block-sublabel {
-  display: block;
-  font-size: 10px;
-  opacity: 0.85;
-  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+}
+
+.weekly-calendar__block-label--time {
+  font-size: 11px;
+  font-weight: var(--fw-body2); /* Use normal weight */
+  color: var(--color-gray-600);
+  line-height: 1.1;
+}
+
+.weekly-calendar__block-sublabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-size: 11px;
+  color: var(--color-gray-600);
+  line-height: 1.2;
+  width: 100%;
+  overflow: hidden;
+}
+
+.weekly-calendar__badge {
+  display: inline-block;
+  padding: 1px 4px;
+  background-color: var(--color-blue-light, #E5F1FF);
+  color: var(--color-blue-primary);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: var(--fw-body1-bold);
+  margin-bottom: 2px;
+  vertical-align: baseline;
 }
 
 .weekly-calendar__block-sublabel s {
-  color: inherit;
+  color: var(--color-gray-600);
   text-decoration: line-through;
+  opacity: 0.7; /* Make the original time look slightly fainter */
+}
+
+.weekly-calendar__block-sublabel b {
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary); /* 강조 텍스트(새로운 시간)는 파란색 */
 }
 
 .weekly-calendar__block--change_requested .weekly-calendar__block-sublabel {
   text-decoration: none;
+}
+
+.weekly-calendar__cr-row {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.weekly-calendar__cr-arrow {
+  display: block;
+  font-size: 9px;
+  color: var(--color-orange);
+  line-height: 1;
 }
 
 .weekly-calendar__block-conflict {
