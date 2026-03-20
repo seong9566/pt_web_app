@@ -621,6 +621,40 @@ export function useReservations() {
     }
   }
 
+  /**
+   * 승인 되돌리기 — change_requested 상태로 복원 (Undo용)
+   * @param {string} reservationId - 예약 ID
+   * @param {Object} originalData - 승인 전 원본 데이터
+   */
+  async function revertApproval(reservationId, originalData) {
+    try {
+      // 현재 상태가 scheduled일 때만 복원 (다른 상태로 변경된 경우 방어)
+      const { error: err, count } = await supabase
+        .from('reservations')
+        .update({
+          status: 'change_requested',
+          requested_date: originalData.requested_date,
+          requested_start_time: originalData.requested_start_time,
+          requested_end_time: originalData.requested_end_time,
+          change_reason: originalData.change_reason,
+          date: originalData.date,
+          start_time: originalData.start_time,
+          end_time: originalData.end_time,
+        })
+        .eq('id', reservationId)
+        .eq('status', 'scheduled')
+
+      if (err) {
+        error.value = '승인 취소에 실패했습니다.'
+        return false
+      }
+      return true
+    } catch (e) {
+      error.value = '승인 취소에 실패했습니다.'
+      return false
+    }
+  }
+
   return {
     slots,
     reservations,
@@ -638,6 +672,7 @@ export function useReservations() {
     cancelChangeRequest,
     reassignSchedule,
     cancelSchedule,
+    revertApproval,
     checkTrainerConnection,
     getConnectedTrainerId,
     checkPtCount,

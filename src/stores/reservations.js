@@ -8,7 +8,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
@@ -35,6 +35,12 @@ export const useReservationsStore = defineStore('reservations', () => {
   const reservations = ref([])         // 예약 목록 캐시
   const lastFetchedAt = ref(null)      // 마지막 조회 타임스탬프 (Date.now())
   const _dirty = ref(false)            // 캐시 무효화 플래그
+  let _channel = null                  // Realtime 구독 채널
+
+  /** 변경 요청 건수 (전체 예약 기준) */
+  const changeRequestCount = computed(() =>
+    reservations.value.filter(r => r.status === 'change_requested').length
+  )
 
   /**
    * 캐시가 만료되었는지 확인
@@ -119,14 +125,79 @@ export const useReservationsStore = defineStore('reservations', () => {
     _dirty.value = true
   }
 
+  /**
+   * Supabase Realtime 구독 — 예약 변경 시 즉시 갱신
+   * TrainerBottomNav 마운트 시 호출. 중복 구독 방지 내장.
+   */
+  function subscribe() {
+    const auth = useAuthStore()
+    if (!auth.user?.id || _channel) return
+
+    let _debounceTimer = null
+    function debouncedReload(payload) {
+      clearTimeout(_debounceTimer)
+      _debounceTimer = setTimeout(async () => {
+        // 배너를 먼저 표시 (loadReservations 완료 대기하지 않음)
+        if (payload?.new?.status === 'change_requested') {
+          _onChangeRequestCallback?.()
+        }
+        await loadReservations(auth.role || 'trainer', true)
+      }, 300)
+    }
+
+    _channel = supabase
+      .channel(`reservations-trainer-${auth.user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reservations',
+          filter: `trainer_id=eq.${auth.user.id}`,
+        },
+        (payload) => debouncedReload(payload)
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'reservations',
+          filter: `trainer_id=eq.${auth.user.id}`,
+        },
+        (payload) => debouncedReload(payload)
+      )
+      .subscribe()
+  }
+
+  /** Realtime 구독 해제 */
+  function unsubscribe() {
+    if (_channel) {
+      supabase.removeChannel(_channel)
+      _channel = null
+    }
+  }
+
+  /** 변경 요청 수신 콜백 (외부에서 설정) */
+  let _onChangeRequestCallback = null
+  function onChangeRequest(callback) {
+    _onChangeRequestCallback = callback
+  }
+
   /** 상태 전체 초기화 */
   function $reset() {
     reservations.value = []
     lastFetchedAt.value = null
     _dirty.value = false
+    unsubscribe()
   }
 
-  return { reservations, lastFetchedAt, isStale, loadReservations, invalidate, $reset }
+  return {
+    reservations, lastFetchedAt, changeRequestCount,
+    isStale, loadReservations, invalidate,
+    subscribe, unsubscribe, onChangeRequest,
+    $reset,
+  }
 })
 
 export { STATUS_DISPLAY }
