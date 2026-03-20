@@ -11,6 +11,7 @@
       <span v-if="item.id === 'chat' && chatUnreadCount > 0" class="trainer-nav__badge">
         {{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}
       </span>
+      <span v-if="item.id === 'schedule' && changeRequestCount > 0" class="trainer-nav__dot" />
       <span class="trainer-nav__label">{{ item.label }}</span>
     </button>
   </nav>
@@ -22,18 +23,22 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useChatBadgeStore } from '@/stores/chatBadge'
 import { useNotificationBadgeStore } from '@/stores/notificationBadge'
-
-
+import { useReservationsStore } from '@/stores/reservations'
+import { useRealtimeBannerStore } from '@/stores/realtimeBanner'
 
 const router = useRouter()
 const route = useRoute()
 const chatBadgeStore = useChatBadgeStore()
 const notificationBadgeStore = useNotificationBadgeStore()
+const reservationsStore = useReservationsStore()
+const realtimeBannerStore = useRealtimeBannerStore()
 const { unreadCount: chatUnreadCount } = storeToRefs(chatBadgeStore)
+const { changeRequestCount } = storeToRefs(reservationsStore)
 
 async function handleVisibilityChange() {
   if (!document.hidden) {
     await chatBadgeStore.loadUnreadCount(true)
+    await reservationsStore.loadReservations('trainer', true)
   }
 }
 
@@ -44,12 +49,18 @@ onMounted(async () => {
   chatBadgeStore.subscribe()
   await notificationBadgeStore.loadUnreadCount()
   notificationBadgeStore.subscribe()
+  await reservationsStore.loadReservations('trainer')
+  reservationsStore.onChangeRequest(() => {
+    realtimeBannerStore.showBanner('새로운 변경 요청이 있습니다', '/trainer/reservations')
+  })
+  reservationsStore.subscribe()
 })
 
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   chatBadgeStore.unsubscribe()
   notificationBadgeStore.unsubscribe()
+  reservationsStore.unsubscribe()
 })
 
 const navItems = [
@@ -182,5 +193,15 @@ function handleNav(item) {
   justify-content: center;
   padding: 0 4px;
   line-height: 1;
+}
+
+.trainer-nav__dot {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 16px);
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-red);
+  border-radius: 50%;
 }
 </style>

@@ -30,12 +30,20 @@ function close() {
   emit('update:modelValue', false)
 }
 
+// 다중 바텀시트 중첩 시 스크롤 잠금을 안전하게 관리하는 reference counting
+// 모듈 스코프 — 모든 AppBottomSheet 인스턴스가 공유
+if (!window.__bottomSheetLockCount) window.__bottomSheetLockCount = 0
+
 function lockBodyScroll() {
+  window.__bottomSheetLockCount++
   document.body.style.overflow = 'hidden'
 }
 
 function unlockBodyScroll() {
-  document.body.style.overflow = ''
+  window.__bottomSheetLockCount = Math.max(0, window.__bottomSheetLockCount - 1)
+  if (window.__bottomSheetLockCount === 0) {
+    document.body.style.overflow = ''
+  }
 }
 
 watch(() => props.modelValue, (open) => {
@@ -47,7 +55,10 @@ watch(() => props.modelValue, (open) => {
 })
 
 onUnmounted(() => {
-  unlockBodyScroll()
+  // 열린 상태에서 unmount되면 카운트 감소
+  if (props.modelValue) {
+    unlockBodyScroll()
+  }
 })
 </script>
 
@@ -109,12 +120,13 @@ onUnmounted(() => {
 /* ── Transition ── */
 .app-bottom-sheet-enter-active,
 .app-bottom-sheet-leave-active {
-  transition: opacity 0.25s;
+  transition: opacity 0.28s ease-out;
 }
 
 .app-bottom-sheet-enter-active .app-bottom-sheet__panel,
 .app-bottom-sheet-leave-active .app-bottom-sheet__panel {
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
 }
 
 .app-bottom-sheet-enter-from,

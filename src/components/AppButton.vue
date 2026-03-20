@@ -41,6 +41,7 @@ defineProps({
   border: none;
   transition: opacity 0.15s;
   font-family: inherit;
+  flex-shrink: 0;
 }
 .app-btn--full {
   width: 100%;
