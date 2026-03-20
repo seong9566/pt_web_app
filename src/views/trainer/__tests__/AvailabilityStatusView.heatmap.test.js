@@ -109,8 +109,10 @@ describe('AvailabilityStatusView 히트맵', () => {
 
   it('셀 클릭 시 바텀시트 오픈', async () => {
     expect(wrapper.find('.bottom-sheet-stub').exists()).toBe(false)
+    // M7: 0명 셀은 div이므로 클릭 불가. mon/09:00(2명, heat-1) 셀 사용
+    // TIME_SLOTS[3] = '09:00', DAY_ORDER[0] = 'mon' → 인덱스 3*7 + 0 = 21
     const cells = wrapper.findAll('.availability-status__heatmap-cell')
-    await cells[0].trigger('click')
+    await cells[21].trigger('click')
     expect(wrapper.find('.bottom-sheet-stub').exists()).toBe(true)
   })
 

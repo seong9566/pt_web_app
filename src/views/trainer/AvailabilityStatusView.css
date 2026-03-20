@@ -21,8 +21,8 @@
 }
 
 .availability-status__back {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,8 +45,8 @@
 }
 
 .availability-status__header-spacer {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
 }
 
 .availability-status__content {
@@ -90,8 +90,8 @@
 }
 
 .availability-status__week-arrow {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid var(--color-gray-200);
   background-color: var(--color-white);
@@ -171,12 +171,26 @@
 
 /* 히트맵 래퍼 */
 .availability-status__heatmap-wrapper {
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-medium);
   border: 1px solid var(--color-gray-200);
   background-color: var(--color-white);
   box-shadow: var(--shadow-card);
+}
+
+/* M8: 가로 스크롤 힌트 */
+.availability-status__heatmap-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8));
+  pointer-events: none;
+  border-radius: 0 var(--radius-medium) var(--radius-medium) 0;
 }
 
 /* 히트맵 그리드 */
@@ -230,23 +244,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-height: 44px;
   border-right: 1px solid rgba(0, 0, 0, 0.06);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   font-size: var(--fs-caption);
   font-weight: var(--fw-body1-bold);
-  cursor: pointer;
   transition: opacity 0.15s ease;
 }
 
-.availability-status__heatmap-cell:active {
+/* M7: 버튼 셀만 인터랙티브 스타일 */
+button.availability-status__heatmap-cell {
+  cursor: pointer;
+}
+
+button.availability-status__heatmap-cell:active {
   opacity: 0.7;
 }
 
 /* 색상 강도 */
 .availability-status__heatmap-cell--heat-0 {
   background-color: var(--color-gray-100);
-  color: var(--color-gray-200);
+  color: var(--color-gray-400);
 }
 
 .availability-status__heatmap-cell--heat-1 {
@@ -335,7 +353,7 @@
 
 /* 리마인더 버튼 */
 .availability-status__reminder-btn {
-  height: 32px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: var(--radius-small);
   background-color: var(--color-blue-primary);
@@ -349,4 +367,73 @@
 
 .availability-status__reminder-btn:disabled {
   opacity: 0.55;
+}
+
+/* C3: 로딩 스켈레톤 래퍼 */
+.availability-status__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* C1: 에러 상태 */
+.availability-status__error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 44px 16px;
+  border-radius: var(--radius-large);
+  background-color: var(--color-red-light);
+  text-align: center;
+}
+
+.availability-status__error-state-title {
+  margin: 0;
+  color: var(--color-red);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+}
+
+.availability-status__error-state-desc {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+}
+
+.availability-status__error-state-btn {
+  margin-top: 8px;
+  padding: 12px 32px;
+  border-radius: var(--radius-medium);
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+}
+
+/* m11: 이모지 대체 CSS 도트 */
+.availability-status__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.availability-status__dot--red {
+  background-color: var(--color-red);
+}
+
+/* m13: 키보드 접근성 포커스 스타일 */
+.availability-status__back:focus-visible,
+.availability-status__week-arrow:focus-visible,
+button.availability-status__heatmap-cell:focus-visible,
+.availability-status__pending-banner:focus-visible,
+.availability-status__reminder-btn:focus-visible,
+.availability-status__error-state-btn:focus-visible {
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: -2px;
 }
