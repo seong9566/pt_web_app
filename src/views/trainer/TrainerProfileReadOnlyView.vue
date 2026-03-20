@@ -4,7 +4,7 @@
 
     <!-- ── 헤더 ── -->
     <div class="trainer-profile-ro__header">
-      <button class="trainer-profile-ro__back" @click="router.back()">
+      <button class="trainer-profile-ro__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -67,12 +67,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { useMembers } from '@/composables/useMembers'
 import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { members, fetchMembers } = useMembers()
 

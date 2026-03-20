@@ -2,7 +2,7 @@
 <template>
   <div class="trainer-profile">
     <div class="trainer-profile__header">
-      <button class="trainer-profile__back" @click="router.back()" style="color: var(--color-gray-900);">
+      <button class="trainer-profile__back" @click="safeBack(route.path)" style="color: var(--color-gray-900);">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="trainer-profile__progress">
@@ -61,7 +61,8 @@
 </template>
 <script setup>
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
@@ -75,6 +76,7 @@ import dietIcon from '@/assets/icons/food.svg'
 import sportsIcon from '@/assets/icons/sports.svg'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { saveTrainerProfile, error: profileError, uploading } = useProfile()
 const { showToast } = useToast()

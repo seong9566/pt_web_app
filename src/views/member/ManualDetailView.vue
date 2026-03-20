@@ -28,7 +28,7 @@
 
     <!-- Error -->
     <div v-else-if="error" class="manual-detail__fallback">
-      <button class="manual-detail__back manual-detail__back--dark" @click="router.back()">
+      <button class="manual-detail__back manual-detail__back--dark" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -39,7 +39,7 @@
     <!-- Not found -->
     <template v-else-if="!manual">
       <div class="manual-detail__fallback">
-        <button class="manual-detail__back manual-detail__back--dark" @click="router.back()">
+        <button class="manual-detail__back manual-detail__back--dark" @click="safeBack(route.path)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -61,7 +61,7 @@
         />
         <div v-else class="manual-detail__hero-placeholder" />
         <div class="manual-detail__hero-overlay" />
-        <button class="manual-detail__back-btn" @click="router.back()">
+        <button class="manual-detail__back-btn" @click="safeBack(route.path)">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -174,6 +174,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
@@ -207,7 +208,7 @@ const youtubeVideoId = computed(() => extractYoutubeVideoId(manual.value?.youtub
 async function confirmDelete() {
   showDeleteDialog.value = false
   const ok = await deleteManual(manual.value.id)
-  if (ok) router.back()
+  if (ok) safeBack(route.path)
 }
 
 onMounted(() => {

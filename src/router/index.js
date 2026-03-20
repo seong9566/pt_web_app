@@ -292,19 +292,50 @@ const router = createRouter({
   ],
 });
 
+/** 온보딩 완료 판단 — role + name + 역할별 세부 프로필 존재 확인 */
+function isOnboardingComplete(auth) {
+  if (!auth.role || !auth.profile?.name) return false
+
+  if (auth.role === 'trainer') {
+    const tp = auth.profile.trainer_profiles
+    return Array.isArray(tp) ? tp.length > 0 : !!tp
+  }
+  if (auth.role === 'member') {
+    const mp = auth.profile.member_profiles
+    return Array.isArray(mp) ? mp.length > 0 : !!mp
+  }
+  return false
+}
+
+/** 온보딩 미완료 시 해당 단계 경로 반환 (완료면 null) */
+function getRequiredOnboardingRoute(auth) {
+  if (!auth.role) return '/onboarding/role'
+  if (!auth.profile?.name) {
+    return auth.role === 'trainer' ? '/trainer/profile' : '/onboarding/member-profile'
+  }
+
+  const tp = auth.profile?.trainer_profiles
+  const mp = auth.profile?.member_profiles
+  if (auth.role === 'trainer' && !(Array.isArray(tp) ? tp.length > 0 : !!tp)) return '/trainer/profile'
+  if (auth.role === 'member' && !(Array.isArray(mp) ? mp.length > 0 : !!mp)) return '/onboarding/member-profile'
+
+  return null
+}
+
 /**
  * 라우터 가드 (beforeEach)
  *
  * 1. auth 초기화 대기 (세션 복원 완료까지)
- * 2. 미인증 + 보호된 경로 → /login 리다이렉트
- * 3. 인증됨 + /login 접근 → 역할별 홈으로 리다이렉트
- * 4. 역할 불일치 → 해당 역할의 홈으로 리다이렉트
+ * 2. 미인증 + 보호된 경로 → /login 리다이렉트 (딥링크 저장)
+ * 3. 인증됨 + /login 접근 → 역할별 홈 또는 딥링크 복귀
+ * 4. 온보딩 미완료 시 보호 라우트 접근 차단
+ * 5. 역할 불일치 → 해당 역할의 홈으로 리다이렉트
  */
 router.beforeEach(async (to) => {
   try {
     const auth = useAuthStore();
 
-    // Wait for auth initialization to complete
+    // auth 초기화 대기
     if (auth.loading) {
       await auth.initialize();
     }
@@ -313,44 +344,61 @@ router.beforeEach(async (to) => {
     const isAuthenticated = !!auth.user;
     const isOnboarding = to.path.startsWith("/onboarding");
 
-    // Unauthenticated user accessing protected route → redirect to login
+    // 미인증 + 보호된 경로 → 딥링크 저장 후 /login 리다이렉트
     if (!isAuthenticated && !isPublic) {
+      sessionStorage.setItem('redirectAfterLogin', to.fullPath)
       return "/login";
     }
 
-    // Authenticated user accessing login → redirect based on role
+    // 인증됨 + /login 접근 → 딥링크 복귀 또는 역할별 홈
     if (isAuthenticated && to.path === "/login") {
+      const redirect = sessionStorage.getItem('redirectAfterLogin')
+      sessionStorage.removeItem('redirectAfterLogin')
+
+      // 온보딩 미완료 사용자는 딥링크 무시
+      const requiredRoute = getRequiredOnboardingRoute(auth)
+      if (requiredRoute) return requiredRoute
+
+      // 유효한 딥링크가 있으면 복귀
+      if (redirect && redirect !== '/login' && redirect !== '/auth/callback') {
+        return redirect
+      }
+
       if (auth.role === "trainer") return "/trainer/home";
       if (auth.role === "member") return "/member/home";
       return "/onboarding/role";
     }
 
+    // 삭제 대기 중인 계정 → 삭제 대기 페이지로
     if (isAuthenticated && auth.deletionPending && to.path !== '/account-delete-pending') {
       return '/account-delete-pending'
     }
 
-    // 온보딩 + 트레이너 프로필 생성 페이지: role + 프로필 완성 시에만 재진입 차단
+    // 온보딩 + 트레이너 프로필 페이지: 이미 완료 시 재진입 차단
     const isOnboardingOrTrainerProfile = isOnboarding || to.path === '/trainer/profile'
     if (isOnboardingOrTrainerProfile) {
-      if (isAuthenticated && auth.role && auth.profile?.name) {
+      if (isAuthenticated && isOnboardingComplete(auth)) {
         return auth.role === 'trainer' ? '/trainer/home' : '/member/home'
       }
       return
     }
 
-    // Role-based access control (only for authenticated users with a role)
+    // 보호 라우트 접근 시 온보딩 미완료면 해당 단계로 강제 이동
+    if (isAuthenticated && auth.role && !isPublic) {
+      const requiredRoute = getRequiredOnboardingRoute(auth)
+      if (requiredRoute) return requiredRoute
+    }
+
+    // 역할 기반 접근 제어
     if (isAuthenticated && auth.role) {
       const isTrainerRoute = to.path.startsWith("/trainer/");
       const isMemberRoute =
         to.path.startsWith("/member/") ||
         to.path === "/member/home";
 
-      // Trainer accessing member routes → redirect to trainer home
       if (auth.role === "trainer" && isMemberRoute) {
         return "/trainer/home";
       }
-
-      // Member accessing trainer routes → redirect to member home
       if (auth.role === "member" && isTrainerRoute) {
         return "/member/home";
       }
@@ -359,5 +407,11 @@ router.beforeEach(async (to) => {
     console.error("Router beforeEach Error: ", e);
   }
 });
+
+/** 앱 내부 네비게이션 추적 — safeBack에서 사용 */
+import { markInternalNavigation } from '@/utils/navigation'
+router.afterEach(() => {
+  markInternalNavigation()
+})
 
 export default router;

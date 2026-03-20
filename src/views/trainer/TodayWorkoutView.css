@@ -207,6 +207,81 @@
   color: var(--color-warning-icon);
 }
 
+/* 기존 운동 요약 카드 (View-first) */
+.today-workout__existing-card {
+  background: var(--color-white);
+  border-radius: var(--radius-medium);
+  border: 1.5px solid var(--color-green);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.today-workout__existing-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-green);
+}
+
+.today-workout__existing-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.today-workout__existing-category {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-blue-primary);
+}
+
+.today-workout__existing-summary {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  line-height: var(--lh-body);
+}
+
+.today-workout__existing-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.today-workout__existing-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+}
+
+.today-workout__existing-btn--edit {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+.today-workout__existing-btn--edit:active {
+  opacity: 0.85;
+}
+
+.today-workout__existing-btn--new {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+  border: 1.5px solid var(--color-gray-200);
+}
+
+.today-workout__existing-btn--new:active {
+  background-color: var(--color-gray-200);
+}
+
 .today-workout__category-chips {
   display: flex;
   flex-wrap: wrap;
@@ -645,4 +720,102 @@
 
 .today-workout__save-btn:active:not(:disabled) {
   opacity: 0.85;
+}
+
+/* 저장 확인 바텀시트 */
+.today-workout__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.today-workout__confirm-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.today-workout__confirm-name {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.today-workout__confirm-date {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.today-workout__confirm-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+.today-workout__confirm-category {
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.today-workout__confirm-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--color-warning-bg);
+  border-radius: var(--radius-small);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-warning-text);
+}
+
+.today-workout__confirm-warning svg {
+  flex-shrink: 0;
+  color: var(--color-warning-icon);
+}
+
+.today-workout__confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.today-workout__confirm-btn {
+  flex: 1;
+  height: var(--btn-height);
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+
+.today-workout__confirm-btn--cancel {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.today-workout__confirm-btn--cancel:active {
+  background-color: var(--color-gray-200);
+}
+
+.today-workout__confirm-btn--save {
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+}
+
+.today-workout__confirm-btn--save:active:not(:disabled) {
+  opacity: 0.85;
+}
+
+.today-workout__confirm-btn--save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

@@ -1,7 +1,7 @@
 <!-- 개발 전용 이메일 로그인 페이지. 프로덕션에서는 사용 불가 -->
 <template>
   <div class="dev-login">
-    <button class="dev-login__back" @click="router.back()">
+    <button class="dev-login__back" @click="safeBack(route.path)">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -66,11 +66,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 const email = ref('')

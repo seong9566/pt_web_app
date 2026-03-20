@@ -267,6 +267,14 @@
   padding: 14px;
   text-align: left;
   cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 터치 피드백 */
+.schedule-item:active {
+  transform: scale(0.98);
+  opacity: 0.7;
 }
 
 .schedule-item__head {
@@ -464,6 +472,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  animation: fadeSlideUp var(--animation-duration-fast) var(--animation-easing-decelerate);
 }
 
 .detail-sheet__row {
@@ -656,6 +665,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  animation: fadeSlideUp var(--animation-duration-fast) var(--animation-easing-decelerate);
 }
 
 .cr-sheet__header {

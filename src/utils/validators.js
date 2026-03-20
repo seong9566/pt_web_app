@@ -25,9 +25,11 @@ export function formatPhone(value) {
 
 /**
  * 이메일 유효성 검사
+ * TLD 최소 2자 이상 + 전체 길이 254자 제한 (RFC 5321)
  */
 export function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  if (!value || value.length > 254) return false
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)
 }
 
 /**

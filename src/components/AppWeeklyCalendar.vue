@@ -16,6 +16,7 @@
 
     <div
       class="weekly-calendar__grid-wrapper"
+      :class="{ 'weekly-calendar__grid-wrapper--dragging': dndState === 'dragging' }"
       @pointermove="handlePointerMove"
       @pointerup="handlePointerUp"
       @pointercancel="cancelDrag"
@@ -75,8 +76,11 @@
               <span
                 v-if="getScheduleAtSlot(date, time)?.status === 'change_requested' && getChangeRequestLabel(getScheduleAtSlot(date, time))"
                 class="weekly-calendar__block-sublabel"
-                v-html="getChangeRequestLabel(getScheduleAtSlot(date, time))"
-              />
+              >
+                <span class="weekly-calendar__cr-row"><s>{{ getChangeRequestLabel(getScheduleAtSlot(date, time)).original }}</s></span>
+                <span class="weekly-calendar__cr-arrow">↓</span>
+                <span class="weekly-calendar__cr-row"><b>{{ getChangeRequestLabel(getScheduleAtSlot(date, time)).requested }}</b></span>
+              </span>
               <span
                 v-if="props.conflictIds?.has(getScheduleAtSlot(date, time).id)"
                 class="weekly-calendar__block-conflict"
@@ -306,12 +310,13 @@ function getBlockRatio(schedule) {
 function getChangeRequestLabel(schedule) {
   const originalTime = schedule.start_time?.slice(0, 5)
   const requestedTime = schedule.requested_start_time?.slice(0, 5)
-  if (!requestedTime) return ''
+  if (!requestedTime) return null
+  // 날짜가 다른 경우 날짜도 함께 표시
   if (schedule.requested_date && schedule.requested_date !== schedule.date) {
     const [, month, day] = schedule.requested_date.split('-')
-    return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${parseInt(month)}/${parseInt(day)} ${requestedTime}</b></span>`
+    return { original: originalTime, requested: `${parseInt(month)}/${parseInt(day)} ${requestedTime}` }
   }
-  return `<span class="weekly-calendar__cr-row"><s>${originalTime}</s></span><span class="weekly-calendar__cr-arrow">↓</span><span class="weekly-calendar__cr-row"><b>${requestedTime}</b></span>`
+  return { original: originalTime, requested: requestedTime }
 }
 
 function getStatusColor(status) {
@@ -396,6 +401,9 @@ function handlePointerDown(event, schedule) {
     return
   }
 
+  // 모바일 롱프레스 시 텍스트 선택/컨텍스트 메뉴 방지
+  event.preventDefault()
+
   justDropped.value = false
   clearTimeout(pressTimer.value)
 
@@ -407,6 +415,8 @@ function handlePointerDown(event, schedule) {
   pressTimer.value = setTimeout(() => {
     if (dndState.value === 'pressing') {
       dndState.value = 'dragging'
+      // 드래그 시작 시 텍스트 선택 해제 및 그리드 스크롤 방지
+      window.getSelection()?.removeAllRanges()
       updateGhostPosition(pressStartPos.value.x, pressStartPos.value.y)
     }
   }, 300)

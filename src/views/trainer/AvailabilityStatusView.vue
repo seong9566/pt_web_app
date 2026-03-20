@@ -1,7 +1,7 @@
 <template>
   <div class="availability-status">
     <header class="availability-status__header">
-      <button class="availability-status__back" type="button" @click="router.back()" aria-label="뒤로가기">
+      <button class="availability-status__back" type="button" @click="safeBack(route.path)" aria-label="뒤로가기">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -36,8 +36,23 @@
         </div>
       </section>
 
-      <div v-if="isLoading" class="availability-status__state">
-        <p class="availability-status__state-title">회원 등록 현황을 불러오는 중입니다</p>
+      <!-- C3: 로딩 스켈레톤 -->
+      <div v-if="isLoading" class="availability-status__skeleton">
+        <AppSkeleton type="rect" height="44px" :count="1" />
+        <AppSkeleton type="rect" height="44px" :count="4" />
+      </div>
+
+      <!-- C1: 에러 상태 (빈 상태와 분리) -->
+      <div v-else-if="hasError" class="availability-status__error-state">
+        <p class="availability-status__error-state-title">데이터를 불러오지 못했습니다</p>
+        <p class="availability-status__error-state-desc">네트워크 상태를 확인하고 다시 시도해주세요.</p>
+        <button
+          class="availability-status__error-state-btn press-effect"
+          type="button"
+          @click="loadAvailabilityStatus({ includeMembers: true })"
+        >
+          다시 불러오기
+        </button>
       </div>
 
       <div v-else-if="isEmpty" class="availability-status__state">
@@ -52,9 +67,10 @@
           v-if="pendingMembers.length > 0"
           class="availability-status__pending-banner press-effect"
           type="button"
+          aria-label="미등록 회원 목록 보기"
           @click="showPendingSheet = true"
         >
-          <span>🔴 미등록 {{ pendingMembers.length }}명</span>
+          <span><span class="availability-status__dot availability-status__dot--red" aria-hidden="true"></span> 미등록 {{ pendingMembers.length }}명</span>
           <span class="availability-status__pending-banner-arrow">확인하기 ›</span>
         </button>
 
@@ -69,16 +85,26 @@
 
             <template v-for="time in TIME_SLOTS" :key="time">
               <div class="availability-status__heatmap-time">{{ time }}</div>
-              <button
-                v-for="day in DAY_ORDER"
-                :key="day + time"
-                class="availability-status__heatmap-cell"
-                :class="`availability-status__heatmap-cell--heat-${heatLevel(heatmapData[day]?.[time]?.count ?? 0)}`"
-                type="button"
-                @click="handleCellClick(day, time)"
-              >
-              {{ heatmapData[day]?.[time]?.count ?? 0 }}
-              </button>
+              <template v-for="day in DAY_ORDER" :key="day + time">
+                <!-- M7: 1명 이상 셀은 버튼, 0명 셀은 비활성 div -->
+                <button
+                  v-if="(heatmapData[day]?.[time]?.count ?? 0) > 0"
+                  class="availability-status__heatmap-cell"
+                  :class="`availability-status__heatmap-cell--heat-${heatLevel(heatmapData[day]?.[time]?.count ?? 0)}`"
+                  type="button"
+                  :aria-label="`${DAY_FULL_LABELS[day]} ${time} 가능 회원 ${heatmapData[day]?.[time]?.count ?? 0}명`"
+                  @click="handleCellClick(day, time)"
+                >
+                  {{ heatmapData[day]?.[time]?.count ?? 0 }}
+                </button>
+                <div
+                  v-else
+                  class="availability-status__heatmap-cell availability-status__heatmap-cell--heat-0"
+                  role="presentation"
+                >
+                  0
+                </div>
+              </template>
             </template>
           </div>
         </div>
@@ -119,10 +145,11 @@
           <button
             class="availability-status__reminder-btn press-effect"
             type="button"
-            :disabled="Boolean(reminderLoadingId)"
+            :disabled="reminderLoadingId === member.memberId || sentReminderIds.has(member.memberId)"
+            :aria-label="`${member.displayName}에게 리마인더 전송`"
             @click="sendReminder(member.memberId)"
           >
-            {{ reminderLoadingId === member.memberId ? '전송 중...' : '리마인더' }}
+            {{ reminderLoadingId === member.memberId ? '전송 중...' : sentReminderIds.has(member.memberId) ? '전송 완료' : '리마인더' }}
           </button>
         </div>
       </div>
@@ -134,13 +161,15 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useMembers } from '@/composables/useMembers'
 import { useAvailability } from '@/composables/useAvailability'
 import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
+import AppSkeleton from '@/components/AppSkeleton.vue'
 
 defineOptions({ name: 'AvailabilityStatusView' })
 
@@ -207,6 +236,7 @@ function formatWeekRange(weekStart) {
 }
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { showToast, showSuccess } = useToast()
 
@@ -221,6 +251,7 @@ const { createNotification } = useNotifications()
 const weekOffset = ref(0)
 const availabilities = ref([])
 const reminderLoadingId = ref(null)
+const sentReminderIds = ref(new Set())
 const hasLoaded = ref(false)
 const showCellSheet = ref(false)
 const showPendingSheet = ref(false)
@@ -260,7 +291,8 @@ const membersWithAvailability = computed(() => {
 const pendingMembers = computed(() => membersWithAvailability.value.filter((member) => !member.hasSubmitted))
 const submittedMembers = computed(() => membersWithAvailability.value.filter((member) => member.hasSubmitted))
 const isLoading = computed(() => membersLoading.value || availabilityLoading.value || !hasLoaded.value)
-const isEmpty = computed(() => !isLoading.value && membersWithAvailability.value.length === 0)
+const hasError = computed(() => !isLoading.value && (membersError.value || availabilityError.value))
+const isEmpty = computed(() => !isLoading.value && !hasError.value && membersWithAvailability.value.length === 0)
 
 const heatmapData = computed(() => {
   const data = {}
@@ -337,9 +369,8 @@ function moveToNextWeek() {
 }
 
 async function sendReminder(memberId) {
-  if (reminderLoadingId.value) {
-    return
-  }
+  // M5: 해당 회원만 guard (다른 회원은 전송 가능)
+  if (reminderLoadingId.value === memberId) return
 
   if (!auth.user?.id) {
     showToast('사용자 정보를 확인할 수 없습니다.', 'error')
@@ -347,11 +378,12 @@ async function sendReminder(memberId) {
   }
 
   reminderLoadingId.value = memberId
+  // M6: 주차 정보를 리마인더 문구에 반영
   const isCreated = await createNotification(
     memberId,
     'availability_reminder',
     '가능 시간 등록 요청',
-    '이번 주 PT 가능 시간을 등록해주세요',
+    `${weekLabel.value}(${weekRangeText.value}) PT 가능 시간을 등록해주세요`,
     auth.user.id,
     'trainer',
   )
@@ -362,6 +394,8 @@ async function sendReminder(memberId) {
     return
   }
 
+  // m12: 전송 완료 추적
+  sentReminderIds.value.add(memberId)
   showSuccess('리마인더를 전송했습니다.')
 }
 
@@ -371,6 +405,8 @@ onMounted(async () => {
 
 watch(selectedWeekStart, async (newWeekStart, oldWeekStart) => {
   if (newWeekStart === oldWeekStart) return
+  // m12: 주차 변경 시 전송 완료 상태 초기화
+  sentReminderIds.value.clear()
   await loadAvailabilityStatus()
 })
 

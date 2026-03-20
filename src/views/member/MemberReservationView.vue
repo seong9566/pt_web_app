@@ -4,7 +4,7 @@
     
     <!-- ── App Bar ── -->
     <div class="reservation-appbar">
-      <button class="reservation-appbar__back" @click="router.back()">
+      <button class="reservation-appbar__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -190,6 +190,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import { useWorkHours } from '@/composables/useWorkHours'
@@ -353,7 +354,7 @@ async function submitReservation() {
     isSubmitting.value = false
     // Success: navigate back
     showSuccess('예약이 신청되었습니다')
-    setTimeout(() => router.back(), 800)
+    setTimeout(() => safeBack(route.path), 800)
   } else {
     // 슬롯 자동 갱신 — 충돌 시간 마감 반영
     selectedTime.value = null

@@ -1,6 +1,6 @@
 <template>
   <div class="email-login">
-    <button class="email-login__back" @click="router.back()">
+    <button class="email-login__back" @click="safeBack(route.path)">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -92,15 +92,17 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
 import { parseAuthError } from '@/utils/authErrors'
 import { isValidEmail } from '@/utils/validators'
+import { resolvePostAuthRedirect, safeBack } from '@/utils/navigation'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { saveRole } = useProfile()
 const { redeemInviteCode } = useInvite()
@@ -180,18 +182,20 @@ async function handleSubmit() {
 
       await auth.hydrateFromSession(loginData.session)
 
-      const pendingCode = localStorage.getItem('pending_invite_code')
+      const pendingCode = sessionStorage.getItem('pending_invite_code')
 
       if (auth.role === 'trainer') {
-        router.replace('/trainer/home')
+        // 트레이너는 초대 코드 불필요 — clear 정책
+        sessionStorage.removeItem('pending_invite_code')
+        router.replace(resolvePostAuthRedirect(auth))
       } else if (auth.role === 'member') {
         if (pendingCode) {
           const result = await redeemInviteCode(pendingCode)
-          if (result) localStorage.removeItem('pending_invite_code')
+          if (result) sessionStorage.removeItem('pending_invite_code')
         }
-        router.replace('/member/home')
+        router.replace(resolvePostAuthRedirect(auth))
       } else {
-        router.replace('/onboarding/role')
+        router.replace(resolvePostAuthRedirect(auth))
       }
     } else {
       const { data, error } = await supabase.auth.signUp({
@@ -223,9 +227,13 @@ async function handleSubmit() {
         await auth.hydrateFromSession(data.session)
       }
 
-      const pendingCode = localStorage.getItem('pending_invite_code')
+      const pendingCode = sessionStorage.getItem('pending_invite_code')
       if (pendingCode) {
-        await saveRole(auth.user.id, 'member')
+        const success = await saveRole(auth.user.id, 'member')
+        if (!success) {
+          errorMsg.value = '역할 저장에 실패했습니다. 다시 시도해주세요.'
+          return
+        }
         auth.setRole('member')
         router.replace('/onboarding/member-profile')
       } else {

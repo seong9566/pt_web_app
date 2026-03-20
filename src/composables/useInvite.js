@@ -133,20 +133,17 @@ export function useInvite() {
     }
   }
 
-  /** 초대 코드 유효성 검증 + 트레이너 정보 조회 */
+  /** 초대 코드 유효성 검증 + 트레이너 정보 조회 (RPC — SECURITY DEFINER로 RLS 우회) */
   async function validateInviteCode(code) {
     loading.value = true
     error.value = null
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('invite_codes')
-        .select('id, code, trainer_id, is_active, profiles!invite_codes_trainer_id_fkey(name, photo_url)')
-        .eq('code', code)
-        .eq('is_active', true)
-        .maybeSingle()
+      const { data, error: rpcError } = await supabase.rpc('validate_invite_code', {
+        p_code: code,
+      })
 
-      if (fetchError) throw fetchError
+      if (rpcError) throw rpcError
 
       if (!data) {
         error.value = '유효하지 않은 초대 코드입니다.'
@@ -155,8 +152,8 @@ export function useInvite() {
 
       return {
         trainerId: data.trainer_id,
-        trainerName: data.profiles?.name || '트레이너',
-        trainerPhoto: data.profiles?.photo_url || null,
+        trainerName: data.trainer_name || '트레이너',
+        trainerPhoto: data.trainer_photo || null,
       }
     } catch (e) {
       error.value = e?.message ?? '코드 확인에 실패했습니다'

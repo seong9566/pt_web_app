@@ -1,4 +1,4 @@
-<!-- 일정 관리 페이지. 배정됨/변경요청/확정됨/완료/취소됨 상태별 조회, 재배정/취소 처리 -->
+<!-- 일정 관리 페이지. 배정됨/대기중/완료됨 상태별 조회, 재배정/취소 처리 -->
 <template>
   <div class="reservation">
 
@@ -62,14 +62,25 @@
     <AppBottomSheet v-model="showRejectSheet" title="변경 요청 거절">
       <div class="reject-sheet">
         <p class="reject-sheet__hint">거절 사유를 입력하면 회원에게 전달됩니다.</p>
+        <div class="reject-sheet__presets">
+          <button
+            v-for="preset in REJECT_PRESETS"
+            :key="preset"
+            class="reject-sheet__preset press-effect"
+            :class="{ 'reject-sheet__preset--active': rejectReason === preset }"
+            type="button"
+            @click="rejectReason = rejectReason === preset ? '' : preset"
+          >{{ preset }}</button>
+        </div>
         <textarea v-model="rejectReason" class="reject-sheet__textarea" placeholder="거절 사유를 입력해주세요 (선택)" maxlength="120" />
+        <span class="reject-sheet__counter">{{ rejectReason.length }}/120</span>
         <AppButton :disabled="loading" @click="handleRejectConfirm">거절 확인</AppButton>
       </div>
     </AppBottomSheet>
 
     <!-- ── Header ── -->
     <div class="reservation__header">
-      <button class="reservation__back press-effect" @click="router.back()">
+      <button class="reservation__back press-effect" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -90,35 +101,13 @@
           :class="{ 'reservation__chip--active': activeFilter === chip.id }"
           @click="activeFilter = chip.id"
         >
-          <svg v-if="chip.icon === 'grid'" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
-            <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
-            <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
-            <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
-          </svg>
-          <svg v-else-if="chip.icon === 'clock'" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <svg v-else-if="chip.icon === 'alert'" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 9V13M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <svg v-else-if="chip.icon === 'check'" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <svg v-else-if="chip.icon === 'history'" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 7V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M15 15L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <span>{{ chip.label }}</span>
+          {{ chip.label }}
         </button>
       </div>
     </div>
 
     <!-- ── Body ── -->
+    <AppPullToRefresh @refresh="handleRefresh">
     <div class="reservation__body">
       <div v-if="loading" style="padding-top: 24px;">
         <AppSkeleton type="line" :count="4" />
@@ -126,201 +115,230 @@
 
       <template v-else>
 
-        <!-- 변경요청 섹션 -->
-        <section v-if="changeRequestedList.length" class="reservation__section">
+        <!-- 오늘 섹션 -->
+        <section v-if="todayList.length" class="reservation__section">
           <div class="reservation__section-header">
-            <h2 class="reservation__section-title">변경 요청</h2>
-            <span class="reservation__badge reservation__badge--change-requested">{{ changeRequestedList.length }}건</span>
+            <h2 class="reservation__section-title">오늘</h2>
+            <span class="reservation__badge">{{ todayList.length }}건</span>
           </div>
           <div class="reservation__list">
             <div
-              v-for="(item, idx) in changeRequestedList"
+              v-for="(item, idx) in todayList"
               :key="item.id"
               class="res-card stagger-fade-in"
+              :class="[
+                'res-card--' + cardClass(item.status),
+                { 'res-card--visually-completed': isVisuallyCompleted(item) },
+              ]"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
                 <div class="res-card__profile">
-                  <div class="res-card__avatar">
+                  <div class="res-card__avatar" :class="'res-card__avatar--' + item.status">
                     <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
-                    <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
+                    <span v-else class="res-card__avatar-initial">{{ getInitial(item.partner_name) }}</span>
                   </div>
-                  <span class="res-card__name">{{ item.partner_name }}</span>
+                  <div class="res-card__info">
+                    <span class="res-card__name">{{ item.partner_name }}</span>
+                    <span v-if="item.session_type" class="res-card__type">{{ item.session_type }}</span>
+                  </div>
                 </div>
-                <span class="res-card__status res-card__status--change-requested">변경요청</span>
+                <span
+                  v-if="isVisuallyCompleted(item)"
+                  class="res-card__status res-card__status--time-completed"
+                >수업 완료</span>
+                <span v-else class="res-card__status" :class="'res-card__status--' + cardClass(item.status)">{{ statusLabel(item.status) }}</span>
               </div>
-              <div class="res-card__meta">
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  {{ item.date }}
-                </span>
-                <span class="res-card__meta-item">
+
+              <div class="res-card__meta-box">
+                <div class="res-card__meta-row">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                     <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                  {{ item.start_time }} ~ {{ item.end_time }}
-                </span>
+                  <span>{{ item.start_time?.slice(0,5) }} - {{ item.end_time?.slice(0,5) }}</span>
+                </div>
               </div>
-              <div class="res-card__change-info">
+
+              <!-- 변경 요청 정보 (현재 → 요청 시간) -->
+              <div v-if="item.status === 'change_requested' && item.requested_date" class="res-card__change-summary">
                 <div class="res-card__change-row">
                   <span class="res-card__change-label">현재</span>
-                  <span class="res-card__change-value">{{ item.date }} {{ item.start_time?.slice(0,5) }}-{{ item.end_time?.slice(0,5) }}</span>
+                  <span class="res-card__change-value">{{ item.start_time?.slice(0,5) }} - {{ item.end_time?.slice(0,5) }}</span>
                 </div>
-                <div v-if="item.requested_date" class="res-card__change-row res-card__change-row--requested">
+                <div class="res-card__change-row res-card__change-row--requested">
                   <span class="res-card__change-label">요청</span>
-                  <span class="res-card__change-value">{{ item.requested_date }} {{ item.requested_start_time?.slice(0,5) }}-{{ item.requested_end_time?.slice(0,5) }}</span>
-                </div>
-                <div v-if="item.change_reason" class="res-card__change-row">
-                  <span class="res-card__change-label">사유</span>
-                  <span class="res-card__change-value">{{ item.change_reason }}</span>
+                  <span class="res-card__change-value">
+                    {{ item.date !== item.requested_date ? formatDateKorean(item.requested_date) + ' ' : '' }}{{ item.requested_start_time?.slice(0,5) }} - {{ item.requested_end_time?.slice(0,5) }}
+                  </span>
                 </div>
               </div>
-              <div class="res-card__divider" />
-              <div class="res-card__change-actions">
-                <button v-if="item.requested_date" class="res-card__btn res-card__btn--approve" :disabled="loading" @click="handleApprove(item)">승인</button>
-                <button class="res-card__btn res-card__btn--reject" :disabled="loading" @click="handleRejectOpen(item)">거절</button>
-                <button class="res-card__btn res-card__btn--reassign" :disabled="loading" @click="handleReassignOpen(item)">다른 시간</button>
+
+              <!-- 변경 사유 (대기중) -->
+              <div v-if="item.status === 'change_requested' && item.change_reason" class="res-card__reason">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 9V13M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ item.change_reason }}</span>
+              </div>
+
+              <!-- 배정됨 액션 (과거 아이템은 버튼 숨김) -->
+              <div v-if="item.status === 'scheduled' && !isSessionPast(item)" class="res-card__actions">
+                <button class="res-card__btn res-card__btn--reassign press-effect" :disabled="processingId === item.id" @click="handleReassignOpen(item)">재배정</button>
+                <button class="res-card__btn res-card__btn--cancel-outline press-effect" :disabled="processingId === item.id" @click="handleCancelOpen(item)">취소</button>
+              </div>
+
+              <!-- 대기중 액션 -->
+              <div v-if="item.status === 'change_requested'" class="res-card__actions">
+                <button v-if="item.requested_date" class="res-card__btn res-card__btn--approve press-effect" :disabled="loading" @click="handleApprove(item)">승인</button>
+                <button class="res-card__btn res-card__btn--reassign press-effect" :disabled="loading" @click="handleReassignOpen(item)">재배정</button>
+                <button class="res-card__btn res-card__btn--reject-outline press-effect" :disabled="loading" @click="handleRejectOpen(item)">반려</button>
+              </div>
+
+              <!-- 시각적 완료 푸터 (시간 경과) -->
+              <div v-if="isVisuallyCompleted(item)" class="res-card__footer-status res-card__footer-status--time-completed">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>수업 완료</span>
+              </div>
+
+              <!-- 완료됨 푸터 -->
+              <div v-if="item.status === 'completed'" class="res-card__footer-status">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>완료됨</span>
+              </div>
+
+              <!-- 취소됨 푸터 -->
+              <div v-if="item.status === 'cancelled'" class="res-card__footer-status res-card__footer-status--cancelled">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>취소됨</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- 배정됨 섹션 -->
-        <section v-if="scheduledList.length" class="reservation__section">
-          <div class="reservation__section-header">
-            <h2 class="reservation__section-title">배정됨</h2>
-            <span class="reservation__badge reservation__badge--scheduled">{{ scheduledList.length }}건</span>
+        <!-- 기타 일정 섹션 -->
+        <section v-if="otherList.length" class="reservation__section">
+          <div v-if="todayList.length" class="reservation__section-header">
+            <h2 class="reservation__section-title">다른 날짜</h2>
           </div>
           <div class="reservation__list">
             <div
-              v-for="(item, idx) in scheduledList"
+              v-for="(item, idx) in otherList"
               :key="item.id"
               class="res-card stagger-fade-in"
+              :class="[
+                'res-card--' + cardClass(item.status),
+                { 'res-card--visually-completed': isVisuallyCompleted(item) },
+              ]"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
                 <div class="res-card__profile">
-                  <div class="res-card__avatar">
+                  <div class="res-card__avatar" :class="'res-card__avatar--' + item.status">
                     <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
-                    <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
+                    <span v-else class="res-card__avatar-initial">{{ getInitial(item.partner_name) }}</span>
                   </div>
-                  <span class="res-card__name">{{ item.partner_name }}</span>
+                  <div class="res-card__info">
+                    <span class="res-card__name">{{ item.partner_name }}</span>
+                    <span v-if="item.session_type" class="res-card__type">{{ item.session_type }}</span>
+                  </div>
                 </div>
-                <span class="res-card__status res-card__status--scheduled">배정됨</span>
+                <span
+                  v-if="isVisuallyCompleted(item)"
+                  class="res-card__status res-card__status--time-completed"
+                >수업 완료</span>
+                <span v-else class="res-card__status" :class="'res-card__status--' + cardClass(item.status)">{{ statusLabel(item.status) }}</span>
               </div>
-              <div class="res-card__meta">
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  {{ item.date }}
-                </span>
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  {{ item.start_time }} ~ {{ item.end_time }}
-                </span>
-              </div>
-              <div class="res-card__divider" />
-              <div class="res-card__actions">
-                <button
-                  class="res-card__btn res-card__btn--cancel press-effect"
-                  :disabled="processingId === item.id"
-                  @click="handleCancelOpen(item)"
-                >
-                  {{ processingId === item.id ? '처리 중...' : '취소' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <!-- 완료 섹션 -->
-        <section v-if="completedList.length" class="reservation__section">
-          <h2 class="reservation__section-title">완료</h2>
-          <div class="reservation__list">
-            <div
-              v-for="(item, idx) in completedList"
-              :key="item.id"
-              class="res-card res-card--muted stagger-fade-in"
-              :style="{ '--stagger-index': idx }"
-            >
-              <div class="res-card__top">
-                <div class="res-card__profile">
-                  <div class="res-card__avatar">
-                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
-                    <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
-                  </div>
-                  <span class="res-card__name">{{ item.partner_name }}</span>
-                </div>
-                <span class="res-card__status res-card__status--completed">완료</span>
-              </div>
-              <div class="res-card__meta">
-                <span class="res-card__meta-item">
+              <div class="res-card__meta-box">
+                <div class="res-card__meta-row">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
                     <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
                     <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                   </svg>
-                  {{ item.date }}
-                </span>
-                <span class="res-card__meta-item">
+                  <span>{{ formatDateKorean(item.date) }}</span>
+                </div>
+                <div class="res-card__meta-row">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
                     <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                  {{ item.start_time }} ~ {{ item.end_time }}
-                </span>
+                  <span>{{ item.start_time?.slice(0,5) }} - {{ item.end_time?.slice(0,5) }}</span>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <!-- 취소됨 섹션 -->
-        <section v-if="cancelledList.length" class="reservation__section">
-          <h2 class="reservation__section-title">취소됨</h2>
-          <div class="reservation__list">
-            <div
-              v-for="(item, idx) in cancelledList"
-              :key="item.id"
-              class="res-card res-card--muted stagger-fade-in"
-              :style="{ '--stagger-index': idx }"
-            >
-              <div class="res-card__top">
-                <div class="res-card__profile">
-                  <div class="res-card__avatar">
-                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
-                    <img v-else src="@/assets/icons/person.svg" :alt="item.partner_name" width="28" height="28" />
-                  </div>
-                  <span class="res-card__name">{{ item.partner_name }}</span>
+              <!-- 변경 요청 정보 (현재 → 요청 시간) -->
+              <div v-if="item.status === 'change_requested' && item.requested_date" class="res-card__change-summary">
+                <div class="res-card__change-row">
+                  <span class="res-card__change-label">현재</span>
+                  <span class="res-card__change-value">{{ item.start_time?.slice(0,5) }} - {{ item.end_time?.slice(0,5) }}</span>
                 </div>
-                <span class="res-card__status res-card__status--cancelled">취소됨</span>
+                <div class="res-card__change-row res-card__change-row--requested">
+                  <span class="res-card__change-label">요청</span>
+                  <span class="res-card__change-value">
+                    {{ item.date !== item.requested_date ? formatDateKorean(item.requested_date) + ' ' : '' }}{{ item.requested_start_time?.slice(0,5) }} - {{ item.requested_end_time?.slice(0,5) }}
+                  </span>
+                </div>
               </div>
-              <div class="res-card__meta">
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M3 10H21" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 3V7M16 3V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  {{ item.date }}
-                </span>
-                <span class="res-card__meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  {{ item.start_time }} ~ {{ item.end_time }}
-                </span>
+
+              <!-- 변경 사유 (대기중) -->
+              <div v-if="item.status === 'change_requested' && item.change_reason" class="res-card__reason">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 9V13M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ item.change_reason }}</span>
+              </div>
+
+              <!-- 배정됨 액션 (과거 아이템은 버튼 숨김) -->
+              <div v-if="item.status === 'scheduled' && !isSessionPast(item)" class="res-card__actions">
+                <button class="res-card__btn res-card__btn--reassign press-effect" :disabled="processingId === item.id" @click="handleReassignOpen(item)">재배정</button>
+                <button class="res-card__btn res-card__btn--cancel-outline press-effect" :disabled="processingId === item.id" @click="handleCancelOpen(item)">취소</button>
+              </div>
+
+              <!-- 대기중 액션 -->
+              <div v-if="item.status === 'change_requested'" class="res-card__actions">
+                <button v-if="item.requested_date" class="res-card__btn res-card__btn--approve press-effect" :disabled="loading" @click="handleApprove(item)">승인</button>
+                <button class="res-card__btn res-card__btn--reassign press-effect" :disabled="loading" @click="handleReassignOpen(item)">재배정</button>
+                <button class="res-card__btn res-card__btn--reject-outline press-effect" :disabled="loading" @click="handleRejectOpen(item)">반려</button>
+              </div>
+
+              <!-- 시각적 완료 푸터 (시간 경과) -->
+              <div v-if="isVisuallyCompleted(item)" class="res-card__footer-status res-card__footer-status--time-completed">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>수업 완료</span>
+              </div>
+
+              <!-- 완료됨 푸터 -->
+              <div v-if="item.status === 'completed'" class="res-card__footer-status">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>완료됨</span>
+              </div>
+
+              <!-- 취소됨 푸터 -->
+              <div v-if="item.status === 'cancelled'" class="res-card__footer-status res-card__footer-status--cancelled">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <span>취소됨</span>
               </div>
             </div>
           </div>
@@ -334,42 +352,83 @@
             <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
           <p class="reservation__empty-text">일정이 없습니다</p>
+          <p class="reservation__empty-sub">스케줄 화면에서 빈 슬롯을 탭하여 배정하세요</p>
+          <button class="reservation__empty-btn press-effect" @click="router.push({ name: 'trainer-schedule' })">
+            스케줄 바로가기
+          </button>
         </div>
 
       </template>
 
       <div style="height: calc(var(--nav-height) + 16px);" />
     </div>
+    </AppPullToRefresh>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onActivated, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
 import AppButton from '@/components/AppButton.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
+import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import { useToast } from '@/composables/useToast'
+import { isSessionPast } from '@/utils/reservation'
 
 const router = useRouter()
+const route = useRoute()
 const {
   reservations, loading, error, slots, slotDuration,
   fetchMyReservations, fetchAvailableSlots, reassignSchedule, cancelSchedule,
-  approveChangeRequest, rejectChangeRequest,
+  approveChangeRequest, rejectChangeRequest, revertApproval,
 } = useReservations()
 const reservationsStore = useReservationsStore()
-const { showToast } = useToast()
+const { showToast, showSuccess, showError } = useToast()
+
+/** 상태 변경 후 캐시 무효화 + 재조회 */
+async function refreshAfterAction() {
+  reservationsStore.invalidate()
+  await fetchMyReservations('trainer')
+}
+
+/* ── 날짜 한국어 포맷 ── */
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토']
+function formatDateKorean(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${DAY_NAMES[d.getDay()]})`
+}
+
+/* ── 아바타 이니셜 ── */
+function getInitial(name) {
+  return name ? name.charAt(0) : '?'
+}
+
+/* ── 상태 → 카드 클래스 / 라벨 매핑 ── */
+const STATUS_CARD_CLASS = { scheduled: 'assigned', change_requested: 'pending', completed: 'completed', cancelled: 'cancelled' }
+const STATUS_LABEL = { scheduled: '배정됨', change_requested: '대기중', completed: '완료됨', cancelled: '취소됨' }
+function cardClass(status) { return STATUS_CARD_CLASS[status] || status }
+function statusLabel(status) { return STATUS_LABEL[status] || status }
+
+/** 시간이 지난 scheduled 아이템을 시각적으로 완료 처리 (DB 미변경) */
+function isVisuallyCompleted(item) {
+  return item.status === 'scheduled' && isSessionPast(item)
+}
 
 const filterChips = [
-  { id: 'all',              label: '전체',    icon: 'grid' },
-  { id: 'scheduled',        label: '배정됨',  icon: 'clock' },
-  { id: 'change_requested', label: '변경요청', icon: 'alert' },
-  { id: 'completed',        label: '완료',    icon: 'history' },
+  { id: 'all',              label: '전체' },
+  { id: 'scheduled',        label: '배정됨' },
+  { id: 'change_requested', label: '대기중' },
+  { id: 'completed',        label: '완료됨' },
+  { id: 'cancelled',        label: '취소됨' },
 ]
+const REJECT_PRESETS = ['시간 충돌', '개인 사정', '스케줄 변경 필요']
 const activeFilter = ref('all')
 const processingId = ref(null)
 const showRejectSheet = ref(false)
@@ -380,28 +439,47 @@ onMounted(async () => {
   await fetchMyReservations('trainer')
 })
 
-function filteredByStatus(status) {
-  if (activeFilter.value !== 'all' && activeFilter.value !== status) return []
-  return reservations.value
-    .filter((r) => r.status === status)
-    .sort((a, b) => {
-      const da = new Date(`${a.date}T${a.start_time}`)
-      const db = new Date(`${b.date}T${b.start_time}`)
-      return da - db
-    })
+onActivated(async () => {
+  if (reservationsStore.isStale()) {
+    await fetchMyReservations('trainer')
+  }
+})
+
+/** 풀-투-리프레시 핸들러 */
+async function handleRefresh() {
+  reservationsStore.invalidate()
+  await fetchMyReservations('trainer')
 }
 
-const changeRequestedList = computed(() => filteredByStatus('change_requested'))
-const scheduledList = computed(() => filteredByStatus('scheduled'))
-const completedList = computed(() => filteredByStatus('completed'))
-const cancelledList = computed(() => filteredByStatus('cancelled'))
+/* ── 오늘 날짜 (로컬 타임존 기준 YYYY-MM-DD) ── */
+function getLocalToday() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+const today = getLocalToday()
 
-const isEmpty = computed(() =>
-  changeRequestedList.value.length === 0 &&
-  scheduledList.value.length === 0 &&
-  completedList.value.length === 0 &&
-  cancelledList.value.length === 0
-)
+/* ── 필터링 + 시간순 정렬 통합 리스트 (전체 탭에서 취소됨 제외) ── */
+const filteredList = computed(() => {
+  let list = reservations.value
+  if (activeFilter.value === 'all') {
+    list = list.filter((r) => r.status !== 'cancelled')
+  } else if (activeFilter.value === 'completed') {
+    list = list.filter((r) => r.status === 'completed' || isVisuallyCompleted(r))
+  } else {
+    list = list.filter((r) => r.status === activeFilter.value)
+  }
+  return [...list].sort((a, b) => {
+    const da = new Date(`${a.date}T${a.start_time}`)
+    const db = new Date(`${b.date}T${b.start_time}`)
+    return da - db
+  })
+})
+
+/* ── 오늘 / 다른 날짜 분리 ── */
+const todayList = computed(() => filteredList.value.filter((r) => r.date === today))
+const otherList = computed(() => filteredList.value.filter((r) => r.date !== today))
+
+const isEmpty = computed(() => filteredList.value.length === 0)
 
 const showCancelDialog = ref(false)
 const cancelTarget = ref(null)
@@ -419,8 +497,8 @@ async function confirmCancel() {
     showCancelDialog.value = false
     cancelTarget.value = null
     if (success) {
-      reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
+      showSuccess('일정이 취소되었습니다.')
+      await refreshAfterAction()
     }
   } finally {
     processingId.value = null
@@ -428,14 +506,38 @@ async function confirmCancel() {
 }
 
 async function handleApprove(item) {
-  const approved = await approveChangeRequest(item.id)
+  /* 승인 전 원본 데이터 캡처 (Undo 복원용) */
+  const originalData = {
+    date: item.date,
+    start_time: item.start_time,
+    end_time: item.end_time,
+    requested_date: item.requested_date,
+    requested_start_time: item.requested_start_time,
+    requested_end_time: item.requested_end_time,
+    change_reason: item.change_reason,
+  }
+  const reservationId = item.id
+
+  const approved = await approveChangeRequest(reservationId)
   if (!approved) {
-    alert(error.value || '승인에 실패했습니다.')
+    showError(error.value || '승인에 실패했습니다.')
     return
   }
-  alert('변경 요청이 승인되었습니다.')
-  reservationsStore.invalidate()
-  await fetchMyReservations('trainer')
+  await refreshAfterAction()
+  showSuccess('변경 요청이 승인되었습니다.', {
+    action: {
+      label: '실행 취소',
+      handler: async () => {
+        const reverted = await revertApproval(reservationId, originalData)
+        if (reverted) {
+          showSuccess('승인이 취소되었습니다.')
+          await refreshAfterAction()
+        } else {
+          showError('승인 취소에 실패했습니다.')
+        }
+      },
+    },
+  })
 }
 
 function handleRejectOpen(item) {
@@ -448,15 +550,14 @@ async function handleRejectConfirm() {
   if (!rejectTarget.value) return
   const rejected = await rejectChangeRequest(rejectTarget.value.id, rejectReason.value.trim() || null)
   if (!rejected) {
-    alert(error.value || '거절에 실패했습니다.')
+    showError(error.value || '거절에 실패했습니다.')
     return
   }
   showRejectSheet.value = false
   rejectTarget.value = null
   rejectReason.value = ''
-  alert('변경 요청이 거절되었습니다.')
-  reservationsStore.invalidate()
-  await fetchMyReservations('trainer')
+  showSuccess('변경 요청이 거절되었습니다.')
+  await refreshAfterAction()
 }
 
 const showReassignSheet = ref(false)
@@ -508,8 +609,8 @@ async function handleReassign() {
     )
     if (result) {
       showReassignSheet.value = false
-      reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
+      showSuccess('일정이 재배정되었습니다.')
+      await refreshAfterAction()
     } else {
       reassignError.value = error.value || '재배정에 실패했습니다'
     }

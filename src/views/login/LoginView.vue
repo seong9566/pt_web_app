@@ -65,6 +65,7 @@ async function handleKakao() {
     provider: 'kakao',
     options: {
       redirectTo: window.location.origin + '/auth/callback',
+      queryParams: { prompt: 'login' }, // 매번 카카오 로그인 화면 표시 (이전 계정 자동 로그인 방지)
     },
   })
   if (oauthError) {

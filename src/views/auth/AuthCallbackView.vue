@@ -10,7 +10,7 @@
       <p class="auth-callback__error-text">{{ error }}</p>
       <button class="auth-callback__retry-btn" @click="router.replace('/login')">다시 시도</button>
     </div>
-    <p v-else-if="loading" class="auth-callback__text">로그인 처리 중...</p>
+    <p v-else-if="loading" class="auth-callback__text">{{ loadingMessage }}</p>
   </div>
 </template>
 
@@ -22,14 +22,18 @@ import { supabase } from '@/lib/supabase'
 import { useProfile } from '@/composables/useProfile'
 import { useInvite } from '@/composables/useInvite'
 import { parseAuthCallbackError } from '@/utils/authCallbackErrors'
+import { resolvePostAuthRedirect } from '@/utils/navigation'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { saveRole } = useProfile()
 const { redeemInviteCode } = useInvite()
 
+const AUTH_CALLBACK_TIMEOUT = 25000 // 25초
+
 const loading = ref(true)
 const error = ref(null)
+const loadingMessage = ref('로그인 처리 중...')
 
 let authListener = null
 let timeoutId = null
@@ -58,6 +62,7 @@ async function handleRedirect(session) {
   }
 
   try {
+    loadingMessage.value = '인증 확인 중...'
     // store 상태 동기화 (이미 onAuthStateChange에서 처리됐을 수 있지만, 명시적으로 실행)
     await auth.hydrateFromSession(session)
   } catch (e) {
@@ -72,24 +77,34 @@ async function handleRedirect(session) {
   }
 
   try {
-    const pendingCode = localStorage.getItem('pending_invite_code')
+    loadingMessage.value = '프로필 불러오는 중...'
+    const pendingCode = sessionStorage.getItem('pending_invite_code')
 
     if (!auth.role) {
       if (pendingCode) {
-        await saveRole(auth.user.id, 'member')
+        // saveRole 실패 처리 포함
+        const success = await saveRole(auth.user.id, 'member')
+        if (!success) {
+          failAuth('역할 저장에 실패했습니다. 다시 시도해주세요.')
+          return
+        }
         auth.setRole('member')
         router.replace('/onboarding/member-profile')
       } else {
-        router.replace('/onboarding/role')
+        router.replace(resolvePostAuthRedirect(auth))
       }
     } else if (auth.role === 'trainer') {
-      router.replace('/trainer/home')
+      // 트레이너는 초대 코드 불필요 — clear 정책
+      sessionStorage.removeItem('pending_invite_code')
+      loadingMessage.value = '화면 준비 중...'
+      router.replace(resolvePostAuthRedirect(auth))
     } else {
       if (pendingCode) {
         const result = await redeemInviteCode(pendingCode)
-        if (result) localStorage.removeItem('pending_invite_code')
+        if (result) sessionStorage.removeItem('pending_invite_code')
       }
-      router.replace('/member/home')
+      loadingMessage.value = '화면 준비 중...'
+      router.replace(resolvePostAuthRedirect(auth))
     }
   } catch (e) {
     console.error('[AuthCallback] 최종 라우팅 실패:', e)
@@ -150,14 +165,14 @@ onMounted(async () => {
     return
   }
 
-  // 콜백 처리는 즉시 끝나야 하므로 장시간 대기하지 않는다.
+  // 콜백 처리 타임아웃 (25초)
   timeoutId = window.setTimeout(() => {
     if (authListener) {
       authListener.subscription.unsubscribe()
       authListener = null
     }
     failAuth(auth.error || '로그인 시간이 초과되었습니다. 다시 시도해 주세요.')
-  }, 15000)
+  }, AUTH_CALLBACK_TIMEOUT)
 })
 
 onUnmounted(() => {

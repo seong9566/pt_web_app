@@ -36,6 +36,12 @@
   background-color: var(--color-white);
 }
 
+/* 드래그 중에만 터치 스크롤 차단 */
+.weekly-calendar__grid-wrapper--dragging {
+  touch-action: none;
+  overflow: hidden;
+}
+
 .weekly-calendar__grid {
   display: grid;
   min-width: 408px;
@@ -156,6 +162,10 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: visible;
   transition: transform var(--animation-duration-fast), box-shadow var(--animation-duration-fast);
+  /* 모바일 롱프레스 시 텍스트 선택/복사 메뉴 방지 */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .weekly-calendar__block:active {
@@ -363,6 +373,9 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   border-radius: var(--radius-medium);
   z-index: 100;
+  will-change: transform;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .weekly-calendar__loading-overlay {

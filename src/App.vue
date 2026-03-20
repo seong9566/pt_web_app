@@ -11,19 +11,25 @@
     </template>
     <AppToast />
     <AppConfirmDialog />
+    <RealtimeBanner />
   </div>
 </template>
 
 <script setup>
+import { onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import BottomNav from '@/components/BottomNav.vue'
 import TrainerBottomNav from '@/components/TrainerBottomNav.vue'
 import AppToast from '@/components/AppToast.vue'
 import AppConfirmDialog from '@/components/AppConfirmDialog.vue'
+import RealtimeBanner from '@/components/RealtimeBanner.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const auth = useAuthStore()
+
+// 앱 언마운트 시 auth 리스너를 명시적으로 해제하여 메모리 누수 방지
+onBeforeUnmount(() => { auth.cleanup() })
 
 const keepAliveViews = [
   'TrainerHomeView',

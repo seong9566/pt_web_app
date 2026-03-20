@@ -258,7 +258,7 @@
             class="detail-sheet__btn detail-sheet__btn--secondary"
             @click="startReassignMode"
           >
-            재배정
+            일정 변경
           </button>
           <button
             v-if="canAssignWorkout(selectedSchedule.status)"
@@ -347,7 +347,7 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppButton from '@/components/AppButton.vue'
@@ -521,6 +521,7 @@ const showDetailSheet = ref(false)
 const showChangeRequestSheet = ref(false)
 const showRejectSheet = ref(false)
 const memberSheetLoading = ref(false)
+const detailLoading = ref(false)
 const rejectReason = ref('')
 
 const selectedSlotDate = ref('')
@@ -954,23 +955,24 @@ async function handleSlotTap({ date, time }) {
 }
 
 async function openScheduleDetail(scheduleId) {
+  // 중복 탭 방지
+  if (detailLoading.value) return
+
   selectedSchedule.value = reservations.value.find((reservation) => reservation.id === scheduleId) ?? null
   detailExercises.value = []
   detailCategory.value = ''
   selectedScheduleRemainingSessions.value = null
 
   if (selectedSchedule.value) {
-    if (selectedSchedule.value.status === 'change_requested') {
-      showChangeRequestSheet.value = true
-    } else {
-      showDetailSheet.value = true
-    }
+    // 비동기 데이터를 먼저 로딩하여 바텀시트 열 때 레이아웃 시프트 방지
+    detailLoading.value = true
 
-    const scheduleId = selectedSchedule.value.id
+    // 현재 요청 ID를 캡처하여 비동기 완료 후 비교 (race condition 방지)
+    const capturedId = scheduleId
 
-    if (scheduleId) {
+    if (capturedId) {
       let remaining = null
-      const tasks = [fetchWorkoutPlan(scheduleId)]
+      const tasks = [fetchWorkoutPlan(capturedId)]
       if (selectedSchedule.value.member_id && selectedSchedule.value.trainer_id) {
         tasks.push(
           fetchRemainingByPair(selectedSchedule.value.member_id, selectedSchedule.value.trainer_id)
@@ -981,9 +983,25 @@ async function openScheduleDetail(scheduleId) {
       }
 
       await Promise.all(tasks)
+
+      // 비동기 작업 중 다른 일정이 선택된 경우 무시
+      if (selectedSchedule.value?.id !== capturedId) {
+        detailLoading.value = false
+        return
+      }
+
       detailExercises.value = currentPlan.value?.exercises ?? []
       detailCategory.value = currentPlan.value?.category || ''
       selectedScheduleRemainingSessions.value = typeof remaining === 'number' ? remaining : null
+    }
+
+    detailLoading.value = false
+
+    // 모든 데이터 준비 완료 후 바텀시트 열기
+    if (selectedSchedule.value.status === 'change_requested') {
+      showChangeRequestSheet.value = true
+    } else {
+      showDetailSheet.value = true
     }
   }
 }
@@ -991,7 +1009,10 @@ async function openScheduleDetail(scheduleId) {
 function openRejectSheet() {
   showChangeRequestSheet.value = false
   rejectReason.value = ''
-  showRejectSheet.value = true
+  // 이전 바텀시트 닫힘 트랜지션 후 새 바텀시트 열기
+  nextTick(() => {
+    showRejectSheet.value = true
+  })
 }
 
 function handleScheduleTap({ scheduleId }) {
@@ -1103,10 +1124,11 @@ async function handleRejectChange() {
     return
   }
   showSuccess('변경 요청을 거절했습니다.')
+  // 거절 바텀시트부터 닫고 상태 초기화
   showRejectSheet.value = false
   rejectReason.value = ''
-  showChangeRequestSheet.value = false
   selectedScheduleRemainingSessions.value = null
+  // changeRequestSheet는 이미 닫혀 있으므로 중복 설정하지 않음
   await loadWeeklySchedules()
 }
 

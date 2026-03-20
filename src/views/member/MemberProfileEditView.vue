@@ -2,7 +2,7 @@
 <template>
   <div class="member-profile-edit">
     <div class="member-profile-edit__header">
-      <button class="member-profile-edit__back" @click="router.back()">
+      <button class="member-profile-edit__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -147,7 +147,8 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { useProfile } from '@/composables/useProfile'
 import { useToast } from '@/composables/useToast'
@@ -157,6 +158,7 @@ import AppButton from '@/components/AppButton.vue'
 import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { uploading, error: profileError, uploadAvatar, updateProfilePhoto, updateMemberProfile } = useProfile()
 const { showToast, showSuccess } = useToast()
@@ -294,7 +296,7 @@ async function handleSave() {
   )
   if (success) {
     showSuccess('저장되었습니다')
-    setTimeout(() => router.back(), 800)
+    setTimeout(() => safeBack(route.path), 800)
   }
 }
 

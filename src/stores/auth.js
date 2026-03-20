@@ -140,11 +140,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * auth 리스너 구독 해제 + 초기화 플래그 리셋
+   * 로그아웃 또는 앱 언마운트 시 호출하여 메모리 누수 방지
+   */
+  function cleanup() {
+    _authSubscription?.unsubscribe()
+    _authSubscription = null
+  }
+
+  /**
    * Supabase onAuthStateChange 리스너 등록
    * SIGNED_IN, TOKEN_REFRESHED, SIGNED_OUT 등 이벤트 처리
    */
   function registerAuthListener() {
-    if (_authSubscription) return
+    // 이미 구독이 있으면 해제 후 재등록 — 중복 리스너 방지
+    if (_authSubscription) {
+      _authSubscription.unsubscribe()
+    }
 
     const { data } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (!_initialized) return
@@ -165,8 +177,16 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         if (event === 'TOKEN_REFRESHED') {
-          session.value = nextSession ?? null
-          user.value = nextSession?.user ?? null
+          // nextSession이 null이면 토큰 갱신 실패 — 세션 만료로 처리
+          if (!nextSession) {
+            console.warn('[AuthStore] 토큰 갱신 실패 — 세션 만료 처리')
+            resetAuthState()
+            const { default: router } = await import('@/router')
+            router.push('/login')
+            return
+          }
+          session.value = nextSession
+          user.value = nextSession.user
           return
         }
 
@@ -239,9 +259,10 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (e) {
       error.value = e?.message ?? 'Sign out failed'
     } finally {
-      // Auth 구독 해제
-      _authSubscription?.unsubscribe()
-      _authSubscription = null
+      // 구독 해제 + 초기화 플래그 리셋 — 재로그인 시 initialize()가 정상 동작하도록 보장
+      cleanup()
+      _initialized = false
+      _initializePromise = null
       resetAuthState()
       loading.value = false
     }
@@ -260,6 +281,7 @@ export const useAuthStore = defineStore('auth', () => {
     hydrateFromSession,
     initialize,
     signOut,
+    cleanup,
     deletionPending,
   }
 })
