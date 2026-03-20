@@ -308,7 +308,8 @@
   animation-delay: calc(var(--stagger-index) * var(--animation-stagger-delay));
 }
 
-.trainer-home__schedule-card--workout::before {
+.trainer-home__schedule-card--workout::before,
+.trainer-home__schedule-card--next::before {
   content: '';
   position: absolute;
   left: 0;
@@ -483,6 +484,30 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── 완료된 스케줄 카드 ── */
+.trainer-home__schedule-card--past {
+  opacity: 0.6;
+}
+
+.trainer-home__schedule-card--past::before {
+  display: none;
+}
+
+.trainer-home__schedule-card--past .trainer-home__schedule-time-text {
+  color: var(--color-gray-400);
+}
+
+.trainer-home__schedule-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-green);
+  flex-shrink: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

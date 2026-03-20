@@ -111,7 +111,11 @@
             v-for="(reservation, ri) in filteredReservations"
             :key="reservation.id"
             class="trainer-home__schedule-card stagger-fade-in"
-            :class="{ 'trainer-home__schedule-card--workout': workoutMap[reservation.id] }"
+            :class="{
+              'trainer-home__schedule-card--workout': workoutMap[reservation.id],
+              'trainer-home__schedule-card--past': reservation.status === 'scheduled' && isSessionPast(reservation),
+              'trainer-home__schedule-card--next': reservation.id === nextUpcomingId,
+            }"
             :style="{ '--stagger-index': ri }"
           >
             <div class="trainer-home__schedule-main">
@@ -126,6 +130,13 @@
                 <h3 class="trainer-home__schedule-name">{{ reservation.partner_name }}</h3>
                 <p class="trainer-home__schedule-sub">{{ reservation.start_time }} 수업 시작</p>
               </div>
+              <span v-if="reservation.status === 'scheduled' && isSessionPast(reservation)" class="trainer-home__schedule-done">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                완료
+              </span>
             </div>
             <template v-if="formatWorkoutSummary(workoutMap[reservation.id])">
               <div class="trainer-home__schedule-divider" />
@@ -196,6 +207,7 @@ import { useWorkoutPlans } from '@/composables/useWorkoutPlans'
 import { useToast } from '@/composables/useToast'
 import AppPullToRefresh from '@/components/AppPullToRefresh.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
+import { isSessionPast } from '@/utils/reservation'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -247,6 +259,14 @@ const dateTabs = computed(() => {
 /** 선택된 날짜의 예약 목록 필터링 (취소/거절 제외) */
 const filteredReservations = computed(() => {
   return reservations.value.filter(r => r.date === selectedDate.value && r.status !== 'cancelled' && r.status !== 'rejected')
+})
+
+/** 다음 예정된 수업 ID (완료되지 않은 scheduled 중 가장 빠른 것) */
+const nextUpcomingId = computed(() => {
+  const upcoming = filteredReservations.value.find(
+    r => r.status === 'scheduled' && !isSessionPast(r)
+  )
+  return upcoming?.id ?? null
 })
 
 /** 예약별 운동 계획 맵 생성 (reservation_id → exercises 배열) */
