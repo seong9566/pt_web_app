@@ -53,7 +53,17 @@ vi.mock('@/stores/auth', () => ({
 }))
 
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ back: vi.fn() })
+  useRouter: () => ({ back: vi.fn() }),
+  useRoute: () => ({ path: '/trainer/availability-status' }),
+  createRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    beforeEach: vi.fn(),
+    afterEach: vi.fn(),
+    install: vi.fn(),
+  }),
+  createWebHistory: vi.fn(),
 }))
 
 const AppBottomSheetStub = {
