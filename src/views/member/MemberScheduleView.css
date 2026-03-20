@@ -527,16 +527,37 @@
   font-weight: var(--fw-body1-bold);
 }
 
+.dnd-confirm-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .dnd-confirm-sheet__message {
   font-size: var(--fs-body1);
   font-weight: var(--fw-body1-bold);
   color: var(--color-gray-900);
-  margin-bottom: 16px;
+  margin: 0 0 16px;
   text-align: center;
+  word-break: keep-all;
+  line-height: var(--lh-body);
+}
+
+.dnd-confirm-sheet .change-sheet__label {
+  margin: 0 0 8px;
+}
+
+.dnd-confirm-sheet .change-sheet__textarea {
+  min-height: 72px;
 }
 
 .dnd-confirm-sheet__actions {
   display: flex;
   gap: 8px;
   margin-top: 16px;
+}
+
+.dnd-confirm-sheet__actions > * {
+  flex: 1;
+  min-width: 0;
 }
