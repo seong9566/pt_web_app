@@ -1,7 +1,7 @@
 <template>
   <div class="availability-status">
     <header class="availability-status__header">
-      <button class="availability-status__back" type="button" @click="router.back()" aria-label="뒤로가기">
+      <button class="availability-status__back" type="button" @click="safeBack(route.path)" aria-label="뒤로가기">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -134,7 +134,8 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useMembers } from '@/composables/useMembers'
 import { useAvailability } from '@/composables/useAvailability'
 import { useNotifications } from '@/composables/useNotifications'
@@ -207,6 +208,7 @@ function formatWeekRange(weekStart) {
 }
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { showToast, showSuccess } = useToast()
 

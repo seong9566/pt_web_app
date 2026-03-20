@@ -4,7 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="memo-write__header">
-      <button class="memo-write__back" @click="router.back()">
+      <button class="memo-write__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -21,7 +21,7 @@
       <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
       <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
       <div style="margin-top: 8px;">
-        <AppButton variant="primary" @click="router.back()">뒤로가기</AppButton>
+        <AppButton variant="primary" @click="safeBack(route.path)">뒤로가기</AppButton>
       </div>
     </div>
 
@@ -153,6 +153,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import AppButton from '@/components/AppButton.vue'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppCalendar from '@/components/AppCalendar.vue'
@@ -272,13 +273,13 @@ async function handleSave() {
     const success = await updateMemo(memoId, content.value.trim(), [...selectedTags.value])
     if (success) {
       showSuccess('저장되었습니다')
-      setTimeout(() => router.back(), 800)
+      setTimeout(() => safeBack(route.path), 800)
     }
   } else {
     const success = await createMemo(memberId, content.value.trim(), [...selectedTags.value])
     if (success) {
       showSuccess('저장되었습니다')
-      setTimeout(() => router.back(), 800)
+      setTimeout(() => safeBack(route.path), 800)
     }
   }
 }

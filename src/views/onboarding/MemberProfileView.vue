@@ -2,7 +2,7 @@
 <template>
   <div class="member-profile">
     <div class="member-profile__nav">
-      <button class="member-profile__back" @click="router.back()" style="color: var(--color-gray-900);">
+      <button class="member-profile__back" @click="safeBack(route.path)" style="color: var(--color-gray-900);">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="member-profile__nav-title">프로필 입력</h2>
@@ -133,7 +133,8 @@
 </template>
 <script setup>
 import { ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
+import { safeBack } from "@/utils/navigation";
 import AppInput from "@/components/AppInput.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from '@/stores/auth'
@@ -146,6 +147,7 @@ import { useChatBadgeStore } from '@/stores/chatBadge'
 import personIcon from '@/assets/icons/person.svg'
 import { isValidPhone, formatPhone, isValidAge, isValidHeight, isValidWeight } from '@/utils/validators'
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore()
 const { uploading, error: uploadError, uploadAvatar, saveMemberProfileBasic, saveMemberProfileDetails } = useProfile()
 const { redeemInviteCode } = useInvite()
@@ -284,14 +286,17 @@ async function handleComplete() {
 
     showSuccess('프로필이 저장되었습니다')
     setTimeout(() => {
-      const pendingCode = localStorage.getItem('pending_invite_code')
+      const pendingCode = sessionStorage.getItem('pending_invite_code')
       if (pendingCode) {
         redeemInviteCode(pendingCode).then((result) => {
           if (result) {
-            localStorage.removeItem('pending_invite_code')
+            sessionStorage.removeItem('pending_invite_code')
             reservationsStore.invalidate()
             ptSessionsStore.invalidate()
             chatBadgeStore.loadUnreadCount(true)
+            showToast('트레이너와 연결되었습니다!', 'success')
+          } else {
+            showToast('초대 코드 연결에 실패했습니다. 설정에서 다시 시도해주세요.', 'error')
           }
           router.replace('/member/home')
         })

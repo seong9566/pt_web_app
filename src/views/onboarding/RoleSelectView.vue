@@ -2,7 +2,7 @@
 <template>
   <div class="role-select">
     <div class="role-select__header">
-      <button class="role-select__back" @click="router.back()">
+      <button class="role-select__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path
             d="M15 18L9 12L15 6"
@@ -61,7 +61,8 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
+import { safeBack } from "@/utils/navigation";
 import ProgressBar from "@/components/ProgressBar.vue";
 import AppButton from "@/components/AppButton.vue";
 import { useAuthStore } from "@/stores/auth";
@@ -69,6 +70,7 @@ import { useProfile } from "@/composables/useProfile";
 import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 const { saveRole, error: roleError, uploading } = useProfile();
 const { showToast } = useToast();
@@ -78,7 +80,7 @@ const errorMsg = ref('')
 
 /** 초대 코드 감지 → 자동 member 역할 설정 */
 onMounted(async () => {
-  const pendingCode = localStorage.getItem('pending_invite_code')
+  const pendingCode = sessionStorage.getItem('pending_invite_code')
   if (pendingCode) {
     const success = await saveRole(auth.user.id, 'member')
     if (success) {

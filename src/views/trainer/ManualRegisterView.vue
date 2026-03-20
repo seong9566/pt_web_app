@@ -4,7 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="manual-reg__header">
-      <button class="manual-reg__header-btn" @click="router.back()">
+      <button class="manual-reg__header-btn" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -175,6 +175,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
 
@@ -287,7 +288,7 @@ async function handleSave() {
     })
     if (ok) {
       showSuccess('저장되었습니다')
-      setTimeout(() => router.back(), 800)
+      setTimeout(() => safeBack(route.path), 800)
     }
   } else {
     const manualId = await createManual(

@@ -62,14 +62,25 @@
     <AppBottomSheet v-model="showRejectSheet" title="변경 요청 거절">
       <div class="reject-sheet">
         <p class="reject-sheet__hint">거절 사유를 입력하면 회원에게 전달됩니다.</p>
+        <div class="reject-sheet__presets">
+          <button
+            v-for="preset in REJECT_PRESETS"
+            :key="preset"
+            class="reject-sheet__preset press-effect"
+            :class="{ 'reject-sheet__preset--active': rejectReason === preset }"
+            type="button"
+            @click="rejectReason = rejectReason === preset ? '' : preset"
+          >{{ preset }}</button>
+        </div>
         <textarea v-model="rejectReason" class="reject-sheet__textarea" placeholder="거절 사유를 입력해주세요 (선택)" maxlength="120" />
+        <span class="reject-sheet__counter">{{ rejectReason.length }}/120</span>
         <AppButton :disabled="loading" @click="handleRejectConfirm">거절 확인</AppButton>
       </div>
     </AppBottomSheet>
 
     <!-- ── Header ── -->
     <div class="reservation__header">
-      <button class="reservation__back press-effect" @click="router.back()">
+      <button class="reservation__back press-effect" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -136,7 +147,7 @@
             <div
               v-for="(item, idx) in changeRequestedList"
               :key="item.id"
-              class="res-card stagger-fade-in"
+              class="res-card res-card--change-requested stagger-fade-in"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
@@ -200,7 +211,7 @@
             <div
               v-for="(item, idx) in scheduledList"
               :key="item.id"
-              class="res-card stagger-fade-in"
+              class="res-card res-card--scheduled stagger-fade-in"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
@@ -251,7 +262,7 @@
             <div
               v-for="(item, idx) in completedList"
               :key="item.id"
-              class="res-card res-card--muted stagger-fade-in"
+              class="res-card res-card--completed res-card--muted stagger-fade-in"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
@@ -292,7 +303,7 @@
             <div
               v-for="(item, idx) in cancelledList"
               :key="item.id"
-              class="res-card res-card--muted stagger-fade-in"
+              class="res-card res-card--cancelled res-card--muted stagger-fade-in"
               :style="{ '--stagger-index': idx }"
             >
               <div class="res-card__top">
@@ -334,6 +345,10 @@
             <path d="M8 2V6M16 2V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
           <p class="reservation__empty-text">일정이 없습니다</p>
+          <p class="reservation__empty-sub">스케줄 화면에서 빈 슬롯을 탭하여 배정하세요</p>
+          <button class="reservation__empty-btn press-effect" @click="router.push({ name: 'trainer-schedule' })">
+            스케줄 바로가기
+          </button>
         </div>
 
       </template>
@@ -346,7 +361,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useReservations } from '@/composables/useReservations'
 import { useReservationsStore } from '@/stores/reservations'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
@@ -356,13 +372,20 @@ import AppSkeleton from '@/components/AppSkeleton.vue'
 import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
+const route = useRoute()
 const {
   reservations, loading, error, slots, slotDuration,
   fetchMyReservations, fetchAvailableSlots, reassignSchedule, cancelSchedule,
-  approveChangeRequest, rejectChangeRequest,
+  approveChangeRequest, rejectChangeRequest, revertApproval,
 } = useReservations()
 const reservationsStore = useReservationsStore()
-const { showToast } = useToast()
+const { showToast, showSuccess, showError } = useToast()
+
+/** 상태 변경 후 캐시 무효화 + 재조회 */
+async function refreshAfterAction() {
+  reservationsStore.invalidate()
+  await fetchMyReservations('trainer')
+}
 
 const filterChips = [
   { id: 'all',              label: '전체',    icon: 'grid' },
@@ -370,6 +393,7 @@ const filterChips = [
   { id: 'change_requested', label: '변경요청', icon: 'alert' },
   { id: 'completed',        label: '완료',    icon: 'history' },
 ]
+const REJECT_PRESETS = ['시간 충돌', '개인 사정', '스케줄 변경 필요']
 const activeFilter = ref('all')
 const processingId = ref(null)
 const showRejectSheet = ref(false)
@@ -419,8 +443,8 @@ async function confirmCancel() {
     showCancelDialog.value = false
     cancelTarget.value = null
     if (success) {
-      reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
+      showSuccess('일정이 취소되었습니다.')
+      await refreshAfterAction()
     }
   } finally {
     processingId.value = null
@@ -428,14 +452,38 @@ async function confirmCancel() {
 }
 
 async function handleApprove(item) {
-  const approved = await approveChangeRequest(item.id)
+  // 승인 전 원본 데이터 캡처 (Undo 복원용)
+  const originalData = {
+    date: item.date,
+    start_time: item.start_time,
+    end_time: item.end_time,
+    requested_date: item.requested_date,
+    requested_start_time: item.requested_start_time,
+    requested_end_time: item.requested_end_time,
+    change_reason: item.change_reason,
+  }
+  const reservationId = item.id
+
+  const approved = await approveChangeRequest(reservationId)
   if (!approved) {
-    alert(error.value || '승인에 실패했습니다.')
+    showError(error.value || '승인에 실패했습니다.')
     return
   }
-  alert('변경 요청이 승인되었습니다.')
-  reservationsStore.invalidate()
-  await fetchMyReservations('trainer')
+  await refreshAfterAction()
+  showSuccess('변경 요청이 승인되었습니다.', {
+    action: {
+      label: '실행 취소',
+      handler: async () => {
+        const reverted = await revertApproval(reservationId, originalData)
+        if (reverted) {
+          showSuccess('승인이 취소되었습니다.')
+          await refreshAfterAction()
+        } else {
+          showError('승인 취소에 실패했습니다.')
+        }
+      },
+    },
+  })
 }
 
 function handleRejectOpen(item) {
@@ -448,15 +496,14 @@ async function handleRejectConfirm() {
   if (!rejectTarget.value) return
   const rejected = await rejectChangeRequest(rejectTarget.value.id, rejectReason.value.trim() || null)
   if (!rejected) {
-    alert(error.value || '거절에 실패했습니다.')
+    showError(error.value || '거절에 실패했습니다.')
     return
   }
   showRejectSheet.value = false
   rejectTarget.value = null
   rejectReason.value = ''
-  alert('변경 요청이 거절되었습니다.')
-  reservationsStore.invalidate()
-  await fetchMyReservations('trainer')
+  showSuccess('변경 요청이 거절되었습니다.')
+  await refreshAfterAction()
 }
 
 const showReassignSheet = ref(false)
@@ -508,8 +555,8 @@ async function handleReassign() {
     )
     if (result) {
       showReassignSheet.value = false
-      reservationsStore.invalidate()
-      await fetchMyReservations('trainer')
+      showSuccess('일정이 재배정되었습니다.')
+      await refreshAfterAction()
     } else {
       reassignError.value = error.value || '재배정에 실패했습니다'
     }

@@ -2,7 +2,7 @@
 <template>
   <div class="invite-manage">
     <div class="invite-manage__header">
-      <button class="invite-manage__back" @click="router.back()" style="color: var(--color-gray-900);">
+      <button class="invite-manage__back" @click="safeBack(route.path)" style="color: var(--color-gray-900);">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="invite-manage__title">초대 코드 관리</h2>
@@ -94,13 +94,15 @@
 </template>
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useInvite } from '@/composables/useInvite'
 import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import personIcon from '@/assets/icons/person.svg'
 
 const router = useRouter()
+const route = useRoute()
 const { inviteCode, recentMembers, loading, error, fetchInviteCode, generateInviteCode, fetchRecentMembers } = useInvite()
 const { showToast } = useToast()
 

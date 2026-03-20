@@ -120,7 +120,9 @@
 
               <p class="member-session__time">
                 <template v-if="session.status === 'change_requested' && session.requested_start_time">
-                  {{ session.start_time?.slice(0,5) }} → {{ session.requested_start_time?.slice(0,5) }}
+                  <span class="member-session__time-original"><s>{{ session.start_time?.slice(0,5) }}</s></span>
+                  <span class="member-session__time-arrow">→</span>
+                  <span class="member-session__time-requested">{{ session.requested_start_time?.slice(0,5) }}</span>
                   <span v-if="session.requested_date && session.requested_date !== session.date" class="member-session__requested-date">
                     ({{ formatShortDate(session.requested_date) }})
                   </span>
@@ -238,7 +240,9 @@
         />
         <template v-if="changeRequestDate">
           <p class="change-sheet__label">변경할 시간</p>
-          <div v-if="changeRequestSlotsLoading" class="change-sheet__loading">슬롯 조회 중...</div>
+          <div v-if="changeRequestSlotsLoading" class="change-sheet__loading">
+            <AppSkeleton type="rect" width="100%" height="36px" :count="3" border-radius="var(--radius-small)" />
+          </div>
           <div v-else-if="changeRequestSlots.length === 0" class="change-sheet__empty">해당 날짜에 가용 슬롯이 없습니다.</div>
           <div v-else class="change-sheet__slots">
             <button

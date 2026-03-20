@@ -4,7 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="notification-list__header">
-      <button class="notification-list__back press-effect" @click="router.back()">
+      <button class="notification-list__back press-effect" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -72,13 +72,15 @@
 
 <script setup>
 import { onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useNotifications } from '@/composables/useNotifications'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead, error } = useNotifications()
 const { showToast, showError, showSuccess } = useToast()

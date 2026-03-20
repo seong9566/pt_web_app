@@ -2,7 +2,7 @@
 <template>
   <div class="invite-enter">
     <div class="invite-enter__header">
-      <button class="invite-enter__back" @click="router.back()">
+      <button class="invite-enter__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h2 class="invite-enter__title">초대 코드 입력</h2>
@@ -82,6 +82,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useInvite } from '@/composables/useInvite'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationsStore } from '@/stores/reservations'
@@ -165,7 +166,7 @@ async function handleCheckCode() {
 
 function handleLoginRedirect() {
   const code = codeDigits.value.join('')
-  if (code) localStorage.setItem('pending_invite_code', code)
+  if (code) sessionStorage.setItem('pending_invite_code', code)
   router.push('/login')
 }
 

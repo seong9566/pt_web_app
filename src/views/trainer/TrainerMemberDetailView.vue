@@ -10,7 +10,7 @@
       <p style="font-size: var(--fs-body1); font-weight: var(--fw-body1-bold); color: var(--color-gray-900);">연결되지 않은 회원입니다</p>
       <p style="font-size: var(--fs-body2); color: var(--color-gray-600);">회원 목록에서 연결된 회원을 선택해주세요</p>
       <div style="margin-top: 8px;">
-        <AppButton variant="primary" @click="router.back()">뒤로가기</AppButton>
+        <AppButton variant="primary" @click="safeBack(route.path)">뒤로가기</AppButton>
       </div>
     </div>
 
@@ -23,7 +23,7 @@
 
     <!-- ── Header ── -->
     <div class="mem-detail__header">
-      <button class="mem-detail__back" @click="router.back()">
+      <button class="mem-detail__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -164,7 +164,7 @@
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <button class="quick-action" @click="showColorSheet = true">
+        <!-- <button class="quick-action" @click="showColorSheet = true">
           <div class="quick-action__icon">
             <span class="color-dot" :style="{ backgroundColor: currentMemberColor }"></span>
           </div>
@@ -172,7 +172,7 @@
           <svg class="quick-action__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </button>
+        </button> -->
         <button class="quick-action quick-action--danger" @click="showDisconnectSheet = true">
           <div class="quick-action__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -286,6 +286,7 @@
 defineOptions({ name: 'TrainerMemberDetailView' })
 import { computed, onMounted, onActivated, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useMemos } from '@/composables/useMemos'
 import { useProfile } from '@/composables/useProfile'
 import { usePtSessions } from '@/composables/usePtSessions'

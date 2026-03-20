@@ -4,7 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="manual-list__header">
-      <button class="manual-list__header-btn" @click="router.back()">
+      <button class="manual-list__header-btn" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -120,7 +120,8 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { useManuals } from '@/composables/useManuals'
 import { useToast } from '@/composables/useToast'
@@ -128,6 +129,7 @@ import { getYoutubeThumbnailUrl } from '@/utils/youtube'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { manuals, loading, fetchManuals, error } = useManuals()
 const { showToast, showError, showSuccess } = useToast()

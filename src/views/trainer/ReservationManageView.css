@@ -175,6 +175,23 @@
   box-shadow: var(--shadow-card);
 }
 
+/* 상태별 좌측 컬러 바 */
+.res-card--change-requested {
+  border-left: 3px solid var(--color-orange);
+}
+
+.res-card--scheduled {
+  border-left: 3px solid var(--color-blue-primary);
+}
+
+.res-card--completed {
+  border-left: 3px solid var(--color-gray-400);
+}
+
+.res-card--cancelled {
+  border-left: 3px solid var(--color-red);
+}
+
 .res-card--muted {
   opacity: 0.7;
 }
@@ -371,6 +388,31 @@
   margin: 8px 0 0;
 }
 
+.reservation__empty-sub {
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.reservation__empty-btn {
+  margin-top: 8px;
+  height: 44px;
+  padding: 0 24px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reservation__empty-btn:active {
+  opacity: 0.85;
+}
+
 /* ── Cancel Dialog ── */
 .cancel-dialog {
   padding: 8px 0 0;
@@ -561,6 +603,35 @@
   color: var(--color-gray-600);
   margin-bottom: 12px;
 }
+/* 거절 사유 프리셋 칩 */
+.reject-sheet__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reject-sheet__preset {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1.5px solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-gray-600);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body2);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.reject-sheet__preset--active {
+  border-color: var(--color-red);
+  background: var(--color-red-light);
+  color: var(--color-red);
+  font-weight: var(--fw-body1-bold);
+}
+
 .reject-sheet__textarea {
   width: 100%;
   min-height: 100px;
@@ -570,5 +641,13 @@
   font-size: var(--fs-body2);
   resize: none;
   box-sizing: border-box;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+}
+
+.reject-sheet__counter {
+  display: block;
+  text-align: right;
+  font-size: var(--fs-caption);
+  color: var(--color-gray-400);
+  margin-bottom: 12px;
 }

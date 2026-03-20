@@ -246,6 +246,22 @@
 .member-session__requested-date {
   color: var(--color-orange);
   font-weight: var(--fw-body1-bold);
+  margin-left: 4px;
+}
+
+.member-session__time-original {
+  color: var(--color-gray-400);
+  opacity: 0.8;
+}
+
+.member-session__time-arrow {
+  margin: 0 6px;
+  color: var(--color-gray-400);
+}
+
+.member-session__time-requested {
+  color: var(--color-blue-primary);
+  font-weight: var(--fw-body1-bold);
 }
 
 .member-session__summary {
@@ -426,6 +442,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* 모바일 480px 화면에서 캘린더+시간+사유 입력이 높이 초과하지 않도록 스크롤 허용 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(100dvh - 120px);
 }
 
 .change-sheet__target {
@@ -452,7 +472,7 @@
 }
 
 .change-sheet__hint {
-  margin: -2px 0 0;
+  margin: -2px 0 10px;
   font-size: var(--fs-caption);
   color: var(--color-gray-600);
 }

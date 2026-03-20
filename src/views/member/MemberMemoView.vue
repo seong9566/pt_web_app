@@ -4,7 +4,7 @@
 
     <!-- ── Header ── -->
     <div class="member-memo__header">
-      <button class="member-memo__back" @click="router.back()">
+      <button class="member-memo__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="color: var(--color-gray-900)">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -78,13 +78,15 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import { useMemos } from '@/composables/useMemos'
 import { useReservations } from '@/composables/useReservations'
 import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 
 const router = useRouter()
+const route = useRoute()
 const { memos, loading, error, getMemberMemos } = useMemos()
 const { checkTrainerConnection } = useReservations()
 const { showToast } = useToast()

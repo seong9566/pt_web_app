@@ -1,7 +1,7 @@
 <template>
   <div class="availability-registration">
     <header class="availability-registration__header">
-      <button class="availability-registration__back" @click="router.back()">
+      <button class="availability-registration__back" @click="safeBack(route.path)">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -85,7 +85,8 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { safeBack } from '@/utils/navigation'
 import AppButton from '@/components/AppButton.vue'
 import AppInput from '@/components/AppInput.vue'
 import AppAvailabilityGrid from '@/components/AppAvailabilityGrid.vue'
@@ -139,6 +140,7 @@ function formatWeekRange(weekStart) {
 }
 
 const router = useRouter()
+const route = useRoute()
 const { submitAvailability, fetchMyAvailability, loading, error } = useAvailability()
 const { getConnectedTrainerId } = useReservations()
 const { showToast, showSuccess } = useToast()
@@ -243,7 +245,7 @@ async function handleSubmit() {
   }
 
   showSuccess('가능한 시간이 전달되었습니다')
-  router.back()
+  safeBack(route.path)
 }
 
 onMounted(async () => {
