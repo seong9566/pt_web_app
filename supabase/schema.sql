@@ -302,11 +302,12 @@ to authenticated
 with check (auth.uid() = trainer_id);
 
 drop policy if exists "Invite codes are readable by authenticated users" on public.invite_codes;
-create policy "Invite codes are readable by authenticated users"
+drop policy if exists "Invite codes are readable by owner" on public.invite_codes;
+create policy "Invite codes are readable by owner"
 on public.invite_codes
 for select
 to authenticated
-using (true);
+using (auth.uid() = trainer_id);
 
 drop policy if exists "Invite codes are updatable by trainer" on public.invite_codes;
 create policy "Invite codes are updatable by trainer"
@@ -706,7 +707,32 @@ exception
 end;
 $$;
 
+-- 초대 코드 유효성 검증 + 트레이너 정보 조회 (SECURITY DEFINER — RLS 우회)
+create or replace function public.validate_invite_code(p_code text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_result json;
+begin
+  select json_build_object(
+    'trainer_id', ic.trainer_id,
+    'trainer_name', coalesce(p.name, '트레이너'),
+    'trainer_photo', p.photo_url
+  ) into v_result
+  from public.invite_codes ic
+  left join public.profiles p on p.id = ic.trainer_id
+  where ic.code = p_code
+    and ic.is_active = true;
+
+  return v_result;  -- null이면 유효하지 않은 코드
+end;
+$$;
+
 grant execute on function public.connect_via_invite(text) to authenticated;
+grant execute on function public.validate_invite_code(text) to authenticated;
 grant execute on function public.create_reservation(uuid, date, time, time, text) to authenticated;
 
 -- ============================================================
