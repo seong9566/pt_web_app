@@ -57,28 +57,34 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
       }
     }
 
-    for (const date of datesToFetch) {
+    if (datesToFetch.length > 0) {
+      // 단일 쿼리로 여러 날짜 한번에 조회 (N RTT → 1 RTT)
       const { data, error } = await supabase
         .from('workout_plans')
-        .select('member_id, category, reservation_id')
+        .select('member_id, category, reservation_id, date')
         .eq('trainer_id', trainerId)
-        .eq('date', date)
+        .in('date', datesToFetch)
+
+      const now = Date.now()
 
       if (!error && data) {
+        // 응답 데이터를 reservation_id 기반으로 캐시에 저장
         data.forEach((plan) => {
           if (!plan.reservation_id) return
-          const key = plan.reservation_id
-          _weeklyCache.value.set(key, {
+          _weeklyCache.value.set(plan.reservation_id, {
             category: plan.category,
-            lastFetchedAt: Date.now(),
+            lastFetchedAt: now,
           })
         })
       }
 
-      const loadedKey = `_loaded_${date}`
-      _weeklyCache.value.set(loadedKey, {
-        category: null,
-        lastFetchedAt: Date.now(),
+      // 결과 유무와 관계없이 조회한 모든 날짜에 _loaded 마커 설정
+      // (누락 시 해당 날짜가 stale로 판단돼 매번 재조회됨)
+      datesToFetch.forEach((date) => {
+        _weeklyCache.value.set(`_loaded_${date}`, {
+          category: null,
+          lastFetchedAt: now,
+        })
       })
     }
 

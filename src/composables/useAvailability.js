@@ -109,7 +109,7 @@ export function useAvailability() {
     try {
       const { data, error: fetchError } = await supabase
         .from('member_weekly_availability')
-        .select('*')
+        .select('id, available_slots, memo, member_id, trainer_id, week_start, created_at')
         .eq('member_id', auth.user.id)
         .eq('trainer_id', trainerId)
         .eq('week_start', weekStart)

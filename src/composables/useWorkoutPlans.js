@@ -56,7 +56,7 @@ export function useWorkoutPlans() {
     try {
       const { data, error: err } = await supabase
         .from('workout_plans')
-        .select('*')
+        .select('id, date, exercises, category, reservation_id, member_id')
         .eq('member_id', memberId)
         .order('date', { ascending: false })
       if (err) throw err

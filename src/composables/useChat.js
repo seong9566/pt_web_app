@@ -25,8 +25,7 @@ export function useChat() {
   const unreadCount = ref(0)
   const hasMore = ref(true)
   const searchResults = ref([])
-  let channel = null
-  let readReceiptChannel = null
+  let chatRoomChannel = null
   let conversationChannel = null
 
   /**
@@ -192,7 +191,7 @@ export function useChat() {
 
       const { data, error: searchError } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, sender_id, receiver_id, content, file_url, file_name, file_type, file_size, is_read, created_at')
         .or(`sender_id.eq.${me},receiver_id.eq.${me}`)
         .or(`and(sender_id.eq.${me},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me})`)
         .ilike('content', `%${keyword}%`)
@@ -292,17 +291,22 @@ export function useChat() {
   }
 
   /**
-   * Supabase Realtime 구독 — 특정 상대와의 채팅방 메시지 수신
+   * Supabase Realtime 구독 — 채팅방 메시지 수신 + 읽음 상태 변경을 단일 채널로 처리
+   * - INSERT: 상대방이 보낸 새 메시지 수신
+   * - UPDATE: 내가 보낸 메시지의 is_read 변경 감지
    */
   function subscribeToMessages(partnerId) {
     const me = auth.user?.id
     if (!me || !partnerId) return
 
-    // 기존 채널이 있으면 먼저 해제
-    unsubscribe()
+    // 기존 채팅방 채널이 있으면 먼저 해제
+    if (chatRoomChannel) {
+      supabase.removeChannel(chatRoomChannel)
+      chatRoomChannel = null
+    }
 
-    channel = supabase
-      .channel(`chat-${partnerId}-${me}`)
+    chatRoomChannel = supabase
+      .channel(`chat-room-${partnerId}-${me}`)
       .on(
         'postgres_changes',
         {
@@ -320,42 +324,6 @@ export function useChat() {
           }
         }
       )
-      .subscribe()
-  }
-
-  /**
-   * Realtime 구독 해제
-   */
-  function unsubscribe() {
-    if (channel) {
-      supabase.removeChannel(channel)
-      channel = null
-    }
-    if (readReceiptChannel) {
-      supabase.removeChannel(readReceiptChannel)
-      readReceiptChannel = null
-    }
-    if (conversationChannel) {
-      supabase.removeChannel(conversationChannel)
-      conversationChannel = null
-    }
-  }
-
-  /**
-   * Supabase Realtime 구독 — 내가 보낸 메시지의 읽음 상태 변경 감지
-   * 상대방이 읽으면 is_read=true UPDATE → 로컬 messages 배열 업데이트
-   */
-  function subscribeToReadReceipts(partnerId) {
-    const me = auth.user?.id
-    if (!me || !partnerId) return
-
-    if (readReceiptChannel) {
-      supabase.removeChannel(readReceiptChannel)
-      readReceiptChannel = null
-    }
-
-    readReceiptChannel = supabase
-      .channel(`read-receipts-${partnerId}-${me}`)
       .on(
         'postgres_changes',
         {
@@ -365,6 +333,7 @@ export function useChat() {
           filter: `sender_id=eq.${me}`,
         },
         (payload) => {
+          // 상대방이 읽으면 is_read=true UPDATE → 로컬 messages 배열 업데이트
           if (payload.new.is_read === true) {
             const idx = messages.value.findIndex((m) => m.id === payload.new.id)
             if (idx !== -1) {
@@ -374,6 +343,28 @@ export function useChat() {
         }
       )
       .subscribe()
+  }
+
+  /**
+   * Realtime 구독 해제
+   */
+  function unsubscribe() {
+    if (chatRoomChannel) {
+      supabase.removeChannel(chatRoomChannel)
+      chatRoomChannel = null
+    }
+    if (conversationChannel) {
+      supabase.removeChannel(conversationChannel)
+      conversationChannel = null
+    }
+  }
+
+  /**
+   * @deprecated subscribeToMessages()가 읽음 상태 구독을 통합하여 처리하므로 별도 호출 불필요
+   * 하위 호환성을 위해 no-op으로 유지
+   */
+  function subscribeToReadReceipts(_partnerId) {
+    // subscribeToMessages()에 통합됨 — 별도 채널 불필요
   }
 
   /**

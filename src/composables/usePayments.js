@@ -30,7 +30,7 @@ export function usePayments() {
     try {
       const { data, error: fetchError } = await supabase
         .from('payments')
-        .select('*')
+        .select('id, amount, payment_date, memo, member_id, trainer_id')
         .eq('member_id', memberId)
         .eq('trainer_id', auth.user.id)
         .order('payment_date', { ascending: false })
@@ -53,7 +53,7 @@ export function usePayments() {
     try {
       const { data, error: fetchError } = await supabase
         .from('payments')
-        .select('*')
+        .select('id, amount, payment_date, memo, member_id, trainer_id')
         .eq('member_id', auth.user.id)
         .order('payment_date', { ascending: false })
 

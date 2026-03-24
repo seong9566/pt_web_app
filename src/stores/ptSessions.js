@@ -31,7 +31,7 @@ export const usePtSessionsStore = defineStore('ptSessions', () => {
 
     const { data, error } = await supabase
       .from('pt_sessions')
-      .select('*')
+      .select('id, change_amount, reason, created_at, member_id, trainer_id')
       .eq('member_id', memberId)
       .eq('trainer_id', auth.user.id)
       .order('created_at', { ascending: false })
