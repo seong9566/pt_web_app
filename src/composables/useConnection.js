@@ -44,6 +44,21 @@ export async function getActiveMemberIds(trainerId) {
   return (data || []).map(d => d.member_id)
 }
 
+// 멤버의 연결된 트레이너 프로필 조회 (id, name, photo_url)
+// [A1 반영] .limit(1)로 다중 연결 방어
+// [R1 반영] 명시적 FK명 사용
+export async function getConnectedTrainerProfile(memberId) {
+  if (!memberId) return null
+  const { data } = await supabase
+    .from('trainer_members')
+    .select('trainer:profiles!trainer_members_trainer_id_fkey(id, name, photo_url)')
+    .eq('member_id', memberId)
+    .eq('status', 'active')
+    .limit(1)
+    .maybeSingle()
+  return data?.trainer || null
+}
+
 export async function getActivePartnerIds(userId) {
   if (!userId) return []
   const { data } = await supabase

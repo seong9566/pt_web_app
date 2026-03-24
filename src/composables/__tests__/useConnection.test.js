@@ -5,6 +5,7 @@ import {
   isActivePartner,
   getActiveMemberIds,
   getActivePartnerIds,
+  getConnectedTrainerProfile,
 } from '@/composables/useConnection'
 
 const mockEnv = vi.hoisted(() => {
@@ -20,6 +21,7 @@ function createBuilder() {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
     or: vi.fn(() => builder),
+    limit: vi.fn(() => builder),
     maybeSingle: vi.fn(),
   }
   return builder
@@ -267,6 +269,42 @@ describe('useConnection', () => {
       await getActivePartnerIds('user-1')
 
       expect(builder.or).toHaveBeenCalledWith('trainer_id.eq.user-1,member_id.eq.user-1')
+    })
+  })
+
+  describe('getConnectedTrainerProfile', () => {
+    it('memberId가 null이면 null을 반환하고 DB를 조회하지 않는다', async () => {
+      const result = await getConnectedTrainerProfile(null)
+
+      expect(result).toBeNull()
+      expect(mockEnv.supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('활성 연결된 트레이너 프로필을 반환한다', async () => {
+      const builder = createBuilder()
+      builder.maybeSingle.mockResolvedValue({
+        data: { trainer: { id: 'trainer-1', name: '김트레이너', photo_url: 'https://example.com/photo.jpg' } },
+        error: null,
+      })
+      mockEnv.supabase.from.mockReturnValue(builder)
+
+      const result = await getConnectedTrainerProfile('member-1')
+
+      expect(result).toEqual({ id: 'trainer-1', name: '김트레이너', photo_url: 'https://example.com/photo.jpg' })
+      expect(mockEnv.supabase.from).toHaveBeenCalledWith('trainer_members')
+      expect(builder.eq).toHaveBeenCalledWith('member_id', 'member-1')
+      expect(builder.eq).toHaveBeenCalledWith('status', 'active')
+      expect(builder.limit).toHaveBeenCalledWith(1)
+    })
+
+    it('연결된 트레이너가 없으면 null을 반환한다', async () => {
+      const builder = createBuilder()
+      builder.maybeSingle.mockResolvedValue({ data: null, error: null })
+      mockEnv.supabase.from.mockReturnValue(builder)
+
+      const result = await getConnectedTrainerProfile('member-1')
+
+      expect(result).toBeNull()
     })
   })
 })
