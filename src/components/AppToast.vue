@@ -36,7 +36,7 @@ function handleAction() {
 <style>
 .app-toast {
   position: fixed;
-  bottom: calc(var(--nav-height, 68px) + 24px);
+  bottom: calc(var(--nav-height, 68px) + 24px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   background-color: var(--color-gray-900);

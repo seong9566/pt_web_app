@@ -53,7 +53,7 @@
       </div>
       <div v-else-if="verifiedTrainer" class="invite-enter__trainer-card">
         <div class="invite-enter__trainer-avatar">
-          <img v-if="verifiedTrainer.trainerPhoto" :src="verifiedTrainer.trainerPhoto" alt="trainer" />
+          <img v-if="verifiedTrainer.trainerPhoto" :src="verifiedTrainer.trainerPhoto" alt="trainer" loading="lazy" decoding="async" />
           <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none" style="color: var(--color-blue-primary)">
             <circle cx="12" cy="8" r="4" fill="currentColor"/>
             <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="currentColor"/>

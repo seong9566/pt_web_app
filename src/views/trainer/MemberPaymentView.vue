@@ -142,7 +142,7 @@
       </template>
 
       <!-- 하단 여백 (FAB + 네비 높이) -->
-      <div style="height: calc(var(--nav-height) + 80px);" />
+      <div class="nav-spacer--fab" />
 
     </div>
 

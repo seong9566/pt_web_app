@@ -72,7 +72,7 @@ export const useWorkHoursStore = defineStore('workHours', () => {
 
     const { data, error } = await supabase
       .from('work_schedules')
-      .select('*')
+      .select('day_of_week, is_enabled, start_time, end_time, slot_duration_minutes')
       .eq('trainer_id', targetId)
       .order('day_of_week')
 

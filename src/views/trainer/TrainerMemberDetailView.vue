@@ -249,7 +249,7 @@
       </svg>
     </button>
 
-    <div style="height: calc(var(--nav-height) + 32px);" />
+    <div class="nav-spacer--lg" />
   <AppBottomSheet v-model="showDisconnectSheet" title="회원 연결 해제">
     <p class="mem-detail__sheet-desc">정말 연결을 해제하시겠습니까?</p>
     <div class="mem-detail__sheet-actions">

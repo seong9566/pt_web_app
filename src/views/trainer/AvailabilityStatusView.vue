@@ -122,7 +122,7 @@
           class="availability-status__cell-member"
         >
           <div class="availability-status__cell-avatar">
-            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
+            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" loading="lazy" decoding="async" />
             <span v-else>{{ member.displayName[0] }}</span>
           </div>
           <span class="availability-status__cell-name">{{ member.displayName }}</span>
@@ -138,7 +138,7 @@
           class="availability-status__pending-item"
         >
           <div class="availability-status__cell-avatar">
-            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" />
+            <img v-if="member.displayPhoto" :src="member.displayPhoto" :alt="member.displayName" loading="lazy" decoding="async" />
             <span v-else>{{ member.displayName[0] }}</span>
           </div>
           <span class="availability-status__cell-name">{{ member.displayName }}</span>
@@ -155,7 +155,7 @@
       </div>
     </AppBottomSheet>
 
-    <div style="height: calc(var(--nav-height) + 24px);" />
+    <div class="nav-spacer--md" />
   </div>
 </template>
 

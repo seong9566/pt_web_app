@@ -101,7 +101,7 @@
     </div>
 
     <!-- Nav spacer -->
-    <div style="height: calc(var(--nav-height) + 80px);" />
+    <div class="nav-spacer--fab" />
 
     <!-- ── FAB ── -->
     <button

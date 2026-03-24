@@ -43,7 +43,7 @@ export function useNotifications() {
       const sevenDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
       const { data, error: err } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, type, title, body, is_read, created_at, target_type, target_id')
         .eq('user_id', auth.user.id)
         .gte('created_at', sevenDaysAgo)
         .order('created_at', { ascending: false })

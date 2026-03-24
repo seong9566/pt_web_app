@@ -94,7 +94,7 @@
         <label class="memo-write__label">사진 첨부</label>
         <div class="memo-write__photos">
           <div v-for="(photo, idx) in photos" :key="idx" class="memo-write__photo">
-            <img :src="photo" alt="첨부 사진" class="memo-write__photo-img" />
+            <img :src="photo" alt="첨부 사진" class="memo-write__photo-img" loading="lazy" decoding="async" />
             <button class="memo-write__photo-remove" @click="removePhoto(idx)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)"/>

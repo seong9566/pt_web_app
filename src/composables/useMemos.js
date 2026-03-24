@@ -170,7 +170,7 @@ export function useMemos() {
     try {
       const { data, error: fetchError } = await supabase
         .from('memos')
-        .select('*')
+        .select('id, content, tags, created_at')
         .eq('trainer_id', auth.user.id)
         .eq('member_id', memberId)
         .order('created_at', { ascending: false })
@@ -199,7 +199,7 @@ export function useMemos() {
     try {
       const { data, error: fetchError } = await supabase
         .from('memos')
-        .select('*')
+        .select('id, content, tags')
         .eq('id', memoId)
         .single()
       if (fetchError) throw fetchError
@@ -279,7 +279,7 @@ export function useMemos() {
       
       const { data, error: fetchError } = await supabase
         .from('memos')
-        .select('*')
+        .select('id, content, tags, created_at')
         .eq('member_id', me)
         .order('created_at', { ascending: false })
       

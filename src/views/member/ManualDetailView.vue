@@ -108,7 +108,7 @@
                 :src="item.file_url"
                 class="manual-detail__media-video"
               />
-              <img v-else :src="item.file_url" :alt="manual.title" />
+              <img v-else :src="item.file_url" :alt="manual.title" loading="lazy" decoding="async" />
               <span class="manual-detail__media-type">
                 {{ item.file_type?.startsWith('video/') ? '영상' : '사진' }}
               </span>

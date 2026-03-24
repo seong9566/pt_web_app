@@ -72,7 +72,7 @@
 
     </div>
 
-    <div style="height: calc(var(--nav-height) + 16px);" />
+    <div class="nav-spacer" />
   </div>
 </template>
 

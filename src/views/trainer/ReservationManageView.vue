@@ -135,7 +135,7 @@
               <div class="res-card__top">
                 <div class="res-card__profile">
                   <div class="res-card__avatar" :class="'res-card__avatar--' + item.status">
-                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
+                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" loading="lazy" decoding="async" />
                     <span v-else class="res-card__avatar-initial">{{ getInitial(item.partner_name) }}</span>
                   </div>
                   <div class="res-card__info">
@@ -245,7 +245,7 @@
               <div class="res-card__top">
                 <div class="res-card__profile">
                   <div class="res-card__avatar" :class="'res-card__avatar--' + item.status">
-                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" />
+                    <img v-if="item.partner_photo" :src="item.partner_photo" :alt="item.partner_name" class="res-card__avatar-img" loading="lazy" decoding="async" />
                     <span v-else class="res-card__avatar-initial">{{ getInitial(item.partner_name) }}</span>
                   </div>
                   <div class="res-card__info">
@@ -360,7 +360,7 @@
 
       </template>
 
-      <div style="height: calc(var(--nav-height) + 16px);" />
+      <div class="nav-spacer" />
     </div>
     </AppPullToRefresh>
 

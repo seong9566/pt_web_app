@@ -25,7 +25,7 @@ export function useInvite() {
     try {
       const { data, error: fetchError } = await supabase
         .from('invite_codes')
-        .select('*')
+        .select('id, code, trainer_id, is_active, created_at')
         .eq('trainer_id', auth.user.id)
         .eq('is_active', true)
         .maybeSingle()

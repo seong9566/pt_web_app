@@ -123,7 +123,7 @@
                 <span class="trainer-home__schedule-time-text">{{ reservation.start_time }}</span>
               </div>
               <div class="trainer-home__schedule-avatar">
-                <img v-if="reservation.partner_photo" :src="reservation.partner_photo" alt="" />
+                <img v-if="reservation.partner_photo" :src="reservation.partner_photo" alt="" loading="lazy" decoding="async" />
                 <span v-else class="trainer-home__schedule-avatar-initial">{{ (reservation.partner_name || '회')[0] }}</span>
               </div>
               <div class="trainer-home__schedule-info">
@@ -167,7 +167,7 @@
             @click="router.push('/trainer/chat')"
           >
             <div class="trainer-home__message-avatar">
-              <img v-if="conv.partnerPhoto" :src="conv.partnerPhoto" :alt="conv.partnerName" />
+              <img v-if="conv.partnerPhoto" :src="conv.partnerPhoto" :alt="conv.partnerName" loading="lazy" decoding="async" />
               <span v-else class="trainer-home__message-avatar-initial">{{ (conv.partnerName || '회')[0] }}</span>
               <span v-if="conv.unreadCount > 0" class="trainer-home__message-badge">
                 {{ conv.unreadCount > 9 ? '9+' : conv.unreadCount }}
@@ -184,7 +184,7 @@
         </div>
       </section>
 
-      <div style="height: calc(var(--nav-height) + 24px);" />
+      <div class="nav-spacer--md" />
     </div>
 
     </AppPullToRefresh>

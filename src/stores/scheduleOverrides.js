@@ -34,7 +34,7 @@ export const useScheduleOverridesStore = defineStore('scheduleOverrides', () => 
 
     const { data, error } = await supabase
       .from('daily_schedule_overrides')
-      .select('*')
+      .select('date, is_working, start_time, end_time, trainer_id')
       .eq('trainer_id', trainerId)
       .gte('date', startDate)
       .lte('date', endDate)

@@ -92,6 +92,12 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
+}
+
+/* ── 모바일 터치 최적화 ── */
+a, button, [role="button"], input, select, textarea {
+  touch-action: manipulation; /* 더블탭 줌 비활성화, 300ms 딜레이 방지 */
 }
 
 /* ── Base ── */
@@ -103,6 +109,9 @@ body {
   line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%; /* iOS 가로 회전 시 텍스트 크기 자동 증가 방지 */
+  text-size-adjust: 100%;
+  overscroll-behavior-y: contain; /* 브라우저 기본 pull-to-refresh/바운스 방지 */
 }
 
 a {
@@ -117,14 +126,16 @@ button {
   font-family: inherit;
 }
 
-input, textarea {
+input, textarea, select {
   font-family: inherit;
   outline: none;
+  font-size: 16px; /* iOS 자동 줌 방지 최소값 */
 }
 
 /* ── App Container ── */
 #app {
   min-height: 100vh;
+  min-height: 100dvh; /* 모바일 주소바 대응 */
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -134,10 +145,25 @@ input, textarea {
   width: 100%;
   max-width: var(--app-max-width);
   min-height: 100vh;
+  min-height: 100dvh; /* 모바일 주소바 대응 */
   position: relative;
   background-color: var(--color-white);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
   overflow-x: hidden;
+}
+
+/* ── Nav Spacer — 하단 네비 겹침 방지용 여백 ── */
+.nav-spacer {
+  height: calc(var(--nav-height) + 16px + env(safe-area-inset-bottom, 0px));
+}
+.nav-spacer--md {
+  height: calc(var(--nav-height) + 24px + env(safe-area-inset-bottom, 0px));
+}
+.nav-spacer--lg {
+  height: calc(var(--nav-height) + 32px + env(safe-area-inset-bottom, 0px));
+}
+.nav-spacer--fab {
+  height: calc(var(--nav-height) + 80px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Micro-interactions ── */

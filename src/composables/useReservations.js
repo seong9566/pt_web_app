@@ -84,44 +84,62 @@ export function useReservations() {
         return slots.value
       }
 
-      // 휴일 확인 (daily_schedule_overrides에서 is_working=false인 레코드)
-      const { data: holidayData } = await supabase
-        .from('daily_schedule_overrides')
-        .select('id')
-        .eq('trainer_id', trainerId)
-        .eq('date', dateStr)
-        .eq('is_working', false)
-        .maybeSingle()
+      const dayOfWeek = getDayOfWeek(dateStr)
+
+      // 1 RTT: 휴일 여부, 업무 오버라이드, 기본 스케줄을 병렬 조회
+      const [holidayResult, workOverrideResult, baseScheduleResult] = await Promise.allSettled([
+        // 휴일 확인 (daily_schedule_overrides에서 is_working=false인 레코드)
+        supabase
+          .from('daily_schedule_overrides')
+          .select('id')
+          .eq('trainer_id', trainerId)
+          .eq('date', dateStr)
+          .eq('is_working', false)
+          .maybeSingle(),
+        // 업무 오버라이드 확인 (daily_schedule_overrides에서 is_working=true인 레코드)
+        supabase
+          .from('daily_schedule_overrides')
+          .select('is_working, start_time, end_time')
+          .eq('trainer_id', trainerId)
+          .eq('date', dateStr)
+          .eq('is_working', true)
+          .maybeSingle(),
+        // 기본 스케줄 조회 (work_schedules)
+        supabase
+          .from('work_schedules')
+          .select('start_time, end_time, slot_duration_minutes')
+          .eq('trainer_id', trainerId)
+          .eq('day_of_week', dayOfWeek)
+          .eq('is_enabled', true)
+          .maybeSingle(),
+      ])
+
+      // 휴일이면 즉시 빈 슬롯 반환 (에러는 무시 — 기존 동작 유지)
+      const holidayData = holidayResult.status === 'fulfilled' ? holidayResult.value?.data : null
       if (holidayData) {
         noSlotsReason.value = 'holiday'
         slots.value = resetSlots()
         return slots.value
       }
 
-      const { data: workOverride, error: workOverrideError } = await supabase
-        .from('daily_schedule_overrides')
-        .select('is_working, start_time, end_time')
-        .eq('trainer_id', trainerId)
-        .eq('date', dateStr)
-        .eq('is_working', true)
-        .maybeSingle()
-
+      // 업무 오버라이드 결과 처리
+      if (workOverrideResult.status === 'rejected') {
+        throw workOverrideResult.reason
+      }
+      const { data: workOverride, error: workOverrideError } = workOverrideResult.value
       if (workOverrideError) throw workOverrideError
 
-      const dayOfWeek = getDayOfWeek(dateStr)
+      // 기본 스케줄 결과 처리
+      if (baseScheduleResult.status === 'rejected') {
+        throw baseScheduleResult.reason
+      }
+      const { data: baseSchedule, error: baseScheduleError } = baseScheduleResult.value
+      if (baseScheduleError) throw baseScheduleError
+
       let effectiveSchedule = null
 
       if (workOverride && workOverride.start_time && workOverride.end_time) {
-        const { data: baseSchedule, error: baseScheduleError } = await supabase
-          .from('work_schedules')
-          .select('slot_duration_minutes')
-          .eq('trainer_id', trainerId)
-          .eq('day_of_week', dayOfWeek)
-          .eq('is_enabled', true)
-          .maybeSingle()
-
-        if (baseScheduleError) throw baseScheduleError
-
+        // 오버라이드 시간 + 기본 스케줄의 슬롯 단위 조합
         effectiveSchedule = {
           start_time: workOverride.start_time,
           end_time: workOverride.end_time,
@@ -130,24 +148,14 @@ export function useReservations() {
       }
 
       if (!effectiveSchedule) {
-        const { data: schedule, error: scheduleError } = await supabase
-          .from('work_schedules')
-          .select('start_time, end_time, slot_duration_minutes')
-          .eq('trainer_id', trainerId)
-          .eq('day_of_week', dayOfWeek)
-          .eq('is_enabled', true)
-          .maybeSingle()
-
-        if (scheduleError) throw scheduleError
-
-        if (!schedule) {
+        if (!baseSchedule) {
           noSlotsReason.value = 'non-working-day'
           slotDuration.value = 60
           slots.value = resetSlots()
           return slots.value
         }
 
-        effectiveSchedule = schedule
+        effectiveSchedule = baseSchedule
       }
 
       const duration = effectiveSchedule.slot_duration_minutes ?? 60

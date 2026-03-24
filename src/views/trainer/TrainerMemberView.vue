@@ -226,7 +226,7 @@
 
     </template>
 
-    <div style="height: calc(var(--nav-height) + 32px);" />
+    <div class="nav-spacer--lg" />
     </AppPullToRefresh>
 
   </div>

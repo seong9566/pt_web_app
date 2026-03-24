@@ -13,7 +13,7 @@
       <!-- ── 로그인 프로필 카드 ── -->
       <section class="settings__profile">
         <div class="settings__profile-avatar">
-          <img v-if="auth.profile?.photo_url" :src="auth.profile.photo_url" alt="프로필" class="settings__profile-avatar-img" />
+          <img v-if="auth.profile?.photo_url" :src="auth.profile.photo_url" alt="프로필" class="settings__profile-avatar-img" loading="lazy" decoding="async" />
           <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
             <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -159,7 +159,7 @@
         <span class="settings__version">Version 1.0.0</span>
       </div>
 
-      <div style="height: calc(var(--nav-height) + 16px);" />
+      <div class="nav-spacer" />
 
     </div>
     </AppPullToRefresh>

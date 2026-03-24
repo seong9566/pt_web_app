@@ -39,6 +39,7 @@ const router = useRouter();
 <style scoped>
 .home {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-white);
