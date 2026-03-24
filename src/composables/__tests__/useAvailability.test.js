@@ -29,7 +29,7 @@ function createBuilder() {
 describe('useAvailability', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   describe('submitAvailability', () => {
@@ -46,7 +46,8 @@ describe('useAvailability', () => {
 
       const { submitAvailability } = useAvailability()
       const slots = { mon: ['morning'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
-      const result = await submitAvailability('trainer-id', '2026-03-17', slots, null)
+      // 미래 주 시작일 사용 (getCurrentWeekStart 과거 주 차단 방지)
+      const result = await submitAvailability('trainer-id', '2099-01-05', slots, null)
 
       expect(result).toBe(true)
       expect(mockEnv.supabase.from).toHaveBeenCalledWith('member_weekly_availability')
@@ -71,7 +72,7 @@ describe('useAvailability', () => {
 
       const { submitAvailability, error } = useAvailability()
       const slots = { mon: ['morning'], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] }
-      const result = await submitAvailability('trainer-id', '2026-03-17', slots, null)
+      const result = await submitAvailability('trainer-id', '2099-01-05', slots, null)
 
       expect(result).toBe(false)
       expect(error.value).toBeTruthy()
