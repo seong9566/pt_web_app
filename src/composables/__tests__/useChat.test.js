@@ -338,7 +338,7 @@ describe('useChat', () => {
     expect(query.eq).toHaveBeenNthCalledWith(3, 'is_read', false)
   })
 
-  it('subscribeToReadReceipts — 내가 보낸 메시지의 is_read가 true로 변경될 때 로컬 메시지를 업데이트한다', async () => {
+  it('subscribeToMessages 통합 채널 — 읽음 상태(UPDATE) 수신 시 로컬 메시지를 업데이트한다', async () => {
     // 1. sendMessage 모킹: messages에 미읽은 메시지 추가
     const sendQuery = createBuilder()
     sendQuery.single.mockResolvedValue({
@@ -347,44 +347,39 @@ describe('useChat', () => {
     })
     mockEnv.supabase.from.mockReturnValue(sendQuery)
 
-    // 2. channel 모킹 — on() 콜백 캡처
-    let capturedCallback = null
+    // 2. channel 모킹 — on() 콜백 캡처 (INSERT + UPDATE 두 번 호출됨)
+    const capturedCallbacks = []
     const mockChannel = {
       on: vi.fn((_type, _filter, cb) => {
-        capturedCallback = cb
+        capturedCallbacks.push({ filter: _filter, cb })
         return mockChannel
       }),
       subscribe: vi.fn(() => mockChannel),
     }
     mockEnv.supabase.channel.mockReturnValue(mockChannel)
 
-    const { sendMessage, messages, subscribeToReadReceipts } = useChat()
+    const { sendMessage, messages, subscribeToMessages } = useChat()
 
     // 3. 메시지 전송 → messages.value에 { id: 42, is_read: false } 추가
     await sendMessage('partner-1', '안녕')
     expect(messages.value).toHaveLength(1)
     expect(messages.value[0].is_read).toBe(false)
 
-    // 4. read receipt 구독 시작
-    subscribeToReadReceipts('partner-1')
+    // 4. 통합 채널 구독 시작 (INSERT + UPDATE 핸들러 등록)
+    subscribeToMessages('partner-1')
 
-    expect(mockEnv.supabase.channel).toHaveBeenCalledWith('read-receipts-partner-1-user-me')
-    expect(mockChannel.on).toHaveBeenCalledWith(
-      'postgres_changes',
-      expect.objectContaining({
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'messages',
-        filter: 'sender_id=eq.user-me',
-      }),
-      expect.any(Function)
-    )
+    expect(mockEnv.supabase.channel).toHaveBeenCalledWith('chat-room-partner-1-user-me')
+    expect(mockChannel.on).toHaveBeenCalledTimes(2) // INSERT + UPDATE
     expect(mockChannel.subscribe).toHaveBeenCalled()
 
-    // 5. 상대방이 읽음 처리 → 콜백 시뮬레이션
-    capturedCallback({ new: { id: 42, is_read: true } })
+    // 5. UPDATE 콜백 찾기 (읽음 상태 변경)
+    const updateHandler = capturedCallbacks.find(c => c.filter?.event === 'UPDATE')
+    expect(updateHandler).toBeTruthy()
 
-    // 6. 로컬 메시지 is_read 업데이트 확인
+    // 6. 상대방이 읽음 처리 → UPDATE 콜백 시뮬레이션
+    updateHandler.cb({ new: { id: 42, is_read: true } })
+
+    // 7. 로컬 메시지 is_read 업데이트 확인
     expect(messages.value[0].is_read).toBe(true)
   })
 

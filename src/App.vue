@@ -36,9 +36,11 @@ const keepAliveViews = [
   'TrainerScheduleView',
   'TrainerMemberView',
   'TrainerMemberDetailView',
+  'TrainerChatView',
   'MemberHomeView',
   'MemberScheduleView',
   'MemberSettingsView',
+  'MemberChatView',
 ]
 
 const tabPaths = new Set([

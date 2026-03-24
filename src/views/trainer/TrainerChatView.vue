@@ -55,7 +55,7 @@
         >
           <!-- 아바타 -->
           <div class="trainer-chat__avatar">
-            <img v-if="conv.partnerPhoto" :src="conv.partnerPhoto" :alt="conv.partnerName" />
+            <img v-if="conv.partnerPhoto" :src="conv.partnerPhoto" :alt="conv.partnerName" loading="lazy" decoding="async" />
             <span v-else class="trainer-chat__avatar-initial">{{ conv.partnerName?.[0] ?? '?' }}</span>
           </div>
 
@@ -76,7 +76,7 @@
       </div>
 
       <!-- 하단 네비 스페이서 -->
-      <div style="height: calc(var(--nav-height) + 16px);" />
+      <div class="nav-spacer" />
     </div>
 
     <!-- ══ 채팅방 패널 ══ -->
@@ -288,7 +288,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { safeBack } from '@/utils/navigation'
 import { isActiveConnection } from '@/composables/useConnection'
@@ -561,6 +561,7 @@ watch(error, (val) => {
   if (val) showError(val)
 })
 
+// ── 최초 마운트: 초기 데이터 로드 및 URL 파라미터로 채팅방 자동 진입 ──
 onMounted(async () => {
   await fetchConversations()
   subscribeToConversations()
@@ -588,6 +589,22 @@ onMounted(async () => {
   addMessageScrollListener()
 })
 
+// ── keep-alive 복귀: 대화 목록 새로고침 + Realtime 재구독 ──
+onActivated(async () => {
+  await fetchConversations()
+  subscribeToConversations()
+  if (selectedPartnerId.value) {
+    subscribeToMessages(selectedPartnerId.value)
+    subscribeToReadReceipts(selectedPartnerId.value)
+  }
+})
+
+// ── keep-alive 이탈: Realtime 채널 해제 (채널 누수 방지) ──
+onDeactivated(() => {
+  unsubscribe()
+})
+
+// ── 최종 언마운트 (keep-alive에서 완전히 제거될 때) ──
 onUnmounted(() => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   removeMessageScrollListener()
