@@ -15,10 +15,12 @@
 .member-chat__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 60px;
   padding: 0 var(--side-margin);
   border-bottom: 1px solid var(--color-gray-200);
   flex-shrink: 0;
+  gap: 12px;
 }
 
 .member-chat__title {
@@ -45,6 +47,71 @@
   padding: 48px var(--side-margin);
   color: var(--color-gray-600);
   font-size: var(--fs-body2);
+}
+
+/* 빈 상태 카피 */
+.member-chat__empty-title {
+  margin: 0;
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-900);
+}
+
+.member-chat__empty-desc {
+  margin: 0;
+  font-size: var(--fs-body2);
+  color: var(--color-gray-600);
+}
+
+/* 새 채팅 시작 버튼 (빈 상태) — 디자인 시스템 btn-height 준수 */
+.member-chat__start-btn {
+  margin-top: 16px;
+  height: var(--btn-height);
+  padding: 0 24px;
+  background-color: var(--color-blue-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-medium);
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  cursor: pointer;
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-default);
+}
+
+.member-chat__start-btn:active {
+  opacity: 0.8;
+}
+
+/* disabled 상태 스타일 */
+.member-chat__start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 헤더 새 채팅 버튼 — 44px 터치 타겟 */
+.member-chat__new-chat-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-blue-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.member-chat__new-chat-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 포커스 접근성 */
+.member-chat__start-btn:focus-visible,
+.member-chat__new-chat-btn:focus-visible {
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: -2px;
 }
 
 .member-chat__conversations {
