@@ -26,7 +26,7 @@
        <template v-else>
          <div v-for="trainer in trainers" :key="trainer.id" class="trainer-card">
            <div class="trainer-card__img">
-             <img v-if="trainer.photo_url" :src="trainer.photo_url" :alt="trainer.name" class="trainer-card__img-photo" />
+             <img v-if="trainer.photo_url" :src="trainer.photo_url" :alt="trainer.name" class="trainer-card__img-photo" loading="lazy" decoding="async" />
              <span v-else class="trainer-card__img-initial">{{ trainer.name[0] }}</span>
            </div>
            <div class="trainer-card__info">
@@ -56,7 +56,7 @@
      <div v-if="error" style="padding: 16px; margin: 16px; background-color: var(--color-red); color: var(--color-white); border-radius: var(--radius-medium); font-size: var(--fs-caption); text-align: center;">
        {{ error }}
      </div>
-    <div style="height: calc(var(--nav-height) + 16px);" />
+    <div class="nav-spacer" />
   </div>
 </template>
 <script setup>

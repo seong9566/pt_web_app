@@ -5,6 +5,7 @@
 /* ── Page shell ── */
 .manual-detail {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-white);
@@ -13,6 +14,7 @@
 /* ── Fallback (invalid ID) ── */
 .manual-detail__fallback {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -221,6 +223,7 @@
 /* ── Loading State ── */
 .manual-detail__loading {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: stretch;

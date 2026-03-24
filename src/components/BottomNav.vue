@@ -109,7 +109,8 @@ function isActive(item) {
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-max-width);
-  height: var(--nav-height);
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px); /* iPhone 홈 인디케이터 대응 */
   background-color: var(--color-white);
   border-top: 1px solid var(--color-gray-200);
   display: flex;

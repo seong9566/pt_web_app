@@ -136,7 +136,7 @@
               <div class="schedule-item__head">
                 <div class="schedule-item__member">
                   <div class="schedule-item__avatar">
-                    <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" />
+                    <img v-if="session.photo" :src="session.photo" :alt="session.partner_name" class="schedule-item__avatar-img" loading="lazy" decoding="async" />
                     <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
                       <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -169,7 +169,7 @@
         </template>
       </section>
 
-      <div style="height: calc(var(--nav-height) + 32px);" />
+      <div class="nav-spacer--lg" />
     </AppPullToRefresh>
 
     <AppBottomSheet v-model="showMemberSheet" title="회원 선택">
@@ -192,7 +192,7 @@
         >
           <div class="member-row__profile">
             <div class="member-row__avatar">
-              <img v-if="member.photo" :src="member.photo" :alt="member.name" class="member-row__avatar-img" />
+              <img v-if="member.photo" :src="member.photo" :alt="member.name" class="member-row__avatar-img" loading="lazy" decoding="async" />
               <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
                 <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -291,7 +291,7 @@
         <div class="cr-sheet__member-row">
           <div class="cr-sheet__member-left">
             <div class="cr-sheet__avatar">
-              <img v-if="selectedSchedule.partner_photo" :src="selectedSchedule.partner_photo" :alt="selectedSchedule.partner_name" class="cr-sheet__avatar-img" />
+              <img v-if="selectedSchedule.partner_photo" :src="selectedSchedule.partner_photo" :alt="selectedSchedule.partner_name" class="cr-sheet__avatar-img" loading="lazy" decoding="async" />
               <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6" />
                 <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />

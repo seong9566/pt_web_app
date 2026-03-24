@@ -134,7 +134,9 @@ onUnmounted(() => {
   border: none;
   color: var(--color-white);
   cursor: pointer;
-  padding: 8px;
+  padding: 10px;
+  min-width: 44px; /* Apple HIG 최소 터치 타겟 */
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;

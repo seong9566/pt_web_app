@@ -39,7 +39,7 @@
       </section>
       <section v-else-if="memberProfile" class="today-workout__profile">
         <div class="today-workout__profile-avatar">
-          <img v-if="memberProfile.photo" :src="memberProfile.photo" :alt="memberProfile.name" class="today-workout__profile-avatar-img" />
+          <img v-if="memberProfile.photo" :src="memberProfile.photo" :alt="memberProfile.name" class="today-workout__profile-avatar-img" loading="lazy" decoding="async" />
           <span v-else class="today-workout__profile-avatar-initial">{{ memberProfile.name.charAt(0) }}</span>
         </div>
         <div class="today-workout__profile-info">
@@ -267,7 +267,7 @@
         </div>
       </template>
 
-      <div style="height: calc(var(--nav-height) + 16px);" />
+      <div class="nav-spacer" />
     </div>
 
     <!-- 덮어쓰기 확인 바텀시트 -->

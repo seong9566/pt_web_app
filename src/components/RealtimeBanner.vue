@@ -35,7 +35,7 @@ function handleConfirm() {
   max-width: var(--app-max-width, 480px);
   background-color: var(--color-blue-primary);
   color: var(--color-white);
-  padding: 12px var(--side-margin, 20px);
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--side-margin, 20px) 12px; /* 노치/다이나믹 아일랜드 대응 */
   display: flex;
   align-items: center;
   gap: 12px;

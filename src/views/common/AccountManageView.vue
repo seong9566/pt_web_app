@@ -33,7 +33,7 @@
           <AppSkeleton type="rect" height="52px" borderRadius="var(--radius-medium)" :count="3" />
         </section>
 
-        <div style="height: calc(var(--nav-height) + 16px);" />
+        <div class="nav-spacer" />
       </template>
 
       <template v-else>
@@ -123,7 +123,7 @@
           </button>
         </section>
 
-        <div style="height: calc(var(--nav-height) + 16px);" />
+        <div class="nav-spacer" />
       </template>
     </div>
   </div>

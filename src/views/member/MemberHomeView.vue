@@ -73,7 +73,7 @@
 
           <div class="member-home__pt-trainer">
             <div class="member-home__pt-trainer-avatar">
-              <img v-if="nextSession.trainerPhoto" :src="nextSession.trainerPhoto" alt="trainer" class="member-home__pt-trainer-avatar-img" />
+              <img v-if="nextSession.trainerPhoto" :src="nextSession.trainerPhoto" alt="trainer" class="member-home__pt-trainer-avatar-img" loading="lazy" decoding="async" />
               <span v-else class="member-home__pt-trainer-avatar-initial">{{ nextSession.trainer[0] }}</span>
             </div>
             <span>{{ nextSession.trainer }} 담당</span>
@@ -175,7 +175,7 @@
         </div>
       </section> -->
 
-      <div style="height: calc(var(--nav-height) + 16px);" />
+      <div class="nav-spacer" />
 
       </template>
     </div>
