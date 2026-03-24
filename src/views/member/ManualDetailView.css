@@ -438,9 +438,18 @@
   flex-shrink: 0;
 }
 
-.manual-detail__trainer-avatar--placeholder {
+.manual-detail__trainer-avatar-initial {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background-color: var(--color-gray-100);
-  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--fs-body2);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
 }
 
 .manual-detail__trainer-name {
