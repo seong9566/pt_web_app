@@ -144,7 +144,7 @@ import { useToast } from '@/composables/useToast'
 import { useReservationsStore } from '@/stores/reservations'
 import { usePtSessionsStore } from '@/stores/ptSessions'
 import { useChatBadgeStore } from '@/stores/chatBadge'
-import personIcon from '@/assets/icons/person.svg'
+import personIcon from '@/assets/icons/user.png'
 import { isValidPhone, formatPhone, isValidAge, isValidHeight, isValidWeight } from '@/utils/validators'
 const router = useRouter();
 const route = useRoute();
