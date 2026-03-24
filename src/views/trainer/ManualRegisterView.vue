@@ -87,7 +87,7 @@
             :key="'existing-' + item.id"
             class="manual-reg__media-thumb"
           >
-            <img v-if="item.file_type?.startsWith('image/')" :src="item.file_url" :alt="'media-' + idx" />
+            <img v-if="item.file_type?.startsWith('image/')" :src="item.file_url" :alt="'media-' + idx" loading="lazy" decoding="async" />
             <video v-else :src="item.file_url" />
             <div v-if="!item.file_type?.startsWith('image/')" class="manual-reg__media-video-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -108,7 +108,7 @@
             :key="'new-' + idx"
             class="manual-reg__media-thumb"
           >
-            <img v-if="file.isImage" :src="file.url" :alt="file.name" />
+            <img v-if="file.isImage" :src="file.url" :alt="file.name" loading="lazy" decoding="async" />
             <video v-else :src="file.url" />
             <div v-if="!file.isImage" class="manual-reg__media-video-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
