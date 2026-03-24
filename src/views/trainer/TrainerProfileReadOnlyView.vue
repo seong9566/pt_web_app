@@ -24,12 +24,12 @@
       <div class="trainer-profile-ro__profile-wrap">
         <div class="trainer-profile-ro__photo">
           <img
-            :src="auth.profile?.photo_url || personIcon"
+            v-if="auth.profile?.photo_url"
+            :src="auth.profile.photo_url"
             alt="프로필 사진"
-            :style="auth.profile?.photo_url
-              ? { width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }
-              : { width: '40px', height: '40px' }"
+            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%"
           />
+          <span v-else class="trainer-profile-ro__photo-initial">{{ (auth.profile?.name || '트')[0] }}</span>
         </div>
         <div class="trainer-profile-ro__name-wrap">
           <p class="trainer-profile-ro__name">{{ auth.profile?.name || '이름 없음' }}</p>
@@ -71,7 +71,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { safeBack } from '@/utils/navigation'
 import { useAuthStore } from '@/stores/auth'
 import { useMembers } from '@/composables/useMembers'
-import personIcon from '@/assets/icons/person.svg'
+
 
 const router = useRouter()
 const route = useRoute()

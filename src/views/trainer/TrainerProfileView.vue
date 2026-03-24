@@ -20,7 +20,7 @@
       </div>
       <div class="trainer-profile__photo-wrap">
         <div class="trainer-profile__photo">
-          <img src="@/assets/icons/person.svg" alt="photo" width="32" height="32" />
+          <img src="@/assets/icons/user.png" alt="photo" width="32" height="32" />
           <span class="trainer-profile__photo-label">사진 등록</span>
         </div>
         <button class="trainer-profile__photo-edit">
