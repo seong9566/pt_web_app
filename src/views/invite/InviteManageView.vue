@@ -68,13 +68,7 @@
                   alt="member"
                   class="member-item__avatar-img"
                 />
-                <img
-                  v-else
-                  :src="personIcon"
-                  alt="member"
-                  width="24"
-                  height="24"
-                />
+                <span v-else class="member-item__avatar-initial">{{ (member.profiles?.name || '회')[0] }}</span>
               </div>
               <div class="member-item__info">
                 <p class="member-item__name">{{ member.profiles?.name || '알 수 없음' }} 회원님</p>
@@ -99,7 +93,7 @@ import { safeBack } from '@/utils/navigation'
 import { useInvite } from '@/composables/useInvite'
 import { useToast } from '@/composables/useToast'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import personIcon from '@/assets/icons/person.svg'
+
 
 const router = useRouter()
 const route = useRoute()
