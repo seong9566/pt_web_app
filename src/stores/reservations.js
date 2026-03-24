@@ -11,6 +11,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { triggerAutoComplete } from '@/composables/useAutoComplete'
 
 /** HH:MM:SS → HH:MM 형식으로 변환 */
 function trimSeconds(timeStr) {
@@ -62,6 +63,9 @@ export const useReservationsStore = defineStore('reservations', () => {
 
     const auth = useAuthStore()
     if (!auth.user?.id) return
+
+    // pg_cron 미작동 시 폴백: 종료 시간 지난 예약 자동 완료 (1분 쓰로틀)
+    triggerAutoComplete()
 
     const filterColumn = role === 'trainer' ? 'trainer_id' : 'member_id'
 

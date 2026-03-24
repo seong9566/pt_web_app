@@ -19,6 +19,17 @@
       <!-- 헤더 -->
       <div class="member-chat__header">
         <h1 class="member-chat__title">채팅</h1>
+        <button
+          v-if="connectedTrainer && !hasConversationWithTrainer"
+          class="member-chat__new-chat-btn press-effect"
+          :disabled="startingChat"
+          aria-label="새 채팅 시작"
+          @click="startNewChat"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
 
       <!-- 로딩 -->
@@ -34,7 +45,19 @@
             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
           />
         </svg>
-        <p>대화 내역이 없습니다</p>
+        <p class="member-chat__empty-title">아직 대화가 없어요</p>
+        <p v-if="connectedTrainer" class="member-chat__empty-desc">
+          {{ connectedTrainer.name }} 트레이너에게 첫 메시지를 보내보세요
+        </p>
+        <button
+          v-if="connectedTrainer"
+          class="member-chat__start-btn press-effect"
+          :disabled="startingChat"
+          @click="startNewChat"
+        >
+          <template v-if="startingChat">연결 중...</template>
+          <template v-else>메시지 보내기</template>
+        </button>
       </div>
 
       <!-- 대화 목록 -->
@@ -282,11 +305,12 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useChat } from '@/composables/useChat'
-import { useReservations } from '@/composables/useReservations'
+
 import { useToast } from '@/composables/useToast'
+import { getConnectedTrainerProfile } from '@/composables/useConnection'
 import AppSkeleton from '@/components/AppSkeleton.vue'
 import AppImageViewer from '@/components/AppImageViewer.vue'
 import AppVideoViewer from '@/components/AppVideoViewer.vue'
@@ -315,7 +339,6 @@ const {
 } = useChat()
 
 const { showToast, showError, showSuccess } = useToast()
-const { checkTrainerConnection } = useReservations()
 
 const selectedPartnerId = ref(null)
 const partnerName = ref('')
@@ -326,6 +349,9 @@ const showFileMenu = ref(false)
 const fileAccept = ref('')
 const pendingFiles = ref([])
 const hasActiveConnection = ref(null)
+const connectedTrainer = ref(null)  // { id, name, photo_url }
+// 채팅 시작 중 로딩 상태
+const startingChat = ref(false)
 const loadingOlder = ref(false)
 const skipAutoScroll = ref(false)
 const showImageViewer = ref(false)
@@ -335,6 +361,12 @@ const viewerVideoSrc = ref('')
 const isSearchMode = ref(false)
 const searchQuery = ref('')
 let searchDebounceTimer = null
+
+// 연결된 트레이너와 이미 대화가 존재하는지 여부
+const hasConversationWithTrainer = computed(() => {
+  if (!connectedTrainer.value) return false
+  return conversations.value.some(c => c.partnerId === connectedTrainer.value.id)
+})
 
 function openImageViewer(src) {
   viewerImageSrc.value = src
@@ -383,6 +415,33 @@ async function openChat(conv) {
   subscribeToMessages(conv.partnerId)
   subscribeToReadReceipts(conv.partnerId)
   scrollToBottom()
+}
+
+// 새 채팅 시작 — 연결된 트레이너와 대화 열기
+async function startNewChat() {
+  if (!connectedTrainer.value || startingChat.value) return
+
+  const existing = conversations.value.find(
+    c => c.partnerId === connectedTrainer.value.id
+  )
+
+  if (existing) {
+    await openChat(existing)
+    return
+  }
+
+  // 새 채팅방 열기
+  startingChat.value = true
+  try {
+    partnerName.value = connectedTrainer.value.name ?? '트레이너'
+    selectedPartnerId.value = connectedTrainer.value.id
+    await fetchMessages(connectedTrainer.value.id)
+    subscribeToMessages(connectedTrainer.value.id)
+    subscribeToReadReceipts(connectedTrainer.value.id)
+    scrollToBottom()
+  } finally {
+    startingChat.value = false
+  }
 }
 
 function openSearchMode() {
@@ -533,11 +592,18 @@ watch(error, (val) => {
   if (val) showError(val)
 })
 
+// fetchConversations와 트레이너 프로필 조회를 병렬 실행
+// checkTrainerConnection 제거 — 연결 여부는 !!trainerProfile로 파생
 onMounted(async () => {
-  const connected = await checkTrainerConnection()
-  hasActiveConnection.value = connected
-  if (!connected) return
-  fetchConversations()
+  const [_, trainerProfile] = await Promise.all([
+    fetchConversations(),
+    getConnectedTrainerProfile(auth.user?.id).catch(() => null),
+  ])
+  connectedTrainer.value = trainerProfile
+  hasActiveConnection.value = !!trainerProfile
+
+  if (!trainerProfile) return  // 미연결 시 조기 종료
+
   subscribeToConversations()
   addMessageScrollListener()
 })

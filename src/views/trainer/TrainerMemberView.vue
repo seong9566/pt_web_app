@@ -93,12 +93,12 @@
           <h2 class="member-list-section__title">
             회원 목록 <span class="member-list-section__count">{{ filteredMembers.length }}</span>
           </h2>
-          <button class="member-list-section__sort press-effect">
+          <!-- <button class="member-list-section__sort press-effect">
             최신순
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M3 6h18M7 12h10M11 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-          </button>
+          </button> -->
         </div>
 
         <div class="member-list">

@@ -521,11 +521,20 @@
   }
 }
 
-.trainer-home__avatar img.trainer-home__default-avatar,
-.trainer-home__schedule-avatar img.trainer-home__default-avatar,
-.trainer-home__message-avatar img.trainer-home__default-avatar {
-  width: 55%;
-  height: 55%;
-  object-fit: contain;
-  opacity: 0.8;
+.trainer-home__avatar-initial {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-500);
+}
+
+.trainer-home__schedule-avatar-initial {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+}
+
+.trainer-home__message-avatar-initial {
+  font-size: var(--fs-body1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
 }

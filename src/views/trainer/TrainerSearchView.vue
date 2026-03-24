@@ -26,7 +26,8 @@
        <template v-else>
          <div v-for="trainer in trainers" :key="trainer.id" class="trainer-card">
            <div class="trainer-card__img">
-             <img src="@/assets/icons/person.svg" alt="avatar" width="32" height="32" />
+             <img v-if="trainer.photo_url" :src="trainer.photo_url" :alt="trainer.name" class="trainer-card__img-photo" />
+             <span v-else class="trainer-card__img-initial">{{ trainer.name[0] }}</span>
            </div>
            <div class="trainer-card__info">
              <p class="trainer-card__name">{{ trainer.name }}</p>

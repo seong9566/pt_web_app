@@ -104,7 +104,7 @@ import { useToast } from '@/composables/useToast'
 import { isValidPhone, formatPhone } from '@/utils/validators'
 import AppInput from '@/components/AppInput.vue'
 import AppButton from '@/components/AppButton.vue'
-import personIcon from '@/assets/icons/person.svg'
+import personIcon from '@/assets/icons/user.png'
 
 const router = useRouter()
 const route = useRoute()

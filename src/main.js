@@ -10,6 +10,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from '@/stores/auth'
+import { preloadAllTabData } from '@/composables/usePreload'
 import './assets/css/global.css'
 
 const app = createApp(App)
@@ -22,6 +23,10 @@ const auth = useAuthStore(pinia) // Pinia 인스턴스를 직접 전달하여 se
 
 ;(async () => {
   await auth.initialize() // 세션 복원 완료 후 마운트 — 레이스 컨디션 방지
+
+  // 모든 탭 데이터를 백그라운드로 프리로드 (라우터 대기 차단 없음)
+  preloadAllTabData().catch(() => {})
+
   await router.isReady() // 라우터 초기 네비게이션 완료 대기 - 새로고침 시 화면 하얗게 되는 현상 방지
   app.mount('#app')
 })()

@@ -76,6 +76,12 @@
   flex-shrink: 0;
 }
 
+.trainer-profile-ro__photo-initial {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-body1-bold);
+  color: var(--color-gray-600);
+}
+
 .trainer-profile-ro__name-wrap {
   display: flex;
   flex-direction: column;

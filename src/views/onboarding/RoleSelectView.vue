@@ -35,7 +35,7 @@
         </button>
         <button class="role-card" :class="{ 'role-card--selected': selectedRole === 'member' }" @click="selectedRole = 'member'">
           <div class="role-card__icon-wrap">
-            <img src="@/assets/icons/person.svg" alt="member icon" width="28" height="28" />
+            <img src="@/assets/icons/user.png" alt="member icon" width="28" height="28" />
           </div>
           <div class="role-card__text">
             <span class="role-card__name">회원 (일반 사용자용)</span>

@@ -5,11 +5,8 @@
     <div class="member-home__header">
       <div class="member-home__header-left">
         <div class="member-home__avatar">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
+          <img v-if="auth.profile?.photo_url" :src="auth.profile.photo_url" :alt="userName" class="member-home__avatar-img" />
+          <span v-else class="member-home__avatar-initial">{{ userName[0] }}</span>
         </div>
         <div class="member-home__greeting">
           <span class="member-home__greeting-sub">환영합니다,</span>
@@ -55,7 +52,7 @@
 
       <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 0 }">
         <div class="member-home__section-row">
-          <h2 class="member-home__section-title">다음 PT 일정</h2>
+          <h2 class="member-home__section-title">가까운 PT 일정</h2>
           <button class="member-home__see-all press-effect" @click="handleSeeAll">전체보기</button>
         </div>
 
@@ -77,11 +74,7 @@
           <div class="member-home__pt-trainer">
             <div class="member-home__pt-trainer-avatar">
               <img v-if="nextSession.trainerPhoto" :src="nextSession.trainerPhoto" alt="trainer" class="member-home__pt-trainer-avatar-img" />
-              <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
-                <path d="M4 20C4 17.2386 7.58172 15 12 15C16.4183 15 20 17.2386 20 20"
-                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-              </svg>
+              <span v-else class="member-home__pt-trainer-avatar-initial">{{ nextSession.trainer[0] }}</span>
             </div>
             <span>{{ nextSession.trainer }} 담당</span>
           </div>
@@ -90,14 +83,14 @@
       </section>
 
       <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 1 }">
-        <div class="member-home__section-row">
+        <!-- <div class="member-home__section-row">
           <h2 class="member-home__section-title">다음 예정 운동</h2>
           <button
             v-if="displayExercises.length > 0"
             class="member-home__see-all press-effect"
             @click="goWorkoutDetail"
           >전체보기</button>
-        </div>
+        </div> -->
 
         <div v-if="workoutLoading" class="member-home__workout-stub">
           <AppSkeleton type="rect" width="100%" height="80px" :count="2" />
@@ -146,7 +139,7 @@
         </template>
       </section>
 
-      <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 2 }">
+      <!-- <section class="member-home__section stagger-fade-in" :style="{ '--stagger-index': 2 }">
         <div class="member-home__goal-card">
           <div class="member-home__goal-left">
             <span class="member-home__goal-badge">이번 주 목표</span>
@@ -180,7 +173,7 @@
             <span class="member-home__goal-pct">{{ weekGoal.pct }}%</span>
           </div>
         </div>
-      </section>
+      </section> -->
 
       <div style="height: calc(var(--nav-height) + 16px);" />
 

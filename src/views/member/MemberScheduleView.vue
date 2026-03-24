@@ -472,7 +472,7 @@ const reservationItems = computed(() => {
       start_time: reservation.start_time,
       end_time: reservation.end_time,
       status: reservation.status,
-      session_type: reservation.session_type || 'PT',
+      session_type: reservation.session_type || '',
       requested_date: reservation.requested_date ?? null,
       requested_start_time: reservation.requested_start_time ?? null,
       requested_end_time: reservation.requested_end_time ?? null,

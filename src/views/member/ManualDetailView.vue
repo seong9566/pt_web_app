@@ -83,12 +83,7 @@
             :alt="manual.trainer?.name"
             class="manual-detail__trainer-avatar"
           />
-          <img
-            v-else
-            :src="personIcon"
-            alt="트레이너"
-            class="manual-detail__trainer-avatar manual-detail__trainer-avatar--placeholder"
-          />
+          <span v-else class="manual-detail__trainer-avatar-initial">{{ (manual.trainer?.name || '트')[0] }}</span>
           <span class="manual-detail__trainer-name">{{ manual.trainer?.name || '-' }}</span>
         </div>
 
@@ -181,7 +176,7 @@ import { useAuthStore } from '@/stores/auth'
 import { extractYoutubeVideoId } from '@/utils/youtube'
 import AppBottomSheet from '@/components/AppBottomSheet.vue'
 import AppSkeleton from '@/components/AppSkeleton.vue'
-import personIcon from '@/assets/icons/person.svg'
+
 
 const router = useRouter()
 const route = useRoute()
