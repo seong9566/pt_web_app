@@ -1286,7 +1286,7 @@ execute function public.auto_deduct_pt_session();
 -- DROP FUNCTION IF EXISTS public.auto_reject_competing_reservations();
 -- DROP FUNCTION IF EXISTS public.auto_reject_on_override();
 
--- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 scheduled 예약을 completed로 변경
+-- T12: 예약 자동 완료 (pg_cron) — 종료 시간이 지난 scheduled/confirmed 예약을 completed로 변경
 create extension if not exists pg_cron with schema pg_catalog;
 
 create or replace function public.auto_complete_past_reservations()
@@ -1298,22 +1298,16 @@ as $$
 begin
   update public.reservations
   set status = 'completed', updated_at = now()
-  where status = 'scheduled'
-    and (date + end_time)::timestamptz < now();
+  where status in ('scheduled', 'confirmed')
+    and ((date + end_time) AT TIME ZONE 'Asia/Seoul') < now();
 end;
 $$;
 
-create or replace function public.fn_auto_complete_reservations()
-returns void
-language plpgsql
-as $$
-begin
-  update public.reservations
-  set status = 'completed', updated_at = now()
-  where status = 'scheduled'
-    and (date + end_time)::timestamptz < now();
-end;
-$$;
+-- 중복 함수 삭제 (auto_complete_past_reservations과 동일 로직이었음)
+drop function if exists public.fn_auto_complete_reservations();
+
+-- 클라이언트 RPC 호출 권한 (pg_cron 미작동 시 폴백용)
+grant execute on function public.auto_complete_past_reservations() to authenticated;
 
 create or replace function public.purge_deleted_accounts()
 returns void
