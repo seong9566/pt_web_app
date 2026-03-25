@@ -97,6 +97,16 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
     return entry ? entry.category : null
   }
 
+  /** _dayPlansCache에서 reservation_id로 운동 계획 조회 (캐시 히트 전용) */
+  function getPlanByReservationId(reservationId) {
+    if (!reservationId) return null
+    for (const entry of _dayPlansCache.value.values()) {
+      const plan = entry.data?.find((p) => p.reservation_id === reservationId)
+      if (plan) return plan
+    }
+    return null
+  }
+
   function invalidate() {
     _dirty.value = true
   }
@@ -111,6 +121,7 @@ export const useWorkoutPlansStore = defineStore('workoutPlans', () => {
     loadDayWorkoutPlans,
     loadWeeklyWorkoutCategories,
     getWeeklyCategory,
+    getPlanByReservationId,
     invalidate,
     $reset,
   }

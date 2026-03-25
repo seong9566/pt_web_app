@@ -29,6 +29,12 @@ export function useWorkoutPlans() {
    */
   async function fetchWorkoutPlan(reservationId) {
     if (!reservationId) return
+    // 스토어 캐시 우선 조회 (프리페치된 데이터 활용)
+    const cached = useWorkoutPlansStore().getPlanByReservationId(reservationId)
+    if (cached) {
+      currentPlan.value = cached
+      return
+    }
     loading.value = true
     error.value = null
     try {

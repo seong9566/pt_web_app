@@ -70,6 +70,20 @@ export function usePtSessions() {
     return result
   }
 
+  /** 예약 목록에서 고유 member-trainer 쌍을 추출하여 잔여 횟수 배치 프리페치 */
+  async function prefetchRemainingForReservations(reservations) {
+    const seen = new Set()
+    const pairs = []
+    for (const r of reservations) {
+      if (!r.member_id || !r.trainer_id) continue
+      const key = `${r.member_id}_${r.trainer_id}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      pairs.push({ memberId: r.member_id, trainerId: r.trainer_id })
+    }
+    await ptSessionsStore.loadRemainingBatch(pairs)
+  }
+
   /** PT 횟수 추가 (양수) — sessionDate: YYYY-MM-DD (선택) */
   async function addSessions(memberId, amount, reason = '횟수 추가', sessionDate = null) {
     if (!amount || amount <= 0) {
@@ -182,6 +196,7 @@ export function usePtSessions() {
     fetchPtHistory,
     getRemainingCount,
     fetchRemainingByPair,
+    prefetchRemainingForReservations,
     addSessions,
     deductSessions,
     updatePtSession,

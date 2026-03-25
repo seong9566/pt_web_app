@@ -79,6 +79,45 @@ export const usePtSessionsStore = defineStore('ptSessions', () => {
     return data || []
   }
 
+  /**
+   * 여러 member-trainer 쌍의 잔여 PT 횟수를 단일 쿼리로 프리페치
+   * @param {Array<{memberId: string, trainerId: string}>} pairs
+   */
+  async function loadRemainingBatch(pairs) {
+    if (!pairs || pairs.length === 0) return
+
+    // 캐시에 없는 쌍만 필터
+    const stale = pairs.filter((p) => _isStale(`remaining_${p.memberId}_${p.trainerId}`))
+    if (stale.length === 0) return
+
+    const memberIds = [...new Set(stale.map((p) => p.memberId))]
+    const trainerIds = [...new Set(stale.map((p) => p.trainerId))]
+
+    const { data, error } = await supabase
+      .from('pt_sessions')
+      .select('member_id, trainer_id, change_amount')
+      .in('member_id', memberIds)
+      .in('trainer_id', trainerIds)
+
+    if (error || !data) return
+
+    const now = Date.now()
+    // 쌍별로 합산하여 캐시에 저장
+    const sumMap = new Map()
+    for (const row of data) {
+      const key = `remaining_${row.member_id}_${row.trainer_id}`
+      sumMap.set(key, (sumMap.get(key) || 0) + row.change_amount)
+    }
+
+    // 조회 대상 모든 쌍에 대해 캐시 설정 (데이터 없는 쌍도 0으로)
+    for (const p of stale) {
+      const key = `remaining_${p.memberId}_${p.trainerId}`
+      const remaining = Math.max(0, sumMap.get(key) || 0)
+      _cache.value.set(key, { data: remaining, lastFetchedAt: now })
+    }
+    _dirty.value = false
+  }
+
   function invalidate() {
     _dirty.value = true
   }
@@ -93,6 +132,7 @@ export const usePtSessionsStore = defineStore('ptSessions', () => {
     _dirty,
     loadPtHistory,
     loadRemainingByPair,
+    loadRemainingBatch,
     loadMemberOwnPtCount,
     invalidate,
     $reset,

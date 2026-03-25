@@ -1,5 +1,5 @@
 <template>
-  <div class="trainer-schedule">
+  <div class="trainer-schedule" :class="{ 'trainer-schedule--contained': currentView === 'weekly' }">
     <AppPullToRefresh @refresh="handleRefresh">
       <div class="schedule-appbar">
         <h1 class="schedule-appbar__title">일정 관리</h1>
@@ -370,6 +370,7 @@ import { useWorkHoursStore } from '@/stores/workHours'
 import { useScheduleOverridesStore } from '@/stores/scheduleOverrides'
 import { useAvailabilityStore } from '@/stores/availability'
 import { useWorkoutPlansStore } from '@/stores/workoutPlans'
+import { usePtSessionsStore } from '@/stores/ptSessions'
 import { resolveAvailabilityState } from '@/utils/availability'
 import { detectConflicts } from '@/utils/conflictDetection'
 
@@ -503,7 +504,7 @@ const { days: workDays, selectedUnit, fetchWorkHours, fetchWorkingDays } = useWo
 const { overrides, fetchOverrides } = useScheduleOverrides()
 const { fetchMemberAvailabilities } = useAvailability()
 const { members, fetchMembers } = useMembers()
-const { fetchRemainingByPair } = usePtSessions()
+const { fetchRemainingByPair, prefetchRemainingForReservations } = usePtSessions()
 const { dayWorkoutPlans, fetchDayWorkoutPlans, fetchWorkoutPlan, currentPlan, loadWeeklyWorkoutCategories, getWeeklyCategory } = useWorkoutPlans()
 
 const todayStr = formatDate(new Date())
@@ -802,6 +803,9 @@ async function loadData() {
   }
 
   loaded.value = true
+
+  // 일정 상세 데이터 프리페치 (백그라운드, UI 블로킹 없음)
+  prefetchRemainingForReservations(reservations.value)
 }
 
 async function handleRefresh() {
@@ -963,46 +967,66 @@ async function openScheduleDetail(scheduleId) {
   detailCategory.value = ''
   selectedScheduleRemainingSessions.value = null
 
-  if (selectedSchedule.value) {
-    // 비동기 데이터를 먼저 로딩하여 바텀시트 열 때 레이아웃 시프트 방지
-    detailLoading.value = true
+  if (!selectedSchedule.value) return
 
-    // 현재 요청 ID를 캡처하여 비동기 완료 후 비교 (race condition 방지)
-    const capturedId = scheduleId
+  const capturedId = scheduleId
 
-    if (capturedId) {
-      let remaining = null
-      const tasks = [fetchWorkoutPlan(capturedId)]
-      if (selectedSchedule.value.member_id && selectedSchedule.value.trainer_id) {
-        tasks.push(
-          fetchRemainingByPair(selectedSchedule.value.member_id, selectedSchedule.value.trainer_id)
-            .then((value) => {
-              remaining = value
-            })
-        )
-      }
+  // 캐시에서 데이터를 먼저 확인 (프리페치된 경우 즉시 오픈)
+  const cachedPlan = useWorkoutPlansStore().getPlanByReservationId(capturedId)
+  const ptStore = usePtSessionsStore()
+  const remainingKey = `remaining_${selectedSchedule.value.member_id}_${selectedSchedule.value.trainer_id}`
+  const cachedRemaining = ptStore._cache.get(remainingKey)
+  const allCached = cachedPlan !== undefined && cachedRemaining
 
-      await Promise.all(tasks)
+  if (allCached) {
+    // 캐시 히트 — 즉시 바텀시트 열기
+    detailExercises.value = cachedPlan?.exercises ?? []
+    detailCategory.value = cachedPlan?.category || ''
+    selectedScheduleRemainingSessions.value = typeof cachedRemaining?.data === 'number' ? cachedRemaining.data : null
 
-      // 비동기 작업 중 다른 일정이 선택된 경우 무시
-      if (selectedSchedule.value?.id !== capturedId) {
-        detailLoading.value = false
-        return
-      }
-
-      detailExercises.value = currentPlan.value?.exercises ?? []
-      detailCategory.value = currentPlan.value?.category || ''
-      selectedScheduleRemainingSessions.value = typeof remaining === 'number' ? remaining : null
-    }
-
-    detailLoading.value = false
-
-    // 모든 데이터 준비 완료 후 바텀시트 열기
     if (selectedSchedule.value.status === 'change_requested') {
       showChangeRequestSheet.value = true
     } else {
       showDetailSheet.value = true
     }
+    return
+  }
+
+  // 캐시 미스 — 기존 비동기 로딩 플로우
+  detailLoading.value = true
+
+  if (capturedId) {
+    let remaining = null
+    const tasks = [fetchWorkoutPlan(capturedId)]
+    if (selectedSchedule.value.member_id && selectedSchedule.value.trainer_id) {
+      tasks.push(
+        fetchRemainingByPair(selectedSchedule.value.member_id, selectedSchedule.value.trainer_id)
+          .then((value) => {
+            remaining = value
+          })
+      )
+    }
+
+    await Promise.all(tasks)
+
+    // 비동기 작업 중 다른 일정이 선택된 경우 무시
+    if (selectedSchedule.value?.id !== capturedId) {
+      detailLoading.value = false
+      return
+    }
+
+    detailExercises.value = currentPlan.value?.exercises ?? []
+    detailCategory.value = currentPlan.value?.category || ''
+    selectedScheduleRemainingSessions.value = typeof remaining === 'number' ? remaining : null
+  }
+
+  detailLoading.value = false
+
+  // 모든 데이터 준비 완료 후 바텀시트 열기
+  if (selectedSchedule.value.status === 'change_requested') {
+    showChangeRequestSheet.value = true
+  } else {
+    showDetailSheet.value = true
   }
 }
 
