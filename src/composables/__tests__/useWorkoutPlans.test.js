@@ -20,6 +20,7 @@ vi.mock('@/stores/workoutPlans', () => ({
   useWorkoutPlansStore: () => ({
     invalidate: vi.fn(),
     loadDayWorkoutPlans: vi.fn().mockResolvedValue([]),
+    getPlanByReservationId: vi.fn().mockReturnValue(null),
   }),
 }))
 
