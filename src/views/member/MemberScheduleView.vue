@@ -1,5 +1,5 @@
 <template>
-  <div class="member-schedule">
+  <div class="member-schedule" :class="{ 'member-schedule--contained': currentView === 'weekly' }">
     <AppPullToRefresh @refresh="handleRefresh">
       <header class="member-schedule__appbar">
         <h1 class="member-schedule__title">내 일정</h1>

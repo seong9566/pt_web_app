@@ -8,6 +8,11 @@
     var(--color-gray-100);
 }
 
+/* 주간 뷰: 캘린더가 자연 높이만큼 펼쳐지고 페이지 스크롤 */
+.trainer-schedule--contained {
+  /* 뷰포트 가두기 해제 — 캘린더 높이를 따라 페이지가 스크롤 */
+}
+
 .error-message {
   margin: 12px var(--side-margin);
   padding: 12px 14px;

@@ -8,6 +8,22 @@
   position: relative;
 }
 
+/* 주간 뷰: 뷰포트 안에 캘린더를 가두고 내부 스크롤만 허용 */
+.member-schedule--contained {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.member-schedule--contained > .app-pull-to-refresh {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .member-schedule__appbar {
   display: flex;
   align-items: center;
@@ -89,6 +105,11 @@
 
 .member-schedule__weekly {
   margin: 14px 0 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .member-schedule__weekly-hint {

@@ -29,7 +29,8 @@
 
 .weekly-calendar__grid-wrapper {
   position: relative;
-  overflow-x: auto;
+  overflow-x: clip;
+  overflow-y: visible;
   border-top: 1px solid var(--color-gray-200);
   border-bottom: 1px solid var(--color-gray-200);
   border-radius: 0;
